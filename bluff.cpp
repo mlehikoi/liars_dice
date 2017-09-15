@@ -1,4 +1,5 @@
 #include "crow.h"
+//#include "crow_all.h"
 
 #include <string>
 #include <sstream>
@@ -52,5 +53,6 @@ int main()
         return ss.str();
     });
 
-    app.port(18080).multithreaded().run();
+    //app.port(18080).multithreaded().run();
+    app.port(18080).run();
 }
