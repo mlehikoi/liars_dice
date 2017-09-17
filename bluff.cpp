@@ -1,4 +1,4 @@
-#include "crow.h"
+//#include "crow.h"
 //#include "crow_all.h"
 
 #include <string>
@@ -7,6 +7,11 @@
 #include <boost/uuid/uuid.hpp>            // uuid class
 #include <boost/uuid/uuid_generators.hpp> // generators
 #include <boost/uuid/uuid_io.hpp>         // streaming operators etc.
+
+#include "helpers.hpp"
+
+using namespace std;
+using namespace bluff;
 
 class Games
 {
@@ -53,6 +58,15 @@ int main()
         return ss.str();
     });
 
+    CROW_ROUTE(app, "/<string>")(
+        [](std::string path)
+    {
+        auto data = slurp("../static/"s + path);
+        crow::response r{data};
+        r.add_header("Content-Type", getContentType(data));
+        return r;
+    });
+    
     //app.port(18080).multithreaded().run();
     app.port(18080).run();
 }
