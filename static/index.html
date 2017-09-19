@@ -1,7 +1,69 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Liar's dice</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
 <body>
-    Hello world
-    <img src="dice.png" alt="Dice">
-    <img src="One-red-dice-01.jpg" alt="One dice">
+  
+<div class="container">
+    <h1>Liar's dice</h1>
+    <div id="Login">
+        <p>
+            Provide a user name so other's know who they're playing with.
+            If the user name is already taken, you'll be provided an alternative name.
+        </p>
+        <form>
+            <div class="form-group">
+                <label for="userName" class="control-label col-xs-6">User name</label>
+                <input type="text" class="form-control" id="userName" placeholder="User name" value="anon">
+            </div>
+            <button type="button" class="btn btn-primary" id="login">Login</button>
+        </form>
+    </div>
+    <div id="SetupCreate" class="hidden">
+        <p>
+            Select a game to join...
+        </p>
+        <form>
+            <select id="selectGame">
+                <option value="1">One</option>
+                <option value="2">Two</option>
+                <option value="3">Three</option>
+            </select>
+        </form>
+        <br/>
+        <p>...or create a new game</p>
+        <form>
+            <div class="form-group">
+                <label for="userName" class="control-label col-xs-6">Name of the game</label>
+                <input type="text" class="form-control" id="gameName" placeholder="Name of game">
+            </div>
+            <button type="button" class="btn btn-primary" id="create">Create</button>
+        </form>
+
+    </div>
+</div>
+
+<script src="dice.js"></script>
+<script>
+$('#login').click(function() {
+    console.log($('#userName').val());
+    login($('#userName').val());
+});
+//$('#login').click(function () {
+//    $("#Login").addClass('hidden');
+//    $("#SetupCreate").removeClass('hidden');
+//});
+$('#create').click(function () {
+    $("#Login").removeClass("hidden");
+    $("#SetupCreate").addClass('hidden');
+});
+</script>
+
 </body>
 </html>

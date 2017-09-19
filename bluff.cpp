@@ -38,15 +38,24 @@ int main()
         return "Hello world";
     });
     
-    CROW_ROUTE(app, "/api/create")([]{
-        static auto generator = boost::uuids::random_generator();
-        const auto uuid = generator();
-        std::stringstream ss;
-        ss << uuid;
-        games().addGame(ss.str());
-        ss << " " << games().map_.size();
-        return ss.str();
-    });
+    CROW_ROUTE(app, "/api/login")
+        .methods("POST"_method)
+        //.methods("GET"_method)
+        ([](const crow::request& req)
+        {
+            cout << "Request: " << req.body << endl;
+            auto j = crow::json::load(req.body);
+            return j["name"];
+            
+            // static auto generator = boost::uuids::random_generator();
+//             const auto uuid = generator();
+//             std::stringstream ss;
+//             ss << uuid;
+//             games().addGame(ss.str());
+//             ss << " " << games().map_.size();
+//             return ss.str();
+        }
+    );
     
     CROW_ROUTE(app, "/api/list")([]{
         std::stringstream ss;
@@ -61,6 +70,7 @@ int main()
     CROW_ROUTE(app, "/<string>")(
         [](std::string path)
     {
+        cout << "Path: " << path << endl;
         auto data = slurp("../static/"s + path);
         crow::response r{data};
         r.add_header("Content-Type", getContentType(data));
