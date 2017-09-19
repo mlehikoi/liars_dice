@@ -30,6 +30,9 @@ auto& games()
     static Games games_;
     return games_;
 }
+
+static std::unordered_map<std::string, std::string> players_;
+
 int main()
 {
     crow::SimpleApp app;
@@ -43,9 +46,21 @@ int main()
         //.methods("GET"_method)
         ([](const crow::request& req)
         {
+            crow::json::wvalue response;
+            
             cout << "Request: " << req.body << endl;
             auto j = crow::json::load(req.body);
-            return j["name"];
+            const std::string name = j["name"].s();
+            if (players_.find(name) == players_.end())
+            {
+                const auto id = uuid();
+                players_.insert({name, id});
+                response["success"] = true;
+                response["playerId"] = id;
+                return crow::response{response};
+            }
+            response["success"] = false;
+            return crow::response(response);
             
             // static auto generator = boost::uuids::random_generator();
 //             const auto uuid = generator();
@@ -78,5 +93,5 @@ int main()
     });
     
     //app.port(18080).multithreaded().run();
-    app.port(18080).run();
+    app.port(8000).run();
 }

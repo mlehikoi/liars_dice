@@ -5,10 +5,12 @@ alert, confirm, console, Debug, opera, prompt, WSH
 */
 
 var userKey = "";
+var userName = "";
+var userId = "";
 
 function login(name) {
     'use strict';
-    alert(name);
+    console.log("Fetching " + name);
     $.ajax({
         type: "POST",
         url: "/api/login",
@@ -16,10 +18,24 @@ function login(name) {
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function (data) {
-            alert(data);
+            console.log(data);
+            if (data.success) {
+                $("#welcomeMessage").html("Welcome, " + name + "." +
+                                          " Start up a new game or select an existing" +
+                                          " game to join.");
+                $("#welcomeMessage").removeClass("hidden");
+                $("#Login").addClass('hidden');
+                $("#SetupCreate").removeClass('hidden');
+            } else {
+                $("#userNameStatus").html(name + " is already taken.");
+                $("#userNameStatus").removeClass('hidden');
+            }
+            console.log(data);
         },
-        failure: function (errMsg) {
-            alert(errMsg);
+        error: function (xhr, statusText, err) {
+            //alert(errMsg);
+            console.log("error");
+            //console.log(errMsg);
         }
     });
 }

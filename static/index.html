@@ -21,14 +21,13 @@
             <div class="form-group">
                 <label for="userName" class="control-label col-xs-6">User name</label>
                 <input type="text" class="form-control" id="userName" placeholder="User name" value="anon">
+                <div class="col-xs-12" id="userNameStatus" class="hidden"></div>
             </div>
             <button type="button" class="btn btn-primary" id="login">Login</button>
         </form>
     </div>
     <div id="SetupCreate" class="hidden">
-        <p>
-            Select a game to join...
-        </p>
+        <div class="col-xs-12" id="welcomeMessage" class="hidden"></div>
         <form>
             <select id="selectGame">
                 <option value="1">One</option>
