@@ -72,6 +72,29 @@ int main()
         }
     );
     
+    CROW_ROUTE(app, "/api/status")
+        .methods("POST"_method)
+        ([](const crow::request& req)
+        {
+            crow::json::wvalue response;
+            auto j = crow::json::load(req.body);
+            const std::string id = j["id"].s();
+            //@TODO Change id to be the key
+            for (const auto& nameId : players_)
+            {
+                if (nameId.second == id)
+                {
+                    response["success"] = true;
+                    response["playerId"] = id;
+                    response["name"] = nameId.first;
+                    return crow::response{response};
+                }
+            }
+            response["success"] = false;
+            return crow::response(response);
+        }
+    );
+
     CROW_ROUTE(app, "/api/list")([]{
         std::stringstream ss;
         ss << "Games" << std::endl;

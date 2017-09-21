@@ -26,6 +26,7 @@ function login(name) {
                 $("#welcomeMessage").removeClass("hidden");
                 $("#Login").addClass('hidden');
                 $("#SetupCreate").removeClass('hidden');
+                window.location.replace("?id=" + data.playerId);
             } else {
                 $("#userNameStatus").html(name + " is already taken.");
                 $("#userNameStatus").removeClass('hidden');
