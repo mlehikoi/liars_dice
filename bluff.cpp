@@ -35,6 +35,14 @@ static std::unordered_map<std::string, std::string> players_;
 
 int main()
 {
+    std::ifstream is("players.dat");
+    while (is.good())
+    {
+        std::string id, name;
+        is >> id >> name;
+        players_[id] = name;
+    }
+    
     crow::SimpleApp app;
 
     CROW_ROUTE(app, "/")([](){
@@ -43,12 +51,9 @@ int main()
     
     CROW_ROUTE(app, "/api/login")
         .methods("POST"_method)
-        //.methods("GET"_method)
         ([](const crow::request& req)
         {
             crow::json::wvalue response;
-            
-            cout << "Request: " << req.body << endl;
             auto j = crow::json::load(req.body);
             const std::string name = j["name"].s();
             for (const auto& idName : players_)
@@ -61,6 +66,9 @@ int main()
             }
             const auto id = uuid();
             players_.insert({id, name});
+            std::ofstream os("players.dat");
+            for (const auto& idName : players_)
+                os << idName.first << "\t" << idName.second << endl;
             response["success"] = true;
             response["playerId"] = id;
             return response;
