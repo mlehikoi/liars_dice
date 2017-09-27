@@ -51,24 +51,19 @@ int main()
             cout << "Request: " << req.body << endl;
             auto j = crow::json::load(req.body);
             const std::string name = j["name"].s();
-            if (players_.find(name) == players_.end())
+            for (const auto& idName : players_)
             {
-                const auto id = uuid();
-                players_.insert({name, id});
-                response["success"] = true;
-                response["playerId"] = id;
-                return crow::response{response};
+                if (idName.second == name)
+                {
+                    response["success"] = false;
+                    return response;
+                }
             }
-            response["success"] = false;
-            return crow::response(response);
-            
-            // static auto generator = boost::uuids::random_generator();
-//             const auto uuid = generator();
-//             std::stringstream ss;
-//             ss << uuid;
-//             games().addGame(ss.str());
-//             ss << " " << games().map_.size();
-//             return ss.str();
+            const auto id = uuid();
+            players_.insert({id, name});
+            response["success"] = true;
+            response["playerId"] = id;
+            return response;
         }
     );
     
@@ -78,15 +73,15 @@ int main()
         {
             crow::json::wvalue response;
             auto j = crow::json::load(req.body);
-            const std::string id = j["id"].s();
-            //@TODO Change id to be the key
-            for (const auto& nameId : players_)
+            if (j["id"].t() == crow::json::type::String)
             {
-                if (nameId.second == id)
+                const std::string id = j["id"].s();
+                const auto it = players_.find(id);
+                if (it != players_.end())
                 {
                     response["success"] = true;
                     response["playerId"] = id;
-                    response["name"] = nameId.first;
+                    response["name"] = it->second;
                     return crow::response{response};
                 }
             }
