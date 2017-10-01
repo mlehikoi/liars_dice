@@ -13,6 +13,7 @@ find_package(Boost COMPONENTS system REQUIRED)
 
 include_directories(
     ../crow/include
+    ../rapidjson/include
     ${Boost_INCLUDE_DIRS}
     ${GTEST_INCLUDE_DIRS}
 )

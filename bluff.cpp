@@ -1,6 +1,9 @@
 //#include "crow.h"
 //#include "crow_all.h"
 
+#include "json.hpp"
+#include "helpers.hpp"
+
 #include <string>
 #include <sstream>
 #include <unordered_map>
@@ -9,7 +12,6 @@
 #include <boost/uuid/uuid_generators.hpp> // generators
 #include <boost/uuid/uuid_io.hpp>         // streaming operators etc.
 
-#include "helpers.hpp"
 
 using namespace std;
 using namespace bluff;
@@ -59,15 +61,13 @@ int main()
         .methods("POST"_method)
         ([](const crow::request& req)
         {
-            crow::json::wvalue response;
             auto j = crow::json::load(req.body);
             const std::string name = j["name"].s();
             for (const auto& idName : players_)
             {
                 if (idName.second.name_ == name)
                 {
-                    response["success"] = false;
-                    return response;
+                    return json::Json({"success", false}).str();
                 }
             }
             const auto id = uuid();
@@ -75,9 +75,7 @@ int main()
             std::ofstream os("players.dat");
             for (const auto& idName : players_)
                 os << idName.first << "\t" << idName.second.name_ << "\t" << idName.second.game_ << endl;
-            response["success"] = true;
-            response["playerId"] = id;
-            return response;
+            return json::Json({{"success", true}, {"playerId", id}}).str();
         }
     );
     
