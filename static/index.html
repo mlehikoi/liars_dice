@@ -12,7 +12,8 @@
   
 <div class="container">
     <h1>Liar's dice</h1>
-    <div id="Login">
+
+    <div id="Login" class="hidden">
         <p>
             Provide a user name so other's know who they're playing with.
             If the user name is already taken, you'll be provided an alternative name.
@@ -26,6 +27,7 @@
             <button type="button" class="btn btn-primary" id="login">Login</button>
         </form>
     </div>
+
     <div id="SetupCreate" class="hidden">
         <div class="col-xs-12" id="welcomeMessage" class="hidden"></div>
         <form>
@@ -39,13 +41,28 @@
         <p>...or create a new game</p>
         <form>
             <div class="form-group">
-                <label for="userName" class="control-label col-xs-6">Name of the game</label>
+                <label for="gameName" class="control-label col-xs-6">Name of the game</label>
                 <input type="text" class="form-control" id="gameName" placeholder="Name of game">
             </div>
             <button type="button" class="btn btn-primary" id="create">Create</button>
         </form>
-
     </div>
+    
+    <div id="WaitGameStart" class="hidden">
+        <p>
+            Waiting for players. Click start when you're ready to start.
+        </p>
+        <br/>
+        <form>
+            <div class="form-group">
+                <label for="gameName" class="control-label col-xs-6">Name of the game</label>
+                <input type="text" class="form-control" id="gameName" placeholder="Name of game">
+            </div>
+            <button type="button" class="btn btn-primary" id="create">Create</button>
+        </form>
+    </div>
+    
+    
 </div>
 
 <script src="dice.js"></script>
@@ -60,10 +77,11 @@ function getParameterByName(name, url) {
     return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
 $( document ).ready(function() {
+    userId = getParameterByName("id");
     $.ajax({
         type: "POST",
         url: "/api/status",
-        data: JSON.stringify({"id": getParameterByName("id")}),
+        data: JSON.stringify({"id": userId}),
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function (data) {
@@ -76,6 +94,8 @@ $( document ).ready(function() {
                 $("#Login").addClass('hidden');
                 $("#SetupCreate").removeClass('hidden');
             } else {
+                $("#Login").removeClass('hidden');
+                $("#SetupCreate").addClass('hidden');
             }
             console.log(data);
         },
@@ -87,16 +107,10 @@ $( document ).ready(function() {
     });
 });
 $('#login').click(function() {
-    console.log($('#userName').val());
     login($('#userName').val());
 });
-//$('#login').click(function () {
-//    $("#Login").addClass('hidden');
-//    $("#SetupCreate").removeClass('hidden');
-//});
 $('#create').click(function () {
-    $("#Login").removeClass("hidden");
-    $("#SetupCreate").addClass('hidden');
+    createGame($('#gameName').val());
 });
 </script>
 

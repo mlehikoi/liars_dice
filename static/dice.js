@@ -40,3 +40,29 @@ function login(name) {
         }
     });
 }
+
+function createGame(name) {
+    'use strict';
+    $.ajax({
+        type: "POST",
+        url: "/api/newGame",
+        data: JSON.stringify({game: name, id: userId}),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (data) {
+            console.log(data);
+            if (data.success) {
+                //@TODO
+            } else {
+                $("#userNameStatus").html(name + " already exists.");
+                $("#userNameStatus").removeClass('hidden');
+            }
+            console.log(data);
+        },
+        error: function (xhr, statusText, err) {
+            //alert(errMsg);
+            console.log("error");
+            //console.log(errMsg);
+        }
+    });
+}
