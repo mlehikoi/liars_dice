@@ -3,7 +3,7 @@
 #include <string>
 
 
-namespace bluff {
+namespace dice {
 
 std::string slurp(const std::string& path);
 
