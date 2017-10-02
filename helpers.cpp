@@ -7,17 +7,20 @@
 #include <fstream>
 #include <sstream>
 
-namespace bluff {
+namespace dice {
 
 std::string slurp(const std::string& path)
 {
-    std::cout << "Reading " << path << std::endl;
-    std::ifstream f(path, std::ios::binary | std::ios::ate);
-    std::streamsize sz = f.tellg();
-    f.seekg(0, std::ios::beg);
-    auto buf = std::make_unique<char[]>(sz);
-    f.read(buf.get(), sz);
-    return std::string(buf.get(), sz);
+    std::ifstream f{path, std::ios::binary | std::ios::ate};
+    const auto sz = f.tellg();
+    if (sz > 0)
+    {
+        f.seekg(0, std::ios::beg);
+        auto buf = std::make_unique<char[]>(sz);
+        f.read(buf.get(), sz);
+        return std::string(buf.get(), sz);
+    }
+    return "";
 }
     
 std::string uuid()

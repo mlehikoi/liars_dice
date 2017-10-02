@@ -14,7 +14,19 @@
 
 
 using namespace std;
-using namespace bluff;
+using namespace dice;
+
+namespace dice {
+auto readFile(const std::string& name)
+{
+    const auto path = "../static/"s + name;
+    const auto data = dice::slurp("../static/"s + path);
+    if (data.empty()) return crow::response(404);
+    crow::response r{data};
+    r.add_header("Content-Type", getContentType(name));
+    return r;
+}
+} // dice
 
 class Games
 {
@@ -53,9 +65,7 @@ int main()
     
     crow::SimpleApp app;
 
-    CROW_ROUTE(app, "/")([](){
-        return "Hello world";
-    });
+    CROW_ROUTE(app, "/")([]{ return readFile("index.html"); });
     
     CROW_ROUTE(app, "/api/login")
         .methods("POST"_method)
@@ -109,6 +119,7 @@ int main()
         {
             crow::json::wvalue response;
             auto j = crow::json::load(req.body);
+            cout << req.body << endl;
             const std::string id = j["id"].s();
             const std::string game = j["game"].s();
             if (games_.insert(game).second)
@@ -131,16 +142,7 @@ int main()
         return ss.str();
     });
 
-    CROW_ROUTE(app, "/<string>")(
-        [](std::string path)
-    {
-        cout << "Path: " << path << endl;
-        auto data = slurp("../static/"s + path);
-        crow::response r{data};
-        r.add_header("Content-Type", getContentType(data));
-        return r;
-    });
+    CROW_ROUTE(app, "/<string>")(readFile);
     
-    //app.port(18080).multithreaded().run();
     app.port(8000).run();
 }
