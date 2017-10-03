@@ -34,7 +34,10 @@ target_link_libraries(bluff
 )
 
 if (GTEST_FOUND)
-    add_executable(runUnitTests test_bluff.cpp helpers.cpp)
+    add_executable(runUnitTests
+        test_bluff.cpp
+        engine.cpp
+        helpers.cpp)
     target_link_libraries(runUnitTests GTest::GTest GTest::Main ${Boost_LIBRARIES})
 endif(GTEST_FOUND)
 

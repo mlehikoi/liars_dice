@@ -1,10 +1,15 @@
 #include "helpers.hpp"
+#include "engine.hpp"
 
 #include <unordered_set>
 
 #include "gtest/gtest.h"
 
+#include <rapidjson/document.h>
+
 #include <iostream>
+
+using namespace std;
 
 namespace {
 
@@ -42,6 +47,20 @@ TEST(ContentTypeTest, All) {
     EXPECT_EQ("image/jpeg", dice::getContentType("foo.jpg"));
     EXPECT_EQ("text/html; charset=utf-8", dice::getContentType("index.html"));
     EXPECT_EQ("image/png", dice::getContentType("foo.jpg.png"));
+}
+
+TEST(EngineTest, Add) {
+    cerr << "Add" << endl;
+    dice::Engine e{""};
+    auto anon = R"#(
+        {"name": "anon"}
+    )#";
+    auto result = e.login(anon);
+    cout << "result: " << result << endl;
+    rapidjson::Document doc;
+    doc.Parse(result.c_str());
+    EXPECT_TRUE(doc.IsObject());
+    EXPECT_TRUE(doc["success"].GetBool());
 }
 
 } // Unnamed namespace

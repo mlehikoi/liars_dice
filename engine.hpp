@@ -1,9 +1,20 @@
 #pragma once
+#include <memory>
 #include <utility>
 #include <string>
 
 namespace dice {
 
-std::pair<std::string, std::string> readFile(const std::string& base, const std::string& name);
+class Engine
+{
+public:
+    Engine(const char* filename);
+    ~Engine();
+    std::string login(const std::string& body);
+    
+private:
+    class Impl;
+    std::unique_ptr<Impl> impl_;
+};
 
 } // namespace dice
