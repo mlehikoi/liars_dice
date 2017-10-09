@@ -1,5 +1,6 @@
 #include "helpers.hpp"
 #include "engine.hpp"
+#include "json.hpp"
 
 #include <unordered_set>
 
@@ -49,18 +50,84 @@ TEST(ContentTypeTest, All) {
     EXPECT_EQ("image/png", dice::getContentType("foo.jpg.png"));
 }
 
-TEST(EngineTest, Add) {
-    cerr << "Add" << endl;
+TEST(EngineTest, Login) {
     dice::Engine e{""};
     auto anon = R"#(
         {"name": "anon"}
     )#";
     auto result = e.login(anon);
-    cout << "result: " << result << endl;
     rapidjson::Document doc;
     doc.Parse(result.c_str());
-    EXPECT_TRUE(doc.IsObject());
     EXPECT_TRUE(doc["success"].GetBool());
+
+    result = e.login(anon);
+    doc.SetObject();
+    doc.Parse(result.c_str());
+    EXPECT_FALSE(doc["success"].GetBool());
+}
+
+TEST(EngineTest, CreateGameInvalidId) {
+    dice::Engine e{""};
+    auto game = R"#(
+{
+    "playerId": "000",
+    "game": "game"
+}
+    )#";
+    auto result = e.createGame(game);
+
+    rapidjson::Document doc;
+    doc.Parse(result.c_str());
+    EXPECT_FALSE(doc["success"].GetBool());
+    EXPECT_STREQ("NO_PLAYER", doc["error"].GetString());
+}
+
+TEST(EngineTest, CreateGame) {
+    dice::Engine e{""};
+    auto anon = R"#(
+        {"name": "anon"}
+    )#";
+    auto result = e.login(anon);
+    rapidjson::Document doc;
+    doc.Parse(result.c_str());
+    EXPECT_TRUE(doc["success"].GetBool());
+    std::string id = doc["playerId"].GetString();
+
+    auto game = json::Json({
+        {"playerId", id},
+        {"game", "game"}
+    }).str();
+    result = e.createGame(game);
+    cout << "Result: " << result << endl;
+    doc.Parse(result.c_str());
+    EXPECT_TRUE(doc["success"].GetBool());
+    
+    auto game2 = json::Json({
+        {"playerId", id},
+        {"game", "game2"}
+    }).str();
+    result = e.createGame(game2);
+    cout << "Result: " << result << endl;
+    doc.Parse(result.c_str());
+    EXPECT_FALSE(doc["success"].GetBool());
+    EXPECT_STREQ("ALREADY_JOINED", doc["error"].GetString());
+
+    // Try to create the same name game again
+    result = e.login(json::Json({"name", "anon2"}).str());
+    doc.Parse(result.c_str());
+    EXPECT_TRUE(doc["success"].GetBool());
+    cout << "Result: " << result << endl;
+    id = doc["playerId"].GetString();
+    
+    auto game3 = json::Json({
+        {"playerId", id},
+        {"game", "game"}
+    }).str();
+    result = e.createGame(game3);
+    cout << "Result: " << result << endl;
+    doc.Parse(result.c_str());
+    EXPECT_FALSE(doc["success"].GetBool());
+    EXPECT_STREQ("GAME_EXISTS", doc["error"].GetString());
 }
 
 } // Unnamed namespace

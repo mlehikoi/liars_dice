@@ -11,6 +11,8 @@ public:
     Engine(const char* filename);
     ~Engine();
     std::string login(const std::string& body);
+    std::string createGame(const std::string& body);
+    std::string joinGame(const std::string& body);
     
 private:
     class Impl;

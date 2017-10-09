@@ -10,55 +10,71 @@
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/error/en.h"
 
+#include <unordered_map>
+#include <vector>
+
 using namespace rapidjson;
 
 namespace dice {
 
-struct PlayerInfo
-{
-    std::string name_;
-    std::string game_;
-};
-static std::unordered_map<std::string, PlayerInfo> players_;
-    
 class Engine::Impl
 {
     const char* filename_;
-    rapidjson::Document doc_;
+    // id - player
+    std::unordered_map<std::string, std::string> players_;
+    std::unordered_map<std::string, std::string> joinedGames_;
+    std::unordered_map<std::string, std::vector<std::string>> games_;
+    
 public:
     Impl(const char* filename)
       : filename_{filename},
-        doc_{}
+        players_{}
     {
-        doc_.Parse(filename_);
+        //doc_.Parse(filename_);
     }
     
-    std::string add(const std::string& name)
+    // -> login
+    std::string login(const std::string name)
     {
-        std::cout << "Name: " << name << std::endl;
-        if (!doc_.IsObject()) doc_.SetObject();
-        if (!doc_.HasMember("players"))
+        for (const auto idName : players_)
         {
-            rapidjson::Value v;
-            v.SetObject();
-            auto& o = doc_.AddMember("players", v, doc_.GetAllocator());
-            
-            rapidjson::Value k;
-            const auto id = uuid();
-            k.SetString(name.c_str(), name.length(), doc_.GetAllocator());
-            v.SetString(id.c_str(), id.length(), doc_.GetAllocator());
-            o.AddMember(k, v, doc_.GetAllocator());
+            if (idName.second == name)
+            {
+                return "";
+            }
         }
-        
-        // Printout
-        std::cout << "<pretty>" << std::endl;
-        char writeBuffer[65536];
-        FileWriteStream os(stdout, writeBuffer, sizeof(writeBuffer));
-        PrettyWriter<FileWriteStream> writer(os);
-        doc_.Accept(writer);
-        std::cout << "</pretty>" << std::endl;
-        
-        return "";
+        const auto id = uuid();
+        const auto ret = players_.insert({id, name});
+        assert(ret.second);
+        return id; 
+    }
+    
+    std::string createGame(const std::string id, const std::string game)
+    {
+        // Make sure player exists
+        if (players_.find(id) == players_.end())
+            return json::Json({
+                {"success", false},
+                {"error", "NO_PLAYER"}
+            }).str();
+        // And isn't already joined in a game
+        auto it = joinedGames_.find(id);
+        if (it != joinedGames_.end())
+            return json::Json({
+                {"success", false},
+                {"error", "ALREADY_JOINED"},
+                {"game", it->second}
+            }).str();
+        if (games_.find(game) != games_.end())
+        {
+            return json::Json({
+                {"success", false},
+                {"error", "GAME_EXISTS"}
+            }).str();
+        }
+        joinedGames_.insert({id, game});
+        games_.insert({game, {id}});
+        return json::Json({"success", true}).str();
     }
 };
 
@@ -74,31 +90,36 @@ std::string Engine::login(const std::string& body)
 {
     rapidjson::Document doc;
     doc.Parse(body.c_str());
-    std::cout << "body " << body << std::endl;
     if (doc.IsObject() && doc.HasMember("name") && doc["name"].IsString())
     {
-        const auto id = impl_->add(doc["name"].GetString());
+        const auto id = impl_->login(doc["name"].GetString());
         if (id.empty())
         {
             return json::Json({"success", false}).str();
         }
         return json::Json({{"success", true}, {"playerId", id}}).str(); 
     }
-    // auto j = crow::json::load(req.body);
-//     const std::string name = j["name"].s();
-//     for (const auto& idName : players_)
-//     {
-//         if (idName.second.name_ == name)
-//         {
-//             return json::Json({"success", false}).str();
-//         }
-//     }
-//     const auto id = uuid();
-//     players_.insert({id, {name, ""}});
-//     std::ofstream os("players.dat");
-//     for (const auto& idName : players_)
-//         os << idName.first << "\t" << idName.second.name_ << "\t" << idName.second.game_ << endl;
-//     return json::Json({{"success", true}, {"playerId", id}}).str();
+    return json::Json({"success", false}).str();
+}
+
+std::string Engine::createGame(const std::string& body)
+{
+    rapidjson::Document doc;
+    doc.Parse(body.c_str());
+    if (doc.IsObject() &&
+        doc.HasMember("game") && doc["game"].IsString() &&
+        doc.HasMember("playerId") && doc["playerId"].IsString())
+    {
+        return impl_->createGame(doc["playerId"].GetString(), doc["game"].GetString());
+    }
+    return json::Json({
+        {"success", false},
+        {"error", "PARSE_ERROR"}
+    }).str();
+}
+
+std::string Engine::joinGame(const std::string& body)
+{
     return "";
 }
 
