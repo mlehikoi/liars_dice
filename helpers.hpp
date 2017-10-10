@@ -11,6 +11,7 @@
 namespace dice {
 
 std::string slurp(const std::string& path);
+void dump(const std::string& path, const std::string& data);
 
 std::string uuid();
 

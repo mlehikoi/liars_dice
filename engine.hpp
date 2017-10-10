@@ -8,12 +8,14 @@ namespace dice {
 class Engine
 {
 public:
-    Engine(const char* filename);
+    Engine(const std::string& filename);
     ~Engine();
     std::string login(const std::string& body);
     std::string createGame(const std::string& body);
     std::string joinGame(const std::string& body);
     std::string getGames() const;
+    
+    void save();
     
 private:
     class Impl;

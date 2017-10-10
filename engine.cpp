@@ -32,14 +32,14 @@ std::string getString(const Doc& doc, const char* member)
 }
 class Engine::Impl
 {
-    const char* filename_;
+    const std::string filename_;
     // id - player
     std::unordered_map<std::string, std::string> players_;
     std::unordered_map<std::string, std::string> joinedGames_;
     std::unordered_map<std::string, std::vector<std::string>> games_;
     
 public:
-    Impl(const char* filename)
+    Impl(const std::string& filename)
       : filename_{filename},
         players_{}
     {
@@ -113,6 +113,33 @@ public:
         w.EndObject();
         return s.GetString();
     }
+
+    void save()
+    {
+        rapidjson::StringBuffer s;
+        rapidjson::PrettyWriter<rapidjson::StringBuffer> w{s};
+        
+        w.StartObject();
+        for (const auto& kv : players_)
+        {
+            const auto id = kv.first;
+            w.Key(id.c_str());
+            w.StartObject();
+            w.Key("name");
+            w.String(kv.second.c_str());
+            const auto it = joinedGames_.find(id);
+            if (it != joinedGames_.end())
+            {
+                w.Key("game");
+                w.String(it->second.c_str());
+            }
+            w.EndObject();
+        }
+        w.EndObject();
+        std::cout << s.GetString() << std::endl;
+        dump(filename_, s.GetString());
+    }
+
 private:
     void load()
     {
@@ -141,9 +168,11 @@ private:
             }
         }
     }
+    
+
 };
 
-Engine::Engine(const char* filename)
+Engine::Engine(const std::string& filename)
     : impl_{std::make_unique<Impl>(filename)}
 {
     
@@ -191,6 +220,11 @@ std::string Engine::joinGame(const std::string& body)
 std::string Engine::getGames() const
 {
     return impl_->getGames();
+}
+
+void Engine::save()
+{
+    impl_->save();
 }
 
 } // namespace dice

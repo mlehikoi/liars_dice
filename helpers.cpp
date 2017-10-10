@@ -22,7 +22,13 @@ std::string slurp(const std::string& path)
     }
     return "";
 }
-    
+
+void dump(const std::string& path, const std::string& data)
+{
+    std::ofstream f{path, std::ios::binary};
+    f.write(data.data(), data.size());
+}
+
 std::string uuid()
 {
     static auto generator = boost::uuids::random_generator();

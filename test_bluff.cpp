@@ -8,11 +8,40 @@
 
 #include <rapidjson/document.h>
 
+#include <cstdio>
+#include <functional>
 #include <iostream>
+#include <thread>
 
 using namespace std;
 
 namespace {
+
+class AtEnd
+{
+    std::function<void()> f_;
+public:
+    AtEnd(const std::function<void()>& f) : f_{f} {}
+    AtEnd(AtEnd&&) = delete;
+    ~AtEnd() { f_(); }
+};
+
+inline std::string tmpName(const char* prefix)
+{
+    char tmp[PATH_MAX];
+    std::strcpy(tmp, prefix);
+    std::strcat(tmp, "XXXXXX");
+    auto f = ::mkstemp(tmp);
+    ::close(f);
+    return tmp;
+}
+
+inline bool fileExists(const std::string& filename) 
+{
+    struct stat fileInfo;
+    return ::stat(filename.c_str(), &fileInfo) == 0;
+}
+
 
 TEST(UuidTest, All) {
     std::unordered_set<std::string> s;
@@ -145,7 +174,42 @@ TEST(EngineTest, Load) {
     EXPECT_EQ(2, players.Size());
     EXPECT_STREQ("joe", players[0].GetString());
     EXPECT_STREQ("mary", players[1].GetString());
+}
+
+TEST(EngineTest, Save) {
+    auto tmp = tmpName("./.json");
+    //AtEnd ae{[tmp]{ std::remove(tmp.c_str()); }};
+    const auto origData = dice::slurp("../test-game.json");
+    dice::dump(tmp, origData);
+
+    dice::Engine e{tmp};
+    EXPECT_TRUE(fileExists(tmp));
+    std::remove(tmp.c_str());
+    EXPECT_FALSE(fileExists(tmp));
     
+    e.save();
+    EXPECT_TRUE(fileExists(tmp));
+    const auto doc = dice::parse(dice::slurp(tmp));
+    EXPECT_TRUE(doc.IsObject());
+    
+    EXPECT_STREQ("joe", doc["1"]["name"].GetString());
+    EXPECT_STREQ("final", doc["1"]["game"].GetString());
+    
+    EXPECT_STREQ("mary", doc["2"]["name"].GetString());
+    EXPECT_STREQ("final", doc["2"]["game"].GetString());
+    
+    EXPECT_STREQ("ken", doc["3"]["name"].GetString());
+    EXPECT_FALSE(doc["3"].HasMember("game"));
+    
+    //EXPECT_TRUE(doc["mary"].IsObject());
+    //EXPECT_STREQ("1", doc["mary"]["name"].GetString());
+    
+    //EXPECT_TRUE(doc["joe"].IsObject());
+    //EXPECT_STREQ("1", doc["joe"]["name"].GetString());
+    
+    //EXPECT_EQ(newData, origData);
+    //const std::string tmp{std::tmpnam(nullptr)};
+    //dice::dump(tmp);
 }
 
 } // Unnamed namespace
