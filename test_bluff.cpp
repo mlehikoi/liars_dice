@@ -128,6 +128,24 @@ TEST(EngineTest, CreateGame) {
     doc.Parse(result.c_str());
     EXPECT_FALSE(doc["success"].GetBool());
     EXPECT_STREQ("GAME_EXISTS", doc["error"].GetString());
+    
+    cout << "Games: " << endl << e.getGames() << endl;
+    doc = dice::parse(e.getGames());
+    auto players = doc["game"].GetArray();
+    EXPECT_EQ(1, players.Size());
+    EXPECT_STREQ("anon", players[0].GetString());
+}
+
+TEST(EngineTest, Load) {
+    dice::Engine e{"../test-game.json"};
+    
+    const auto doc = dice::parse(e.getGames());
+    //dice::prettyPrint(doc);
+    auto players = doc["final"].GetArray();
+    EXPECT_EQ(2, players.Size());
+    EXPECT_STREQ("joe", players[0].GetString());
+    EXPECT_STREQ("mary", players[1].GetString());
+    
 }
 
 } // Unnamed namespace

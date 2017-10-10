@@ -4,11 +4,11 @@
 #include "json.hpp"
 #include <rapidjson/document.h>
 
-#include "rapidjson/reader.h"
-#include "rapidjson/prettywriter.h"
-#include "rapidjson/filereadstream.h"
-#include "rapidjson/filewritestream.h"
-#include "rapidjson/error/en.h"
+#include <rapidjson/reader.h>
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/filereadstream.h>
+#include <rapidjson/filewritestream.h>
+#include <rapidjson/error/en.h>
 
 #include <unordered_map>
 #include <vector>
@@ -17,6 +17,19 @@ using namespace rapidjson;
 
 namespace dice {
 
+template<typename Doc>
+bool hasString(const Doc& doc, const char* member)
+{
+    return doc.IsObject() &&
+           doc.HasMember(member) &&
+           doc[member].IsString();
+}
+
+template<typename Doc>
+std::string getString(const Doc& doc, const char* member)
+{
+    return hasString(doc, member) ? doc[member].GetString() : "";
+}
 class Engine::Impl
 {
     const char* filename_;
@@ -30,7 +43,7 @@ public:
       : filename_{filename},
         players_{}
     {
-        //doc_.Parse(filename_);
+        load();
     }
     
     // -> login
@@ -52,7 +65,8 @@ public:
     std::string createGame(const std::string id, const std::string game)
     {
         // Make sure player exists
-        if (players_.find(id) == players_.end())
+        auto playerIt = players_.find(id);
+        if (playerIt == players_.end())
             return json::Json({
                 {"success", false},
                 {"error", "NO_PLAYER"}
@@ -73,8 +87,59 @@ public:
             }).str();
         }
         joinedGames_.insert({id, game});
-        games_.insert({game, {id}});
+        games_.insert({game, {playerIt->second}});
         return json::Json({"success", true}).str();
+    }
+    
+    std::string getGames() const
+    {
+        rapidjson::StringBuffer s;
+        rapidjson::PrettyWriter<rapidjson::StringBuffer> w{s};
+        
+        w.StartObject();
+        for (const auto& kv : games_)
+        {
+            //w.StartObject();
+            w.Key(kv.first.c_str());
+            //w.String("world");
+            w.StartArray();
+            for (const auto& player : kv.second)
+            {
+                w.String(player.c_str());
+            }
+            w.EndArray();
+            //w.EndObject();
+        }
+        w.EndObject();
+        return s.GetString();
+    }
+private:
+    void load()
+    {
+        auto doc = parse(slurp(filename_));
+        //prettyPrint(doc);
+        if (doc.IsObject())
+        {
+            for (const auto& kv : doc.GetObject())
+            {
+                const auto id = kv.name.GetString();
+                const auto& obj = kv.value;
+                if (obj.IsObject())
+                {
+                    const auto name = getString(obj, "name");
+                    if (!name.empty())
+                    {
+                        players_.insert({id, name});
+                        const auto game = getString(obj, "game");
+                        if (!game.empty())
+                        {
+                            joinedGames_.insert({id, game});
+                            games_[game].push_back(name);
+                        }
+                    }
+                }
+            }
+        }
     }
 };
 
@@ -106,21 +171,26 @@ std::string Engine::createGame(const std::string& body)
 {
     rapidjson::Document doc;
     doc.Parse(body.c_str());
-    if (doc.IsObject() &&
-        doc.HasMember("game") && doc["game"].IsString() &&
-        doc.HasMember("playerId") && doc["playerId"].IsString())
+    const auto id = getString(doc, "playerId");
+    const auto game = getString(doc, "game");
+    if (game.empty() || id.empty())
     {
-        return impl_->createGame(doc["playerId"].GetString(), doc["game"].GetString());
+        return json::Json({
+            {"success", false},
+            {"error", "PARSE_ERROR"}
+        }).str();
     }
-    return json::Json({
-        {"success", false},
-        {"error", "PARSE_ERROR"}
-    }).str();
+    return impl_->createGame(id, game);
 }
 
 std::string Engine::joinGame(const std::string& body)
 {
     return "";
+}
+
+std::string Engine::getGames() const
+{
+    return impl_->getGames();
 }
 
 } // namespace dice

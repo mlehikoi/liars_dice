@@ -13,6 +13,7 @@ public:
     std::string login(const std::string& body);
     std::string createGame(const std::string& body);
     std::string joinGame(const std::string& body);
+    std::string getGames() const;
     
 private:
     class Impl;
