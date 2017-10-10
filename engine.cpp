@@ -96,21 +96,24 @@ public:
         rapidjson::StringBuffer s;
         rapidjson::PrettyWriter<rapidjson::StringBuffer> w{s};
         
-        w.StartObject();
+        w.StartArray();
         for (const auto& kv : games_)
         {
-            //w.StartObject();
-            w.Key(kv.first.c_str());
-            //w.String("world");
+            w.StartObject();
+            w.Key("game");
+            w.String(kv.first.c_str());
+            
+            w.Key("players");
             w.StartArray();
             for (const auto& player : kv.second)
             {
                 w.String(player.c_str());
             }
             w.EndArray();
-            //w.EndObject();
+            w.EndObject();
         }
-        w.EndObject();
+        w.EndArray();
+        //std::cout << "games:" << s.GetString() << std::endl;
         return s.GetString();
     }
 
@@ -119,14 +122,18 @@ public:
         rapidjson::StringBuffer s;
         rapidjson::PrettyWriter<rapidjson::StringBuffer> w{s};
         
-        w.StartObject();
+        w.StartArray();
         for (const auto& kv : players_)
         {
             const auto id = kv.first;
-            w.Key(id.c_str());
+            
             w.StartObject();
+            w.Key("id");
+            w.String(id.c_str());
+            
             w.Key("name");
             w.String(kv.second.c_str());
+            
             const auto it = joinedGames_.find(id);
             if (it != joinedGames_.end())
             {
@@ -135,7 +142,7 @@ public:
             }
             w.EndObject();
         }
-        w.EndObject();
+        w.EndArray();
         std::cout << s.GetString() << std::endl;
         dump(filename_, s.GetString());
     }
@@ -144,32 +151,25 @@ private:
     void load()
     {
         auto doc = parse(slurp(filename_));
-        //prettyPrint(doc);
-        if (doc.IsObject())
+        prettyPrint(doc);
+        if (doc.IsArray())
         {
-            for (const auto& kv : doc.GetObject())
+            for (const auto& el : doc.GetArray())
             {
-                const auto id = kv.name.GetString();
-                const auto& obj = kv.value;
-                if (obj.IsObject())
+                const auto id = getString(el, "id");
+                const auto name = getString(el, "name");
+                if (id.empty() || name.empty()) continue;
+                
+                players_.insert({id, name});
+                const auto game = getString(el, "game");
+                if (!game.empty())
                 {
-                    const auto name = getString(obj, "name");
-                    if (!name.empty())
-                    {
-                        players_.insert({id, name});
-                        const auto game = getString(obj, "game");
-                        if (!game.empty())
-                        {
-                            joinedGames_.insert({id, game});
-                            games_[game].push_back(name);
-                        }
-                    }
+                    joinedGames_.insert({id, game});
+                    games_[game].push_back(name);
                 }
             }
         }
     }
-    
-
 };
 
 Engine::Engine(const std::string& filename)

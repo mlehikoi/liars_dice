@@ -1,13 +1,16 @@
-{
-    "1": {
+[
+    {
+        "id" :"1",
         "name": "joe",
         "game": "final"
     },
-    "2": {
+    {
+        "id": "2",
         "name": "mary",
         "game": "final"
     },
-    "3": {
+    {
+        "id": "3",
         "name": "ken"
     }
-}
+]

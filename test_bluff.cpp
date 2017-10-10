@@ -158,11 +158,13 @@ TEST(EngineTest, CreateGame) {
     EXPECT_FALSE(doc["success"].GetBool());
     EXPECT_STREQ("GAME_EXISTS", doc["error"].GetString());
     
-    cout << "Games: " << endl << e.getGames() << endl;
+    //cout << "Games: " << endl << e.getGames() << endl;
     doc = dice::parse(e.getGames());
-    auto players = doc["game"].GetArray();
-    EXPECT_EQ(1, players.Size());
-    EXPECT_STREQ("anon", players[0].GetString());
+    auto games = doc.GetArray();
+    EXPECT_EQ(1, games.Size());
+    EXPECT_STREQ("anon", games[0]["players"][0].GetString());
+    EXPECT_EQ(1, games[0]["players"].Size());
+    EXPECT_STREQ("anon", games[0]["players"][0].GetString());
 }
 
 TEST(EngineTest, Load) {
@@ -170,15 +172,17 @@ TEST(EngineTest, Load) {
     
     const auto doc = dice::parse(e.getGames());
     //dice::prettyPrint(doc);
-    auto players = doc["final"].GetArray();
-    EXPECT_EQ(2, players.Size());
-    EXPECT_STREQ("joe", players[0].GetString());
-    EXPECT_STREQ("mary", players[1].GetString());
+    auto games = doc.GetArray();
+    EXPECT_EQ(1, games.Size());
+    EXPECT_EQ("final", games[0]["game"]);
+    EXPECT_EQ(2, games[0]["players"].Size());
+    EXPECT_STREQ("joe", games[0]["players"][0].GetString());
+    EXPECT_STREQ("mary", games[0]["players"][1].GetString());
 }
 
 TEST(EngineTest, Save) {
     auto tmp = tmpName("./.json");
-    //AtEnd ae{[tmp]{ std::remove(tmp.c_str()); }};
+    AtEnd ae{[tmp]{ std::remove(tmp.c_str()); }};
     const auto origData = dice::slurp("../test-game.json");
     dice::dump(tmp, origData);
 
@@ -186,30 +190,45 @@ TEST(EngineTest, Save) {
     EXPECT_TRUE(fileExists(tmp));
     std::remove(tmp.c_str());
     EXPECT_FALSE(fileExists(tmp));
-    
+
     e.save();
     EXPECT_TRUE(fileExists(tmp));
     const auto doc = dice::parse(dice::slurp(tmp));
-    EXPECT_TRUE(doc.IsObject());
-    
-    EXPECT_STREQ("joe", doc["1"]["name"].GetString());
-    EXPECT_STREQ("final", doc["1"]["game"].GetString());
-    
-    EXPECT_STREQ("mary", doc["2"]["name"].GetString());
-    EXPECT_STREQ("final", doc["2"]["game"].GetString());
-    
-    EXPECT_STREQ("ken", doc["3"]["name"].GetString());
-    EXPECT_FALSE(doc["3"].HasMember("game"));
-    
-    //EXPECT_TRUE(doc["mary"].IsObject());
-    //EXPECT_STREQ("1", doc["mary"]["name"].GetString());
-    
-    //EXPECT_TRUE(doc["joe"].IsObject());
-    //EXPECT_STREQ("1", doc["joe"]["name"].GetString());
-    
-    //EXPECT_EQ(newData, origData);
-    //const std::string tmp{std::tmpnam(nullptr)};
-    //dice::dump(tmp);
+    EXPECT_TRUE(doc.IsArray());
+    EXPECT_EQ(3, doc.Size());
+
+    for (const auto& o : doc.GetArray())
+    {
+        if (o["id"] == "1")
+        {
+            EXPECT_STREQ("joe", o["name"].GetString());
+            EXPECT_STREQ("final", o["game"].GetString());
+        }
+        else if (o["id"] == "2")
+        {
+            EXPECT_STREQ("mary", o["name"].GetString());
+            EXPECT_STREQ("final", o["game"].GetString());
+        }
+        else if (o["id"] == "3")
+        {
+            EXPECT_STREQ("ken", o["name"].GetString());
+            EXPECT_FALSE(o.HasMember("game"));
+        }
+        else
+        {
+            FAIL();
+        }
+    }
+
+    // EXPECT_STREQ("joe", doc["1"]["name"].GetString());
+    // EXPECT_STREQ("final", doc["1"]["game"].GetString());
+    //
+    // EXPECT_STREQ("mary", doc["2"]["name"].GetString());
+    // EXPECT_STREQ("final", doc["2"]["game"].GetString());
+    //
+    // EXPECT_STREQ("ken", doc["3"]["name"].GetString());
+    // EXPECT_FALSE(doc["3"].HasMember("game"));
+
 }
 
 } // Unnamed namespace
