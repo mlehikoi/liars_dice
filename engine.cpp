@@ -91,6 +91,35 @@ public:
         return json::Json({"success", true}).str();
     }
     
+    std::string joinGame(const std::string id, const std::string game)
+    {
+        // Make sure player exists
+        auto playerIt = players_.find(id);
+        if (playerIt == players_.end())
+            return json::Json({
+                {"success", false},
+                {"error", "NO_PLAYER"}
+            }).str();
+        // And isn't already joined in a game
+        auto it = joinedGames_.find(id);
+        if (it != joinedGames_.end())
+            return json::Json({
+                {"success", false},
+                {"error", "ALREADY_JOINED"},
+                {"game", it->second}
+            }).str();
+        if (games_.find(game) != games_.end())
+        {
+            return json::Json({
+                {"success", false},
+                {"error", "GAME_EXISTS"}
+            }).str();
+        }
+        joinedGames_.insert({id, game});
+        games_.insert({game, {playerIt->second}});
+        return json::Json({"success", true}).str();
+    }
+    
     std::string getGames() const
     {
         rapidjson::StringBuffer s;
@@ -214,7 +243,18 @@ std::string Engine::createGame(const std::string& body)
 
 std::string Engine::joinGame(const std::string& body)
 {
-    return "";
+    rapidjson::Document doc;
+    doc.Parse(body.c_str());
+    const auto id = getString(doc, "playerId");
+    const auto game = getString(doc, "game");
+    if (game.empty() || id.empty())
+    {
+        return json::Json({
+            {"success", false},
+            {"error", "PARSE_ERROR"}
+        }).str();
+    }
+    return impl_->joinGame(id, game);
 }
 
 std::string Engine::getGames() const

@@ -36,6 +36,23 @@ inline std::string tmpName(const char* prefix)
     return tmp;
 }
 
+class TmpFile
+{
+    const std::string& filename_;
+public:
+    TmpFile(const std::string& filename) : filename_{filename} {}
+    //TmpFile(TmpFile&&) = delete;
+    ~TmpFile() { std::remove(filename_.c_str()); }
+    auto str() { return filename_; }
+};
+
+inline auto tmpCopy(const char* src, const char* targetPrefix)
+{
+    auto tmp = tmpName(targetPrefix);
+    dice::dump(tmp, dice::slurp("../test-game.json"));
+    return TmpFile{tmp};
+}
+
 inline bool fileExists(const std::string& filename) 
 {
     struct stat fileInfo;
@@ -171,13 +188,17 @@ TEST(EngineTest, Load) {
     dice::Engine e{"../test-game.json"};
     
     const auto doc = dice::parse(e.getGames());
-    //dice::prettyPrint(doc);
+    dice::prettyPrint(doc);
     auto games = doc.GetArray();
-    EXPECT_EQ(1, games.Size());
+    EXPECT_EQ(2, games.Size());
     EXPECT_EQ("final", games[0]["game"]);
     EXPECT_EQ(2, games[0]["players"].Size());
     EXPECT_STREQ("joe", games[0]["players"][0].GetString());
     EXPECT_STREQ("mary", games[0]["players"][1].GetString());
+
+    EXPECT_EQ("semifinal", games[1]["game"]);
+    EXPECT_EQ(1, games[1]["players"].Size());
+    EXPECT_STREQ("ann", games[1]["players"][0].GetString());
 }
 
 TEST(EngineTest, Save) {
@@ -219,16 +240,35 @@ TEST(EngineTest, Save) {
             FAIL();
         }
     }
+}
 
-    // EXPECT_STREQ("joe", doc["1"]["name"].GetString());
-    // EXPECT_STREQ("final", doc["1"]["game"].GetString());
-    //
-    // EXPECT_STREQ("mary", doc["2"]["name"].GetString());
-    // EXPECT_STREQ("final", doc["2"]["game"].GetString());
-    //
-    // EXPECT_STREQ("ken", doc["3"]["name"].GetString());
-    // EXPECT_FALSE(doc["3"].HasMember("game"));
+TEST(EngineTest, JoinGame) {
+    auto tmp = tmpCopy("../test-game.json", "./.json");
+    dice::Engine e{tmp.str()};
 
+    EXPECT_EQ(1, dice::parse(e.getGames()).Size());
+
+    auto ret = e.joinGame(R"#({
+        "playerId_": "1",
+        "game": "final"
+    })#");
+    cout << "ret:" << ret << endl;
+    EXPECT_STREQ("PARSE_ERROR", dice::parse(ret)["error"].GetString());
+    
+    ret = e.joinGame(R"#({
+        "playerId": "4",
+        "game": "final"
+    })#");
+    cout << "ret:" << ret << endl;
+    EXPECT_STREQ("NO_PLAYER", dice::parse(ret)["error"].GetString());
+    
+    ret = e.joinGame(R"#({
+        "playerId": "4",
+        "game": "final"
+    })#");
+    cout << "ret:" << ret << endl;
+    EXPECT_STREQ("NO_PLAYER", dice::parse(ret)["error"].GetString());
+    
 }
 
 } // Unnamed namespace
