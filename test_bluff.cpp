@@ -144,7 +144,7 @@ TEST(EngineTest, CreateGame) {
         {"game", "game"}
     }).str();
     result = e.createGame(game);
-    cout << "Result: " << result << endl;
+    //cout << "Result: " << result << endl;
     doc.Parse(result.c_str());
     EXPECT_TRUE(doc["success"].GetBool());
     
@@ -153,7 +153,7 @@ TEST(EngineTest, CreateGame) {
         {"game", "game2"}
     }).str();
     result = e.createGame(game2);
-    cout << "Result: " << result << endl;
+    //cout << "Result: " << result << endl;
     doc.Parse(result.c_str());
     EXPECT_FALSE(doc["success"].GetBool());
     EXPECT_STREQ("ALREADY_JOINED", doc["error"].GetString());
@@ -162,7 +162,7 @@ TEST(EngineTest, CreateGame) {
     result = e.login(json::Json({"name", "anon2"}).str());
     doc.Parse(result.c_str());
     EXPECT_TRUE(doc["success"].GetBool());
-    cout << "Result: " << result << endl;
+    //cout << "Result: " << result << endl;
     id = doc["playerId"].GetString();
     
     auto game3 = json::Json({
@@ -170,7 +170,7 @@ TEST(EngineTest, CreateGame) {
         {"game", "game"}
     }).str();
     result = e.createGame(game3);
-    cout << "Result: " << result << endl;
+    //cout << "Result: " << result << endl;
     doc.Parse(result.c_str());
     EXPECT_FALSE(doc["success"].GetBool());
     EXPECT_STREQ("GAME_EXISTS", doc["error"].GetString());
@@ -188,9 +188,10 @@ TEST(EngineTest, Load) {
     dice::Engine e{"../test-game.json"};
     
     const auto doc = dice::parse(e.getGames());
-    dice::prettyPrint(doc);
+    //dice::prettyPrint(doc);
     auto games = doc.GetArray();
     EXPECT_EQ(2, games.Size());
+    
     EXPECT_EQ("final", games[0]["game"]);
     EXPECT_EQ(2, games[0]["players"].Size());
     EXPECT_STREQ("joe", games[0]["players"][0].GetString());
@@ -216,59 +217,64 @@ TEST(EngineTest, Save) {
     EXPECT_TRUE(fileExists(tmp));
     const auto doc = dice::parse(dice::slurp(tmp));
     EXPECT_TRUE(doc.IsArray());
-    EXPECT_EQ(3, doc.Size());
+    EXPECT_EQ(4, doc.Size());
 
-    for (const auto& o : doc.GetArray())
-    {
-        if (o["id"] == "1")
-        {
-            EXPECT_STREQ("joe", o["name"].GetString());
-            EXPECT_STREQ("final", o["game"].GetString());
-        }
-        else if (o["id"] == "2")
-        {
-            EXPECT_STREQ("mary", o["name"].GetString());
-            EXPECT_STREQ("final", o["game"].GetString());
-        }
-        else if (o["id"] == "3")
-        {
-            EXPECT_STREQ("ken", o["name"].GetString());
-            EXPECT_FALSE(o.HasMember("game"));
-        }
-        else
-        {
-            FAIL();
-        }
-    }
+    EXPECT_EQ(origData, dice::slurp(tmp));
 }
 
 TEST(EngineTest, JoinGame) {
     auto tmp = tmpCopy("../test-game.json", "./.json");
     dice::Engine e{tmp.str()};
 
-    EXPECT_EQ(1, dice::parse(e.getGames()).Size());
+    EXPECT_EQ(2, dice::parse(e.getGames()).Size());
 
     auto ret = e.joinGame(R"#({
         "playerId_": "1",
         "game": "final"
     })#");
-    cout << "ret:" << ret << endl;
+
+    //cout << "ret:" << ret << endl;
+    EXPECT_FALSE(dice::parse(ret)["success"].GetBool());
     EXPECT_STREQ("PARSE_ERROR", dice::parse(ret)["error"].GetString());
     
     ret = e.joinGame(R"#({
-        "playerId": "4",
+        "playerId": "5",
         "game": "final"
     })#");
-    cout << "ret:" << ret << endl;
+    //cout << "ret:" << ret << endl;
+    EXPECT_FALSE(dice::parse(ret)["success"].GetBool());
     EXPECT_STREQ("NO_PLAYER", dice::parse(ret)["error"].GetString());
     
     ret = e.joinGame(R"#({
         "playerId": "4",
         "game": "final"
     })#");
-    cout << "ret:" << ret << endl;
-    EXPECT_STREQ("NO_PLAYER", dice::parse(ret)["error"].GetString());
+    //cout << "ret:" << ret << endl;
+    EXPECT_FALSE(dice::parse(ret)["success"].GetBool());
+    EXPECT_STREQ("ALREADY_JOINED", dice::parse(ret)["error"].GetString());
+    EXPECT_STREQ("semifinal", dice::parse(ret)["game"].GetString());
+
+    ret = e.joinGame(R"#({
+        "playerId": "3",
+        "game": "quarterfinal"
+    })#");
+    //cout << "ret:" << ret << endl;
+    EXPECT_FALSE(dice::parse(ret)["success"].GetBool());
+    EXPECT_STREQ("NO_GAME", dice::parse(ret)["error"].GetString());
     
+    ret = e.joinGame(R"#({
+        "playerId": "3",
+        "game": "semifinal"
+    })#");
+    //cout << "ret:" << ret << endl;
+    EXPECT_TRUE(dice::parse(ret)["success"].GetBool());
+    
+    const auto doc = dice::parse(e.getGames());
+    //dice::prettyPrint(doc);
+    EXPECT_EQ(2, doc.Size());
+    EXPECT_STREQ("semifinal", doc[1]["game"].GetString());
+    EXPECT_STREQ("ann", doc[1]["players"][0].GetString());
+    EXPECT_STREQ("ken", doc[1]["players"][1].GetString());
 }
 
 } // Unnamed namespace

@@ -34,9 +34,9 @@ class Engine::Impl
 {
     const std::string filename_;
     // id - player
-    std::unordered_map<std::string, std::string> players_;
+    std::map<std::string, std::string> players_;
     std::unordered_map<std::string, std::string> joinedGames_;
-    std::unordered_map<std::string, std::vector<std::string>> games_;
+    std::map<std::string, std::vector<std::string>> games_;
     
 public:
     Impl(const std::string& filename)
@@ -100,23 +100,28 @@ public:
                 {"success", false},
                 {"error", "NO_PLAYER"}
             }).str();
-        // And isn't already joined in a game
-        auto it = joinedGames_.find(id);
-        if (it != joinedGames_.end())
-            return json::Json({
-                {"success", false},
-                {"error", "ALREADY_JOINED"},
-                {"game", it->second}
-            }).str();
-        if (games_.find(game) != games_.end())
+        
+        { // And isn't already joined in a game
+            auto it = joinedGames_.find(id);
+            if (it != joinedGames_.end())
+                return json::Json({
+                    {"success", false},
+                    {"error", "ALREADY_JOINED"},
+                    {"game", it->second}
+                }).str();
+        }
+        
+        auto gameIt = games_.find(game);
+        if (gameIt == games_.end())
         {
             return json::Json({
                 {"success", false},
-                {"error", "GAME_EXISTS"}
+                {"error", "NO_GAME"}
             }).str();
         }
+        //@TODO TOO_MANY_PLAYES
         joinedGames_.insert({id, game});
-        games_.insert({game, {playerIt->second}});
+        gameIt->second.push_back(playerIt->second);
         return json::Json({"success", true}).str();
     }
     
@@ -172,7 +177,7 @@ public:
             w.EndObject();
         }
         w.EndArray();
-        std::cout << s.GetString() << std::endl;
+        //std::cout << s.GetString() << std::endl;
         dump(filename_, s.GetString());
     }
 
@@ -180,7 +185,7 @@ private:
     void load()
     {
         auto doc = parse(slurp(filename_));
-        prettyPrint(doc);
+        //prettyPrint(doc);
         if (doc.IsArray())
         {
             for (const auto& el : doc.GetArray())
