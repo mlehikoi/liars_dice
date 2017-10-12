@@ -1,6 +1,8 @@
+#include "bid.hpp"
 #include "helpers.hpp"
 #include "engine.hpp"
 #include "json.hpp"
+#include "game.hpp"
 
 #include <unordered_set>
 
@@ -275,6 +277,34 @@ TEST(EngineTest, JoinGame) {
     EXPECT_STREQ("semifinal", doc[1]["game"].GetString());
     EXPECT_STREQ("ann", doc[1]["players"][0].GetString());
     EXPECT_STREQ("ken", doc[1]["players"][1].GetString());
+}
+
+TEST(EngineGame, TestConstruct) {
+    dice::Game g{"final"};
+    g.addPlayer("joe");
+}
+
+using namespace dice;
+TEST(BidTest, TestBids) {
+    Bid b{1, 1};
+    ASSERT_TRUE(Bid(1, 1) < Bid(1, 2));
+    ASSERT_FALSE(Bid(1, 2) < Bid(1, 2));
+    ASSERT_FALSE(Bid(1, 2) < Bid(1, 1));
+
+    ASSERT_TRUE(Bid(1, 1) < Bid(1, STAR));
+    ASSERT_TRUE(Bid(1, 5) < Bid(1, STAR));
+    
+    ASSERT_TRUE(Bid(1, STAR) < Bid(2, 1));
+    ASSERT_FALSE(Bid(2, 1) < Bid(1, STAR));
+    
+    ASSERT_TRUE(Bid(3, 5) < Bid(4, 1));
+    ASSERT_FALSE(Bid(4, 1) < Bid(3, 5));
+    
+    ASSERT_TRUE(Bid(11, 5) < Bid(6, STAR));
+    ASSERT_TRUE(Bid(11, 5) < Bid(7, STAR));
+    ASSERT_FALSE(Bid(11, 5) < Bid(5, STAR));
+    ASSERT_TRUE(Bid(6, STAR) < Bid(12, 1));
+    
 }
 
 } // Unnamed namespace

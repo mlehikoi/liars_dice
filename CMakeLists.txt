@@ -39,6 +39,7 @@ if (GTEST_FOUND)
         engine.cpp
         helpers.cpp)
     target_link_libraries(runUnitTests GTest::GTest GTest::Main ${Boost_LIBRARIES})
+    add_test(runUnitTests runUnitTests)
 endif(GTEST_FOUND)
 
 if (Tcmalloc_FOUND)
