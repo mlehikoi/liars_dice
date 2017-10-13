@@ -279,19 +279,48 @@ TEST(EngineTest, JoinGame) {
     EXPECT_STREQ("ken", doc[1]["players"][1].GetString());
 }
 
+
+using namespace dice;
+
+class MockDice : public IDice
+{
+public:
+    int roll() const { return 1; }
+};
 TEST(EngineGame, TestConstruct) {
-    dice::Game g{"final"};
+    MockDice d;
+    dice::Game g{"final", d};
     g.addPlayer("joe");
     g.addPlayer("ann");
     g.addPlayer("mary");
     
     EXPECT_TRUE(g.startGame());
     EXPECT_FALSE(g.startGame());
+    
+    EXPECT_TRUE(g.startRound());
+    EXPECT_FALSE(g.startRound());
+    
+    auto s = g.getStatus("joe");
+    auto doc = parse(g.getStatus("joe"));
+    //cout << s << endl;
+    EXPECT_STREQ("joe", doc["turn"].GetString());
+    
+    EXPECT_STREQ("joe", doc["players"][0]["name"].GetString());
+    EXPECT_EQ(5, doc["players"][0]["hand"].Size());
+    
+    EXPECT_STREQ("ann", doc["players"][1]["name"].GetString());
+    EXPECT_EQ(5, doc["players"][1]["hand"].Size());
+    
+    EXPECT_STREQ("mary", doc["players"][2]["name"].GetString());
+    EXPECT_EQ(5, doc["players"][2]["hand"].Size());
+
     // Not mary's turn
     EXPECT_FALSE(g.bid("mary", 1, 1));
     
     // Joe can play
     EXPECT_TRUE(g.bid("joe", 1, 1));
+    doc = parse(g.getStatus("joe"));
+    EXPECT_STREQ("ann", doc["turn"].GetString());
     
     // Hold on Mary, it's still not your turn
     EXPECT_FALSE(g.bid("mary", 1, 2));
@@ -299,16 +328,20 @@ TEST(EngineGame, TestConstruct) {
     // Ann can bid, but it should be higher bid than previous
     EXPECT_FALSE(g.bid("ann", 1, 1));
     EXPECT_TRUE(g.bid("ann", 1, 2));
+    doc = parse(g.getStatus("joe"));
+    EXPECT_STREQ("mary", doc["turn"].GetString());
     
     // Okay Mary, now it's your turn
     EXPECT_TRUE(g.bid("mary", 5, 4));
+    doc = parse(g.getStatus("joe"));
+    EXPECT_STREQ("joe", doc["turn"].GetString());
     
     EXPECT_TRUE(g.bid("joe", 5, 5));
     EXPECT_FALSE(g.bid("ann", 3, 5));
     EXPECT_TRUE(g.bid("ann", 3, STAR));
+    
 }
 
-using namespace dice;
 TEST(BidTest, TestBids) {
     Bid b{1, 1};
     ASSERT_TRUE(Bid(1, 1) < Bid(1, 2));

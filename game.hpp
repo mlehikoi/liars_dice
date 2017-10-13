@@ -14,37 +14,63 @@ T set(T& value, T newValue)
     value = newValue;
     return prev;
 }
-auto doRoll()
-{
-    static std::random_device r;
-    static std::default_random_engine e1(r());
-    std::uniform_int_distribution<int> uniform_dist(1, 6);
-    return uniform_dist(e1);
-}
 
+class IDice
+{
+public:
+    virtual int roll() const = 0;
+};
+class Dice : public IDice
+{
+public:
+    int roll() const override
+    {
+        static std::random_device r;
+        static std::default_random_engine e1(r());
+        std::uniform_int_distribution<int> uniform_dist(1, 6);
+        return uniform_dist(e1);
+    }
+};
+
+Dice defaultDice_;
 class Player
 {
     std::string name_;
-    std::vector<int> dice_;
+    std::vector<int> hand_;
+    const IDice& diceRoll_;
 public:
-    Player(const std::string& name)
+    Player(const std::string& name, const IDice& diceRoll = defaultDice_)
       : name_{name},
-        dice_(5)
+        hand_(5),
+        diceRoll_{diceRoll}
     {
-        roll();
-        std::cout << "dice: " << dice_.size() << std::endl;
-        for (const auto& d : dice_) std::cout << d << std::endl;
+        //roll();
+        //std::cout << "dice: " << dice_.size() << std::endl;
+        //for (const auto& d : dice_) std::cout << d << std::endl;
     }
     
     void roll()
     {
-        for (auto& d : dice_)
+        for (auto& d : hand_)
         {
-            d = doRoll();
+            d = diceRoll_.roll();
         }
     }
+    
+    void serialize(rapidjson::PrettyWriter<rapidjson::StringBuffer>& w) const
+    {
+        w.StartObject();
+        w.Key("name");
+        w.String(name_.c_str());
+        w.Key("hand");
+        w.StartArray();
+        for (auto d : hand_)
+            w.Int(d);
+        w.EndArray();
+        w.EndObject();
+    }
     const auto& name() { return name_; }
-    bool isPlaying() const { return !dice_.empty(); }
+    bool isPlaying() const { return !hand_.empty(); }
 };
 
 
@@ -56,21 +82,25 @@ class Game
     int turn_;
     Bid currentBid_;
     bool roundStarted_;
+    const IDice& diceRoll_;
 
 public:
-    Game(const std::string& game)
+    Game(const std::string& game, const IDice& diceRoll = defaultDice_)
       : game_{game},
         players_{},
         round_{},
         turn_{0},
         currentBid_{},
-        roundStarted_{false}
+        roundStarted_{false},
+        diceRoll_{diceRoll}
     {
     }
     
+
+    
     void addPlayer(const std::string& player)
     {
-        players_.push_back({player});
+        players_.push_back({player, diceRoll_});
     }
     
     bool startGame()
@@ -132,6 +162,25 @@ public:
         //     return true;
         // }
         return false;
+    }
+    
+    std::string getStatus(const std::string& player)
+    {
+        rapidjson::StringBuffer s;
+        rapidjson::PrettyWriter<rapidjson::StringBuffer> w{s};
+        w.StartObject();
+        w.Key("turn");
+        w.String(currentPlayer().name().c_str());
+        w.Key("players");
+        w.StartArray();
+        
+        for (const auto& p : players_)
+        {
+            p.serialize(w);
+        }
+        w.EndArray();
+        w.EndObject();
+        return s.GetString();
     }
 };
 
