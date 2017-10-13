@@ -7,6 +7,13 @@
 
 namespace dice {
 
+template<typename T>
+T set(T& value, T newValue)
+{
+    T prev = value;
+    value = newValue;
+    return prev;
+}
 auto doRoll()
 {
     static std::random_device r;
@@ -36,7 +43,7 @@ public:
             d = doRoll();
         }
     }
-    
+    const auto& name() { return name_; }
     bool isPlaying() const { return !dice_.empty(); }
 };
 
@@ -48,13 +55,16 @@ class Game
     int round_;
     int turn_;
     Bid currentBid_;
+    bool roundStarted_;
+
 public:
     Game(const std::string& game)
       : game_{game},
         players_{},
         round_{},
-        turn_{},
-        currentBid_{}
+        turn_{0},
+        currentBid_{},
+        roundStarted_{false}
     {
     }
     
@@ -63,14 +73,58 @@ public:
         players_.push_back({player});
     }
     
-    void startGame()
+    bool startGame()
     {
-        ++round_;
-        for (auto& p : players_) p.roll();
+        if (round_ == 0)
+        {
+            ++round_;
+            return true;
+        }
+        return false;
     }
     
-    bool bid(int n, int face)
+    bool startRound()
     {
+        if (roundStarted_) return false;
+        roundStarted_ = true;
+        for (auto& p : players_) p.roll();
+        return true;
+    }
+    
+    auto& currentPlayer()
+    {
+        return players_[turn_];
+    }
+    
+    void nextPlayer()
+    {
+        ++turn_;
+        auto nPlayers = players_.size();
+        for (size_t i = 0; i < players_.size(); ++turn_)
+        {
+            turn_ %= nPlayers;
+            if (players_[turn_].isPlaying()) return;
+        }
+        assert(false);
+    }
+    
+    bool bid(const std::string& player, int n, int face)
+    {
+        std::cout << "turn: " << turn_ << std::endl;
+        std::cout << player << " vs " << currentPlayer().name()  << std::endl;
+        //@TODO return enum to indicate reason of failure
+        if (player == currentPlayer().name())
+        {
+            Bid bid{n, face};
+            if (currentBid_ < bid)
+            {
+                currentBid_ = bid;
+                //@TODO set bit to player
+                nextPlayer();
+                return true;
+            }
+            return false;
+        }
         // Bid bid{n, face};
         // if (currentBid_ < bid)
         // {

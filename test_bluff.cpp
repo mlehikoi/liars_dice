@@ -282,6 +282,30 @@ TEST(EngineTest, JoinGame) {
 TEST(EngineGame, TestConstruct) {
     dice::Game g{"final"};
     g.addPlayer("joe");
+    g.addPlayer("ann");
+    g.addPlayer("mary");
+    
+    EXPECT_TRUE(g.startGame());
+    EXPECT_FALSE(g.startGame());
+    // Not mary's turn
+    EXPECT_FALSE(g.bid("mary", 1, 1));
+    
+    // Joe can play
+    EXPECT_TRUE(g.bid("joe", 1, 1));
+    
+    // Hold on Mary, it's still not your turn
+    EXPECT_FALSE(g.bid("mary", 1, 2));
+    
+    // Ann can bid, but it should be higher bid than previous
+    EXPECT_FALSE(g.bid("ann", 1, 1));
+    EXPECT_TRUE(g.bid("ann", 1, 2));
+    
+    // Okay Mary, now it's your turn
+    EXPECT_TRUE(g.bid("mary", 5, 4));
+    
+    EXPECT_TRUE(g.bid("joe", 5, 5));
+    EXPECT_FALSE(g.bid("ann", 3, 5));
+    EXPECT_TRUE(g.bid("ann", 3, STAR));
 }
 
 using namespace dice;
