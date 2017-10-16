@@ -57,6 +57,12 @@ public:
         }
     }
     
+    void remove(std::size_t adjustment)
+    {
+        const auto size = hand_.size();
+        hand_.resize(size - std::min(size, adjustment));
+    }
+    
     const auto& hand() const { return hand_; }
     
     void serialize(rapidjson::PrettyWriter<rapidjson::StringBuffer>& w, const std::string& player) const
@@ -68,12 +74,35 @@ public:
         w.StartArray();
         for (auto d : hand_)
         {
-            w.Int(name_ == player ? d : 0);
+            w.Int(player.empty() || name_ == player ? d : 0);
         }
         w.EndArray();
         w.EndObject();
     }
-    const auto& name() { return name_; }
+    
+    void serialize(rapidjson::PrettyWriter<rapidjson::StringBuffer>& w,
+                   const std::tuple<int, bool, bool>& result) const
+    {
+        w.StartObject();
+        w.Key("name");
+        w.String(name_.c_str());
+
+        w.Key("adjustment"); w.Int(std::get<0>(result));
+        w.Key("winner"); w.Bool(std::get<1>(result));
+        w.Key("loser"); w.Bool(std::get<2>(result));
+
+        w.Key("hand");
+        w.StartArray();
+        for (auto d : hand_)
+        {
+            w.Int(d);
+        }
+        w.EndArray();
+
+        w.EndObject();
+    }
+    
+    const auto& name() const { return name_; }
     bool isPlaying() const { return !hand_.empty(); }
 };
 
@@ -87,6 +116,71 @@ class Game
     Bid currentBid_;
     bool roundStarted_;
     const IDice& diceRoll_;
+    // enum State
+    // {
+    //     GAME_NOT_STARTED,
+    //     GAME_STARTED,
+    //     ROUND_STARTED,
+    //     CHALLENGE,
+    //     GAME_FINISHED
+    // } state_;
+    MAKE_ENUM(GameState,
+        GAME_NOT_STARTED,
+        GAME_STARTED,
+        ROUND_STARTED,
+        CHALLENGE,
+        GAME_FINISHED
+    );
+
+    GameState state_;
+
+    // Used for challenge
+    const Player* bidder_;
+    const Player* challenger_;
+    
+    auto getOffset() const
+    {
+        //if (state_ == CHALLENGE)
+        {
+            std::vector<int> commonHand;
+            for (const auto p : players_)
+            {
+                commonHand.insert(commonHand.end(), p.hand().begin(), p.hand().end());
+            }
+            return currentBid_.challenge(commonHand);
+        }
+        return 0;
+    }
+    
+    auto& currentPlayer() const { return players_[turn_]; }
+    
+    const auto challenger() const { return challenger_; }
+    
+    auto getResult(int offset, const Player& player) const
+    {
+        std::cout << player.name() << " ";
+        std::cout << &player << " " << bidder_ << " " << challenger() << std::endl;
+        if (&player == bidder_)
+            return std::make_tuple(offset < 0 ? offset : 0, offset >= 0, offset < 0);
+        if (&player == challenger())
+            return std::make_tuple(offset >= 0 ? std::min(-1, -offset) : 0, offset < 0, offset >= 0);
+        return std::make_tuple(offset == 0 ? -1 : 0, false, false);
+    }
+    
+    void setTurn(const Player& player)
+    {
+        std::cout << "Set turn " << player.name() << std::endl;
+        int i = 0;
+        for (const auto& p : players_)
+        {
+            if (&p == &player)
+            {
+                turn_ = i;
+                return;
+            }
+            ++i;
+        }
+    }
 
 public:
     Game(const std::string& game, const IDice& diceRoll = defaultDice_)
@@ -96,12 +190,11 @@ public:
         turn_{0},
         currentBid_{},
         roundStarted_{false},
-        diceRoll_{diceRoll}
+        diceRoll_{diceRoll},
+        state_{GAME_NOT_STARTED}
     {
     }
-    
 
-    
     void addPlayer(const std::string& player)
     {
         players_.push_back({player, diceRoll_});
@@ -109,27 +202,36 @@ public:
     
     bool startGame()
     {
-        if (round_ == 0)
-        {
-            ++round_;
-            return true;
-        }
-        return false;
+        if (state_ != GAME_NOT_STARTED && state_ != GAME_FINISHED)
+            return false;
+        state_ = GAME_STARTED;
+        return true;
     }
     
     bool startRound()
     {
-        if (roundStarted_) return false;
-        roundStarted_ = true;
-        for (auto& p : players_) p.roll();
-        return true;
+        switch (state_)
+        {
+        case CHALLENGE:
+        {
+            const auto offset = getOffset();
+            for (auto& p : players_)
+            {
+                auto result = getResult(offset, p);
+                p.remove(-std::get<0>(result));
+            }
+        }
+        //[[clang::fallthrough]];
+        case GAME_STARTED:
+            state_ = ROUND_STARTED;
+            currentBid_ = Bid{};
+            for (auto& p : players_) p.roll();
+            return true;
+        default:
+            return false;
+        }
     }
-    
-    auto& currentPlayer()
-    {
-        return players_[turn_];
-    }
-    
+
     void nextPlayer()
     {
         ++turn_;
@@ -147,6 +249,8 @@ public:
         //std::cout << "turn: " << turn_ << std::endl;
         //std::cout << player << " vs " << currentPlayer().name()  << std::endl;
         //@TODO return enum to indicate reason of failure
+        std::cout << toString(state_) << " " << currentPlayer().name() << std::endl;
+        if (state_ != ROUND_STARTED) return false;
         if (player == currentPlayer().name())
         {
             Bid bid{n, face};
@@ -154,9 +258,11 @@ public:
             {
                 currentBid_ = bid;
                 //@TODO set bit to player
+                bidder_ = &currentPlayer();
                 nextPlayer();
                 return true;
             }
+            std::cout << "Too low bid" << std::endl;
             return false;
         }
         return false;
@@ -164,18 +270,28 @@ public:
     
     bool challenge(const std::string player)
     {
-        if (player != currentPlayer().name())
-        {
+        if (currentBid_ == Bid{})
             return false;
-        }
-        std::vector<int> commonHand;
-        for (const auto p : players_)
-        {
-            commonHand.insert(commonHand.end(), p.hand().begin(), p.hand().end());
-        }
-        std::cout << "current bid " << currentBid_.n() << " * " << currentBid_.face() << std::endl;
+        if (player != currentPlayer().name())
+            return false;
+        const auto offset = getOffset();
         
-        //std::cout << "diff " << 
+        // Is it done...
+        int numPlayers = 0;
+        for (const auto& p : players_)
+        {
+            auto result = getResult(offset, p);
+            //std::cout << p.name() << " " << p.hand().size() << " "
+            if (p.hand().size() > -std::get<0>(result)) ++numPlayers;
+        }
+        assert(numPlayers >= 1);
+        state_ = numPlayers == 1 ? GAME_FINISHED : CHALLENGE;
+        
+        challenger_ = &currentPlayer();
+        if (offset >= 0)
+        {
+            setTurn(*bidder_);
+        }
         return true;
     }
     
@@ -184,14 +300,25 @@ public:
         rapidjson::StringBuffer s;
         rapidjson::PrettyWriter<rapidjson::StringBuffer> w{s};
         w.StartObject();
-        w.Key("turn");
-        w.String(currentPlayer().name().c_str());
+        w.Key("turn"); w.String(currentPlayer().name().c_str());
+        w.Key("state"); w.String(toString(state_));
+
         w.Key("players");
         w.StartArray();
         
+        const auto offset = getOffset();
         for (const auto& p : players_)
         {
-            p.serialize(w, player);
+            if (state_ == CHALLENGE || state_ == GAME_FINISHED)
+            {
+                auto result = getResult(offset, p);
+                std::cout << p.name() << " " << offset << " " << std::get<0>(result) << std::endl;
+                p.serialize(w, result);
+            }
+            else
+            {
+                p.serialize(w, player);
+            }
         }
         w.EndArray();
         w.EndObject();

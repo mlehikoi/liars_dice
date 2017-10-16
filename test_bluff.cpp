@@ -313,6 +313,9 @@ TEST(EngineGame, TestConstruct) {
     
     EXPECT_STREQ("mary", doc["players"][2]["name"].GetString());
     EXPECT_EQ(5, doc["players"][2]["hand"].Size());
+    
+    // Can't challenge yet
+    ASSERT_FALSE(g.challenge("joe"));
 
     // Not mary's turn
     EXPECT_FALSE(g.bid("mary", 1, 1));
@@ -341,8 +344,113 @@ TEST(EngineGame, TestConstruct) {
     EXPECT_TRUE(g.bid("ann", 3, STAR));
     
     EXPECT_FALSE(g.challenge("joe"));
-    EXPECT_TRUE(g.challenge("mary"));
     
+    cout << g.getStatus("mary") << endl;
+    EXPECT_TRUE(g.challenge("mary"));
+    cout << g.getStatus("mary") << endl;
+    doc = parse(g.getStatus("mary"));
+    
+    ASSERT_STREQ("mary", doc["turn"].GetString());
+    
+    EXPECT_STREQ("joe", doc["players"][0]["name"].GetString());
+    EXPECT_EQ(       0, doc["players"][0]["adjustment"].GetInt());
+    EXPECT_FALSE(       doc["players"][0]["winner"].GetBool());
+    EXPECT_FALSE(       doc["players"][0]["loser"].GetBool());
+    
+    EXPECT_STREQ("ann", doc["players"][1]["name"].GetString());
+    EXPECT_EQ(      -3, doc["players"][1]["adjustment"].GetInt());
+    EXPECT_FALSE(       doc["players"][1]["winner"].GetBool());
+    EXPECT_TRUE(        doc["players"][1]["loser"].GetBool());
+    
+    EXPECT_STREQ("mary", doc["players"][2]["name"].GetString());
+    EXPECT_EQ(        0, doc["players"][2]["adjustment"].GetInt());
+    EXPECT_TRUE(         doc["players"][2]["winner"].GetBool());
+    EXPECT_FALSE(        doc["players"][2]["loser"].GetBool());
+
+    EXPECT_FALSE(g.bid("mary", 12, 1));
+    EXPECT_TRUE(g.startRound());
+    EXPECT_TRUE(g.bid("mary", 12, 1));
+    EXPECT_TRUE(g.challenge("joe"));
+    
+    cout << g.getStatus("mary") << endl;
+    doc = parse(g.getStatus("mary"));
+
+    EXPECT_STREQ("mary", doc["turn"].GetString());
+    
+    EXPECT_STREQ("joe", doc["players"][0]["name"].GetString());
+    EXPECT_EQ(      -1, doc["players"][0]["adjustment"].GetInt());
+    EXPECT_FALSE(       doc["players"][0]["winner"].GetBool());
+    EXPECT_TRUE(        doc["players"][0]["loser"].GetBool());
+    
+    EXPECT_STREQ("ann", doc["players"][1]["name"].GetString());
+    EXPECT_EQ(      -1, doc["players"][1]["adjustment"].GetInt());
+    EXPECT_FALSE(       doc["players"][1]["winner"].GetBool());
+    EXPECT_FALSE(        doc["players"][1]["loser"].GetBool());
+    
+    EXPECT_STREQ("mary", doc["players"][2]["name"].GetString());
+    EXPECT_EQ(        0, doc["players"][2]["adjustment"].GetInt());
+    EXPECT_TRUE(         doc["players"][2]["winner"].GetBool());
+    EXPECT_FALSE(        doc["players"][2]["loser"].GetBool());
+    
+    EXPECT_TRUE(g.startRound());
+    EXPECT_TRUE(g.bid("mary", 10, 1));
+    EXPECT_TRUE(g.bid("joe", 10, 2));
+    
+    EXPECT_TRUE(g.challenge("ann"));
+    
+    cout << g.getStatus("mary") << endl;
+    doc = parse(g.getStatus("mary"));
+
+    EXPECT_STREQ("ann", doc["turn"].GetString());
+    
+    EXPECT_STREQ("joe", doc["players"][0]["name"].GetString());
+    EXPECT_EQ(     -10, doc["players"][0]["adjustment"].GetInt());
+    EXPECT_FALSE(       doc["players"][0]["winner"].GetBool());
+    EXPECT_TRUE(        doc["players"][0]["loser"].GetBool());
+    
+    EXPECT_STREQ("ann", doc["players"][1]["name"].GetString());
+    EXPECT_EQ(       0, doc["players"][1]["adjustment"].GetInt());
+    EXPECT_TRUE(        doc["players"][1]["winner"].GetBool());
+    EXPECT_FALSE(       doc["players"][1]["loser"].GetBool());
+    
+    EXPECT_STREQ("mary", doc["players"][2]["name"].GetString());
+    EXPECT_EQ(        0, doc["players"][2]["adjustment"].GetInt());
+    EXPECT_FALSE(        doc["players"][2]["winner"].GetBool());
+    EXPECT_FALSE(        doc["players"][2]["loser"].GetBool());
+    
+    EXPECT_TRUE(g.startRound());
+    cout << g.getStatus("mary") << endl;
+    
+    EXPECT_TRUE(g.bid("ann", 1, 1));
+    EXPECT_TRUE(g.bid("mary", 1, 2));
+    
+    cout << g.getStatus("mary") << endl;
+
+    EXPECT_TRUE(g.bid("ann", 1, 3));
+    cout << g.getStatus("mary") << endl;
+    
+    EXPECT_TRUE(g.challenge("mary"));
+    cout << g.getStatus("mary") << endl;
+    doc = parse(g.getStatus("mary"));
+    ASSERT_STREQ("mary", doc["turn"].GetString());
+    
+    EXPECT_STREQ("joe", doc["players"][0]["name"].GetString());
+    EXPECT_EQ(       0, doc["players"][0]["adjustment"].GetInt());
+    EXPECT_FALSE(       doc["players"][0]["winner"].GetBool());
+    EXPECT_FALSE(       doc["players"][0]["loser"].GetBool());
+
+    EXPECT_STREQ("ann", doc["players"][1]["name"].GetString());
+    EXPECT_EQ(      -1, doc["players"][1]["adjustment"].GetInt());
+    EXPECT_FALSE(       doc["players"][1]["winner"].GetBool());
+    EXPECT_TRUE(        doc["players"][1]["loser"].GetBool());
+
+    EXPECT_STREQ("mary", doc["players"][2]["name"].GetString());
+    EXPECT_EQ(        0, doc["players"][2]["adjustment"].GetInt());
+    EXPECT_TRUE(         doc["players"][2]["winner"].GetBool());
+    EXPECT_FALSE(        doc["players"][2]["loser"].GetBool());
+    
+    // EXPECT_TRUE(g.startRound());
+    // cout << g.getStatus("mary") << endl;
 }
 
 TEST(BidTest, TestBids) {

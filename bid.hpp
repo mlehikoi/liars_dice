@@ -37,4 +37,5 @@ public:
         }
         return n - n_;
     }
+    const bool operator==(const Bid& bid) const { return n_ == bid.n_ && face_ == bid.face_; }
 };
