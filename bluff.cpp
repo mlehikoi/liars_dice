@@ -67,11 +67,14 @@ int main()
 
     CROW_ROUTE(app, "/")([]{ return readFile("index.html"); });
     
+    //@TODO This isn't login but register
     CROW_ROUTE(app, "/api/login")
         .methods("POST"_method)
         ([](const crow::request& req)
         {
             auto j = crow::json::load(req.body);
+            
+            //@TODO don't allow empty name because it has special meaning
             const std::string name = j["name"].s();
             for (const auto& idName : players_)
             {

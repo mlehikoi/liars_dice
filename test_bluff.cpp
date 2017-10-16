@@ -340,6 +340,9 @@ TEST(EngineGame, TestConstruct) {
     EXPECT_FALSE(g.bid("ann", 3, 5));
     EXPECT_TRUE(g.bid("ann", 3, STAR));
     
+    EXPECT_FALSE(g.challenge("joe"));
+    EXPECT_TRUE(g.challenge("mary"));
+    
 }
 
 TEST(BidTest, TestBids) {
@@ -361,7 +364,20 @@ TEST(BidTest, TestBids) {
     ASSERT_TRUE(Bid(11, 5) < Bid(7, STAR));
     ASSERT_FALSE(Bid(11, 5) < Bid(5, STAR));
     ASSERT_TRUE(Bid(6, STAR) < Bid(12, 1));
-    
 }
 
+TEST(BidTest, TestChallenge) {
+    std::vector<int> hand = { 1, 1, 2, 2, 2, STAR, STAR };
+    EXPECT_EQ(3, Bid(1, 1).challenge(hand));
+    EXPECT_EQ(0, Bid(4, 1).challenge(hand));
+    EXPECT_EQ(-1, Bid(5, 1).challenge(hand));
+    
+    EXPECT_EQ(4, Bid(1, 2).challenge(hand));
+    EXPECT_EQ(0, Bid(5, 2).challenge(hand));
+    EXPECT_EQ(-5, Bid(10, 2).challenge(hand));
+    
+    EXPECT_EQ(1, Bid(1, STAR).challenge(hand));
+    EXPECT_EQ(0, Bid(2, STAR).challenge(hand));
+    EXPECT_EQ(-8, Bid(10, STAR).challenge(hand));
+}
 } // Unnamed namespace

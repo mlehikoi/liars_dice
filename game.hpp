@@ -57,7 +57,9 @@ public:
         }
     }
     
-    void serialize(rapidjson::PrettyWriter<rapidjson::StringBuffer>& w) const
+    const auto& hand() const { return hand_; }
+    
+    void serialize(rapidjson::PrettyWriter<rapidjson::StringBuffer>& w, const std::string& player) const
     {
         w.StartObject();
         w.Key("name");
@@ -65,7 +67,9 @@ public:
         w.Key("hand");
         w.StartArray();
         for (auto d : hand_)
-            w.Int(d);
+        {
+            w.Int(name_ == player ? d : 0);
+        }
         w.EndArray();
         w.EndObject();
     }
@@ -140,8 +144,8 @@ public:
     
     bool bid(const std::string& player, int n, int face)
     {
-        std::cout << "turn: " << turn_ << std::endl;
-        std::cout << player << " vs " << currentPlayer().name()  << std::endl;
+        //std::cout << "turn: " << turn_ << std::endl;
+        //std::cout << player << " vs " << currentPlayer().name()  << std::endl;
         //@TODO return enum to indicate reason of failure
         if (player == currentPlayer().name())
         {
@@ -155,13 +159,24 @@ public:
             }
             return false;
         }
-        // Bid bid{n, face};
-        // if (currentBid_ < bid)
-        // {
-        //     currentBid_ = bid;
-        //     return true;
-        // }
         return false;
+    }
+    
+    bool challenge(const std::string player)
+    {
+        if (player != currentPlayer().name())
+        {
+            return false;
+        }
+        std::vector<int> commonHand;
+        for (const auto p : players_)
+        {
+            commonHand.insert(commonHand.end(), p.hand().begin(), p.hand().end());
+        }
+        std::cout << "current bid " << currentBid_.n() << " * " << currentBid_.face() << std::endl;
+        
+        //std::cout << "diff " << 
+        return true;
     }
     
     std::string getStatus(const std::string& player)
@@ -176,7 +191,7 @@ public:
         
         for (const auto& p : players_)
         {
-            p.serialize(w);
+            p.serialize(w, player);
         }
         w.EndArray();
         w.EndObject();
