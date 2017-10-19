@@ -1,5 +1,6 @@
 #include "engine.hpp"
 
+#include "game.hpp"
 #include "helpers.hpp"
 #include "json.hpp"
 #include <rapidjson/document.h>
@@ -36,7 +37,7 @@ class Engine::Impl
     // id - player
     std::map<std::string, std::string> players_;
     std::unordered_map<std::string, std::string> joinedGames_;
-    std::map<std::string, std::vector<std::string>> games_;
+    std::map<std::string, std::unique_ptr<Game>> games_;
     
 public:
     Impl(const std::string& filename)
@@ -87,7 +88,14 @@ public:
             }).str();
         }
         joinedGames_.insert({id, game});
-        games_.insert({game, {playerIt->second}});
+        //games_.insert({game, {playerIt->second}});
+        //@TODO game with player name
+        auto ret = games_.insert({game, std::make_unique<Game>(game)});
+        assert(ret.second);
+        //std::unique_ptr<Game>& g = ret.first->second;
+        //g->addPlayer(playerIt->second);
+        ret.first->second->addPlayer(playerIt->second);
+        //games_[game]->addPlayer(playerIt->second);
         return json::Json({"success", true}).str();
     }
     
@@ -121,7 +129,7 @@ public:
         }
         //@TODO TOO_MANY_PLAYES
         joinedGames_.insert({id, game});
-        gameIt->second.push_back(playerIt->second);
+        gameIt->second->addPlayer(playerIt->second);
         return json::Json({"success", true}).str();
     }
     
@@ -139,9 +147,9 @@ public:
             
             w.Key("players");
             w.StartArray();
-            for (const auto& player : kv.second)
+            for (const auto& player : kv.second->players())
             {
-                w.String(player.c_str());
+                w.String(player.name().c_str());
             }
             w.EndArray();
             w.EndObject();
@@ -199,7 +207,13 @@ private:
                 if (!game.empty())
                 {
                     joinedGames_.insert({id, game});
-                    games_[game].push_back(name);
+                    auto gameIt = games_.find(game);
+                    if (gameIt == games_.end())
+                    {
+                        games_.insert({game, std::make_unique<Game>(game)});
+                    }
+                    gameIt->second->addPlayer(name);
+                    //games_[game]->(name);
                 }
             }
         }

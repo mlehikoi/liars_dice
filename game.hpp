@@ -1,5 +1,9 @@
 #pragma once
 #include "bid.hpp"
+#include "json.hpp"
+#include "helpers.hpp"
+
+#include <rapidjson/prettywriter.h>
 
 #include <random>
 #include <string>
@@ -8,7 +12,7 @@
 namespace dice {
 
 template<typename T>
-T set(T& value, T newValue)
+inline T set(T& value, T newValue)
 {
     T prev = value;
     value = newValue;
@@ -23,6 +27,12 @@ public:
 class Dice : public IDice
 {
 public:
+    static auto& instance()
+    {
+        static Dice dice;
+        return dice;
+    }
+
     int roll() const override
     {
         static std::random_device r;
@@ -32,14 +42,14 @@ public:
     }
 };
 
-Dice defaultDice_;
+
 class Player
 {
     std::string name_;
     std::vector<int> hand_;
     const IDice& diceRoll_;
 public:
-    Player(const std::string& name, const IDice& diceRoll = defaultDice_)
+    Player(const std::string& name, const IDice& diceRoll)
       : name_{name},
         hand_(5),
         diceRoll_{diceRoll}
@@ -183,7 +193,7 @@ class Game
     }
 
 public:
-    Game(const std::string& game, const IDice& diceRoll = defaultDice_)
+    Game(const std::string& game, const IDice& diceRoll = Dice::instance())
       : game_{game},
         players_{},
         round_{},
@@ -199,6 +209,8 @@ public:
     {
         players_.push_back({player, diceRoll_});
     }
+
+    auto players() const { return players_; }
     
     bool startGame()
     {
