@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="210mm"
+   height="297mm"
+   viewBox="0 0 210 297"
+   version="1.1"
+   id="svg8"
+   inkscape:version="0.92.2 5c3e80d, 2017-08-06"
+   sodipodi:docname="question.svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.5"
+     inkscape:cx="43.80096"
+     inkscape:cy="128.00001"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1440"
+     inkscape:window-height="805"
+     inkscape:window-x="165"
+     inkscape:window-y="57"
+     inkscape:window-maximized="0" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:#c10000;fill-opacity:1;fill-rule:evenodd;stroke:#9f2022;stroke-width:5.06802797;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect815"
+       width="130.39864"
+       height="130.39864"
+       x="2.534014"
+       y="164.06735"
+       rx="10.187394"
+       ry="10.187394"
+       inkscape:export-filename="/Users/mlehikoi/bluff/static/three-512x512.png"
+       inkscape:export-xdpi="95.989998"
+       inkscape:export-ydpi="95.989998" />
+    <circle
+       transform="scale(1,-1)"
+       inkscape:export-ydpi="95.989998"
+       inkscape:export-xdpi="95.989998"
+       inkscape:export-filename="/Users/mlehikoi/bluff/static/three-512x512.png"
+       r="14.073074"
+       cy="-131.37083"
+       cx="102.12917"
+       id="circle883"
+       style="fill:#c1c600;fill-opacity:1;fill-rule:evenodd;stroke:#9f2022;stroke-width:5.72051811;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+    <flowRoot
+       xml:space="preserve"
+       id="flowRoot2104"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:426.66668701px;line-height:1.25;font-family:'Comic Sans MS';-inkscape-font-specification:'Comic Sans MS';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none"
+       transform="scale(0.26458333)"><flowRegion
+         id="flowRegion2106"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:426.66668701px;font-family:'Comic Sans MS';-inkscape-font-specification:'Comic Sans MS'"><rect
+           id="rect2108"
+           width="322"
+           height="352"
+           x="84"
+           y="702.51971"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:426.66668701px;font-family:'Comic Sans MS';-inkscape-font-specification:'Comic Sans MS'" /></flowRegion><flowPara
+         id="flowPara2110">??</flowPara></flowRoot>    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:115.0531311px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#c1c600;fill-opacity:1;stroke:#9f2022;stroke-width:3.62372065;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       x="33.639141"
+       y="284.2626"
+       id="text2114"
+       transform="scale(1.0536512,0.94908069)"><tspan
+         sodipodi:role="line"
+         id="tspan2112"
+         x="33.639141"
+         y="284.2626"
+         style="font-size:115.0531311px;fill:#c1c600;fill-opacity:1;stroke:#9f2022;stroke-width:3.62372065;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1">?</tspan></text>
+  </g>
+</svg>
