@@ -1,3 +1,4 @@
+#pragma once
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 #include <string>
