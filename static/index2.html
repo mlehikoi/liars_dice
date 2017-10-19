@@ -3,19 +3,20 @@
     <head>
         <title>Liar's dice</title>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
         <script>
-            var face = 0;
+            var face = 1;
+            var n = 1;
         </script>
     </head>
     <body>
         <div class="w3-padding w3-white notranslate">
             <table class="table table-condensed">
-                <thead>
+                <thead class="w3-blue">
                     <tr>
                         <td>Player</td>
                         <td>Hand</td>
@@ -31,7 +32,7 @@
                         <img class="img" src="question.jpg" alt="?" width="24" height="24">
                         <img class="img" src="question.jpg" alt="?" width="24" height="24">
                     </td>
-                    <td><img class="img" src="three.png" alt="1"vwidth="24" height="24"> * 1</td>
+                    <td><img class="img" src="three-32x32.png" alt="1"vwidth="24" height="24"> * 1</td>
                 </tr>
                 <tr>
                     <td>ann</td>
@@ -40,7 +41,7 @@
                         <img class="img" src="question.jpg" alt="?" width="24" height="24">
                         <img class="img" src="question.jpg" alt="?" width="24" height="24">
                     </td>
-                    <td><img class="img" src="three.png" alt="1"vwidth="24" height="24"> * 1</td>
+                    <td><img class="img" src="four-32x32.png" alt="1"vwidth="24" height="24"> * 1</td>
                 </tr>
                 <tr class="active">
                     <td>
@@ -48,13 +49,13 @@
                         mary
                     </td>
                     <td>
-                        <img class="img" src="one.png" alt="?" width="24" height="24">
-                        <img class="img" src="one.png" alt="?" width="24" height="24">
-                        <img class="img" src="two.png" alt="?" width="24" height="24">
-                        <img class="img" src="two.png" alt="?" width="24" height="24">
-                        <img class="img" src="three.png" alt="?" width="24" height="24">
+                        <img class="img" src="one-32x32.png" alt="?" width="24" height="24">
+                        <img class="img" src="one-32x32.png" alt="?" width="24" height="24">
+                        <img class="img" src="two-32x32.png" alt="?" width="24" height="24">
+                        <img class="img" src="two-32x32.png" alt="?" width="24" height="24">
+                        <img class="img" src="three-32x32.png" alt="?" width="24" height="24">
                     </td>
-                    <td><img class="img" src="three.png" alt="1"vwidth="24" height="24"> * 1</td>
+                    <td></td>
                 </tr>
                 <tr>
                     <td>ken</td>
@@ -74,61 +75,94 @@
                     <td></td>
                 </tr>
             </table>
-        </div>
+            <p>It's your turn. You can either make a higher bid or challeng the bid.
+            </p>
 
-        <div class="w3-padding w3-white notranslate">
-            <div class="col-xs-6">
-                <div class="input-group">
-                    <span class="input-group-btn">
-                        <button type="button" class="btn">
-                            <span class="glyphicon glyphicon-chevron-left"></span>
-                        </button>
-                    </span>
-                    <img class="center-block" src="one-32x32.png" alt="1">
-                    <span class="input-group-btn">
-                        <button type="button" class="btn">
-                            <span class="glyphicon glyphicon-chevron-right"></span>
-                        </button>
-                    </span>
+            <div id="BidOrChallenge" class="">
+                <div class="row">
+                    <div class="col-xs-6">
+                        Face
+                    </div>
+                    <div class="col-xs-6">
+                        How many
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-6">
+                        <div class="input-group">
+                            <span class="input-group-btn">
+                                <button type="button" id="face-minus" class="btn btn-default">
+                                    <span class="glyphicon glyphicon-chevron-left"></span>
+                                </button>
+                            </span>
+                            <div id="face-1"><img class="center-block" src="one-32x32.png" alt="1"></div>
+                            <div id="face-2" class="hidden"><img class="center-block" src="two-32x32.png" alt="2"></div>
+                            <div id="face-3" class="hidden"><img class="center-block" src="three-32x32.png" alt="3"></div>
+                            <div id="face-4" class="hidden"><img class="center-block" src="four-32x32.png" alt="4"></div>
+                            <div id="face-5" class="hidden"><img class="center-block" src="five-32x32.png" alt="5"></div>
+                            <div id="face-6" class="hidden"><img class="center-block" src="six-32x32.png" alt="6"></div>
+                            <span class="input-group-btn">
+                                <button type="button" id="face-plus" class="btn btn-default">
+                                    <span class="glyphicon glyphicon-chevron-right"></span>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-xs-6">
+                        <div class="input-group">
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-default">
+                                    <span class="glyphicon glyphicon-minus" id="n-minus"></span>
+                                </button>
+                            </span>
+                            <!--<input type="text" class="form-control" name="qty" id="qty" value="1">-->
+                            <p class="text-center"><span class="label label-default" id="n">1</span></p>
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-default" id="n-plus">
+                                    <span class="glyphicon glyphicon-plus btn-default"></span>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xs-12" style="height:50px;"></div>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <button type="button" id="bid" class="btn btn-success">Bid</button>
+                        <button type="button" id="challenge" class="btn btn-danger">Challenge</button>
+                    </div>
                 </div>
             </div>
-            <div class="col-xs-6">
-                <div class="input-group">
-                    <span class="input-group-btn">
-                        <button type="button" class="btn">
-                            <span class="glyphicon glyphicon-minus"></span>
-                        </button>
-                    </span>
-                    <!--<input type="text" class="form-control" name="qty" id="qty" value="1">-->
-                    <p class="text-center">5</p>
-                    <span class="input-group-btn">
-                        <button type="button" class="btn">
-                            <span class="glyphicon glyphicon-plus"></span>
-                        </button>
-                    </span>
-                </div>
-            </div>
+            <script>
+                $('#create').click(function() {
+                    $('#myCarousel').carousel(1);
+                });
+                $('#n-minus').click(function() { 
+                    if (n > 0) --n;
+                    $("#n").html(n);
+                });
+                $('#n-plus').click(function() {
+                    ++n;
+                    $("#n").html(n);
+                });
+                $("#face-minus").click(function() {
+                    $("#face-" + face).addClass('hidden');
+                    --face;
+                    if (face <= 0) face = 6;
+                    $("#face-" + face).removeClass('hidden');
+                });
+                $("#face-plus").click(function() {
+                    $("#face-" + face).addClass('hidden');
+                    ++face;
+                    if (face > 6) face = 1;
+                    $("#face-" + face).removeClass('hidden');
+                });
+                $("#myCarousel").on('slide.bs.carousel', function(evt) {
+                    console.log("slide transition started")
+                    console.log('current slide = ', $(this).find('.active').index())
+                    console.log('next slide = ', $(evt.relatedTarget).index())
+                })
+            </script>
         </div>
-
-        <!--
-<img class="img-responsive center-block" src="three.png" alt="New York" width="48" height="48">
-<img class="center-block" src="one-32x32.png" alt="1">
--->
-
-
-        <script>
-            $('#create').click(function() {
-                $('#myCarousel').carousel(1);
-            });
-            $('#slideLeft').click(function() {
-                $('#myCarousel').carousel("prev");
-            });
-            $("#myCarousel").on('slide.bs.carousel', function(evt) {
-                console.log("slide transition started")
-                console.log('current slide = ', $(this).find('.active').index())
-                console.log('next slide = ', $(evt.relatedTarget).index())
-            })
-        </script>
-        <!--$('#myCarousel').carousel(1);-->
     </body>
 </html>
