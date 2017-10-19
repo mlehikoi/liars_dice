@@ -210,7 +210,8 @@ private:
                     auto gameIt = games_.find(game);
                     if (gameIt == games_.end())
                     {
-                        games_.insert({game, std::make_unique<Game>(game)});
+                        gameIt = games_.insert({game, std::make_unique<Game>(game)}).first;
+                        assert(gameIt != games_.end());
                     }
                     gameIt->second->addPlayer(name);
                     //games_[game]->(name);
