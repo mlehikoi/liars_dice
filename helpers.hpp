@@ -85,7 +85,7 @@ inline static const auto& getEnums(Name) { \
     return enums;\
 }\
 /*static struct Init ## Name { Init ## Name () { getEnums(::dice::firstParam(__VA_ARGS__));} } init ## Name ## G;*/\
-inline const char* toString(Name key) { \
+inline const char* toString(Name key) const { \
     auto& map = getEnums(key); \
     const auto it = map.find(key); \
     return it != map.end() ? it->second.c_str() : "Unknown"; \

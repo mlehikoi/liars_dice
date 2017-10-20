@@ -189,6 +189,47 @@ public:
         dump(filename_, s.GetString());
     }
 
+    void save2()
+    {
+        rapidjson::StringBuffer s;
+        rapidjson::PrettyWriter<rapidjson::StringBuffer> w{s};
+        
+        w.StartObject();
+        w.Key("players");
+        w.StartArray();
+        for (const auto& kv : players_)
+        {
+            const auto id = kv.first;
+            
+            w.StartObject();
+            w.Key("id");
+            w.String(id.c_str());
+            
+            w.Key("name");
+            w.String(kv.second.c_str());
+            
+            const auto it = joinedGames_.find(id);
+            if (it != joinedGames_.end())
+            {
+                w.Key("game");
+                w.String(it->second.c_str());
+            }
+            w.EndObject();
+        }
+        w.EndArray();
+        w.Key("games");
+        w.StartArray();
+        for (const auto& it : games_)
+        {
+            it.second->serialize(w);
+        }
+
+        w.EndArray();
+        w.EndObject();
+        //std::cout << s.GetString() << std::endl;
+        dump(filename_, s.GetString());
+    }
+
 private:
     void load()
     {
@@ -285,6 +326,11 @@ std::string Engine::getGames() const
 void Engine::save()
 {
     impl_->save();
+}
+
+void Engine::save2()
+{
+    impl_->save2();
 }
 
 } // namespace dice

@@ -75,6 +75,21 @@ public:
     
     const auto& hand() const { return hand_; }
     
+    void serialize(rapidjson::PrettyWriter<rapidjson::StringBuffer>& w) const
+    {
+        w.StartObject();
+        w.Key("name");
+        w.String(name_.c_str());
+        w.Key("hand");
+        w.StartArray();
+        for (auto d : hand_)
+        {
+            w.Int(d);
+        }
+        w.EndArray();
+        w.EndObject();
+    }
+
     void serialize(rapidjson::PrettyWriter<rapidjson::StringBuffer>& w, const std::string& player) const
     {
         w.StartObject();
@@ -335,6 +350,45 @@ public:
         w.EndArray();
         w.EndObject();
         return s.GetString();
+    }
+
+    void serialize(rapidjson::PrettyWriter<rapidjson::StringBuffer>& w) const
+    {
+        w.StartObject();
+        w.Key("game");
+        w.String(game_.c_str());
+
+        w.Key("state");
+        w.String(toString(state_));
+
+        w.Key("turn");
+        w.Int(turn_);
+
+        w.Key("bid");
+        w.StartObject();
+        w.Key("n");
+        w.Int(currentBid_.n());
+        w.Key("face");
+        w.Int(currentBid_.face());
+        w.EndObject();
+
+        w.Key("players");
+        w.StartArray();
+        for (const auto& p : players_)
+            p.serialize(w);
+        w.EndArray();
+        /*
+        std::string game_;
+        std::vector<Player> players_;
+        int round_;
+        int turn_;
+        Bid currentBid_;
+        bool roundStarted_;
+        const IDice& diceRoll_;
+        GameState state_;
+        const Player* bidder_;
+        const Player* challenger_;*/
+        w.EndObject();
     }
 };
 
