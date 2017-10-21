@@ -1,4 +1,5 @@
 #pragma once
+#include "bid.hpp"
 #include "dice.hpp"
 
 #include <rapidjson/prettywriter.h>
@@ -9,16 +10,15 @@ class Player
 {
     std::string name_;
     std::vector<int> hand_;
+    Bid bid_;
     const IDice& diceRoll_;
 public:
     Player(const std::string& name, const IDice& diceRoll)
       : name_{name},
         hand_(5),
+        bid_{},
         diceRoll_{diceRoll}
     {
-        //roll();
-        //std::cout << "dice: " << dice_.size() << std::endl;
-        //for (const auto& d : dice_) std::cout << d << std::endl;
     }
     
     void roll()
@@ -27,7 +27,10 @@ public:
         {
             d = diceRoll_.roll();
         }
+        bid_ = {};
     }
+
+    void bid(const Bid& bid) { bid_ = bid; }
     
     void remove(std::size_t adjustment)
     {
@@ -36,12 +39,17 @@ public:
     }
     
     const auto& hand() const { return hand_; }
+    const auto& bid() const { return bid_; }
     
     void serialize(rapidjson::PrettyWriter<rapidjson::StringBuffer>& w) const
     {
         w.StartObject();
         w.Key("name");
         w.String(name_.c_str());
+
+        w.Key("bid");
+        bid_.serialize(w);
+        
         w.Key("hand");
         w.StartArray();
         for (auto d : hand_)

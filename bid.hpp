@@ -1,4 +1,5 @@
 #pragma once
+#include <rapidjson/prettywriter.h>
 
 const int STAR = 6;
 class Bid
@@ -37,5 +38,14 @@ public:
         }
         return n - n_;
     }
+
+    void serialize(rapidjson::PrettyWriter<rapidjson::StringBuffer>& w) const
+    {
+        w.StartObject();
+        w.Key("n"); w.Int(n_);
+        w.Key("face"); w.Int(face_);
+        w.EndObject();
+    }
+
     const bool operator==(const Bid& bid) const { return n_ == bid.n_ && face_ == bid.face_; }
 };

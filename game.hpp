@@ -66,7 +66,8 @@ class Game
         return 0;
     }
     
-    auto& currentPlayer() const { return players_[turn_]; }
+    auto& currentPlayer() { return players_[turn_]; }
+    const auto& currentPlayer() const { return players_[turn_]; }
     
     const auto challenger() const { return challenger_; }
     
@@ -175,6 +176,7 @@ public:
                 currentBid_ = bid;
                 //@TODO set bit to player
                 bidder_ = &currentPlayer();
+                currentPlayer().bid(bid);
                 nextPlayer();
                 return true;
             }
