@@ -226,7 +226,8 @@ public:
 
         w.EndArray();
         w.EndObject();
-        //std::cout << s.GetString() << std::endl;
+        std::cout << "***Games***" << std::endl;
+        std::cout << s.GetString() << std::endl;
         dump(filename_, s.GetString());
     }
 
@@ -234,7 +235,8 @@ private:
     void load()
     {
         auto doc = parse(slurp(filename_));
-        //prettyPrint(doc);
+        prettyPrint(doc);
+        // Players...
         if (doc.IsObject() && doc.HasMember("players") && doc["players"].IsArray())
         {
             for (const auto& el : doc["players"].GetArray())
@@ -248,14 +250,18 @@ private:
                 if (!game.empty())
                 {
                     joinedGames_.insert({id, game});
-                    auto gameIt = games_.find(game);
-                    if (gameIt == games_.end())
-                    {
-                        gameIt = games_.insert({game, std::make_unique<Game>(game)}).first;
-                        assert(gameIt != games_.end());
-                    }
-                    gameIt->second->addPlayer(name);
-                    //games_[game]->(name);
+                }
+            }
+        }
+        // Games...
+        if (doc.IsObject() && doc.HasMember("games") && doc["games"].IsArray())
+        {
+            for (const auto& jgame : doc["games"].GetArray())
+            {
+                std::unique_ptr<Game> game = Game::fromJson(jgame);
+                if (game)
+                {
+                    games_.insert({game->name(), std::move(game)});
                 }
             }
         }

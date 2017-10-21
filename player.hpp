@@ -2,6 +2,7 @@
 #include "bid.hpp"
 #include "dice.hpp"
 
+#include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
 
 namespace dice {
@@ -12,6 +13,12 @@ class Player
     std::vector<int> hand_;
     Bid bid_;
     const IDice& diceRoll_;
+    Player()
+      : name_{},
+        diceRoll_{Dice::instance()}
+    {
+
+    }
 public:
     Player(const std::string& name, const IDice& diceRoll)
       : name_{name},
@@ -20,6 +27,8 @@ public:
         diceRoll_{diceRoll}
     {
     }
+
+    operator bool() const { return !name_.empty(); }
     
     void roll()
     {
@@ -49,7 +58,7 @@ public:
 
         w.Key("bid");
         bid_.serialize(w);
-        
+
         w.Key("hand");
         w.StartArray();
         for (auto d : hand_)
@@ -95,6 +104,26 @@ public:
         w.EndArray();
 
         w.EndObject();
+    }
+
+    static auto fromJson(const rapidjson::Value& v)
+    {
+        if (v.IsObject() &&
+            v.HasMember("name") && v["name"].IsString() &&
+            v.HasMember("hand") && v["hand"].IsArray())
+        {
+            Player player(v["name"].GetString(), Dice::instance());
+            for (const auto& d : v["hand"].GetArray())
+            {
+                if (d.IsInt())
+                {
+                    player.hand_.push_back(d.GetInt());
+                }
+            }
+            return player;
+            
+        }
+        return Player{};
     }
     
     const auto& name() const { return name_; }

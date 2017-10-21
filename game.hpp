@@ -65,6 +65,16 @@ class Game
         }
         return 0;
     }
+
+    static auto fromString(const std::string str)
+    {
+        if (str == "GAME_NOT_STARTED") return GAME_NOT_STARTED;
+        if (str == "GAME_STARTED") return GAME_STARTED;
+        if (str == "ROUND_STARTED") return ROUND_STARTED;
+        if (str == "CHALLENGE") return CHALLENGE;
+        if (str == "GAME_FINISHED") return GAME_FINISHED;
+        return GAME_NOT_STARTED;
+    }
     
     auto& currentPlayer() { return players_[turn_]; }
     const auto& currentPlayer() const { return players_[turn_]; }
@@ -109,6 +119,8 @@ public:
         state_{GAME_NOT_STARTED}
     {
     }
+
+    const auto& name() { return game_; }
 
     void addPlayer(const std::string& player)
     {
@@ -269,6 +281,38 @@ public:
             p.serialize(w);
         w.EndArray();
         w.EndObject();
+    }
+
+    static auto fromJson(const rapidjson::Value& v)
+    {
+        std::cout << "ParseGame" << std::endl;
+        if (v.IsObject() &&
+            v.HasMember("game") && v["game"].IsString() &&
+            v.HasMember("turn") && v["turn"].IsInt() &&
+            v.HasMember("state") && v["state"].IsString() &&
+            v.HasMember("bid") && v["bid"].IsObject() &&
+            v.HasMember("players") && v["players"].IsArray())
+        {
+            auto game = std::make_unique<Game>(v["game"].GetString());
+            game->turn_ = v["turn"].GetInt();
+            game->state_ = fromString(v["state"].GetString());
+            for (const auto& jplayer : v["players"].GetArray())
+            {
+                auto player = Player::fromJson(jplayer);
+                if (player)
+                {
+                    std::cout << "Valid" << std::endl;
+                    game->players_.push_back(player);
+                }
+                else
+                {
+                    std::cout << "Invalid" << std::endl;
+                }
+            }
+            return game;
+        }
+        
+        return std::unique_ptr<Game>{};
     }
 };
 
