@@ -1,4 +1,5 @@
 #pragma once
+#include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
 
 const int STAR = 6;
@@ -45,6 +46,17 @@ public:
         w.Key("n"); w.Int(n_);
         w.Key("face"); w.Int(face_);
         w.EndObject();
+    }
+
+    static auto fromJson(const rapidjson::Value& v)
+    {
+        if (v.IsObject() &&
+            v.HasMember("n") && v["n"].IsInt() &&
+            v.HasMember("face") && v["face"].IsInt())
+        {
+            return Bid{v["n"].GetInt(), v["face"].GetInt()};
+        }
+        return Bid{};
     }
 
     const bool operator==(const Bid& bid) const { return n_ == bid.n_ && face_ == bid.face_; }

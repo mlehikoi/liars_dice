@@ -296,6 +296,7 @@ public:
             auto game = std::make_unique<Game>(v["game"].GetString());
             game->turn_ = v["turn"].GetInt();
             game->state_ = fromString(v["state"].GetString());
+            game->currentBid_ = Bid::fromJson(v["bid"]);
             for (const auto& jplayer : v["players"].GetArray())
             {
                 auto player = Player::fromJson(jplayer);

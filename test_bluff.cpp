@@ -453,6 +453,21 @@ TEST(EngineGame, TestConstruct) {
     // cout << g.getStatus("mary") << endl;
 }
 
+TEST(EngineGame, Save) {
+    auto tmp = tmpCopy("../test-game.json", "./.json");
+    auto txt0 = slurp("../final.json");
+    auto doc = parse(txt0);
+    auto game = Game::fromJson(doc);
+    ASSERT_TRUE(game);
+    ASSERT_EQ("final", game->name());
+
+    rapidjson::StringBuffer s;
+    rapidjson::PrettyWriter<rapidjson::StringBuffer> w{s};
+    game->serialize(w);
+    cout << s.GetString() << endl;
+    ASSERT_STREQ(txt0.c_str(), s.GetString());
+}
+
 TEST(BidTest, TestBids) {
     Bid b{1, 1};
     ASSERT_TRUE(Bid(1, 1) < Bid(1, 2));

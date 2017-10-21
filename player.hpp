@@ -110,9 +110,11 @@ public:
     {
         if (v.IsObject() &&
             v.HasMember("name") && v["name"].IsString() &&
+            v.HasMember("bid") &&
             v.HasMember("hand") && v["hand"].IsArray())
         {
             Player player(v["name"].GetString(), Dice::instance());
+            player.hand_.clear();
             for (const auto& d : v["hand"].GetArray())
             {
                 if (d.IsInt())
@@ -120,6 +122,9 @@ public:
                     player.hand_.push_back(d.GetInt());
                 }
             }
+            //@TODO Bid reading failure
+            player.bid_ = Bid::fromJson(v["bid"]);
+
             return player;
             
         }
