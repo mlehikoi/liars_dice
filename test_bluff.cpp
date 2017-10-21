@@ -188,7 +188,8 @@ TEST(EngineTest, CreateGame) {
 }
 
 TEST(EngineTest, Load) {
-    dice::Engine e{"../test-game.json"};
+    auto tmp = tmpCopy("../test-game.json", "./.json");
+    dice::Engine e{tmp.str()};
     
     const auto doc = dice::parse(e.getGames());
     //dice::prettyPrint(doc);
@@ -219,10 +220,9 @@ TEST(EngineTest, Save) {
     e.save2();
     EXPECT_TRUE(fileExists(tmp));
     cout << slurp(tmp) << endl;
-    return;
     const auto doc = dice::parse(dice::slurp(tmp));
-    EXPECT_TRUE(doc.IsArray());
-    EXPECT_EQ(4, doc.Size());
+    EXPECT_TRUE(doc["players"].IsArray());
+    EXPECT_EQ(4, doc["players"].Size());
 
     EXPECT_EQ(origData, dice::slurp(tmp));
 }

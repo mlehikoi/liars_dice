@@ -235,9 +235,9 @@ private:
     {
         auto doc = parse(slurp(filename_));
         //prettyPrint(doc);
-        if (doc.IsArray())
+        if (doc.IsObject() && doc.HasMember("players") && doc["players"].IsArray())
         {
-            for (const auto& el : doc.GetArray())
+            for (const auto& el : doc["players"].GetArray())
             {
                 const auto id = getString(el, "id");
                 const auto name = getString(el, "name");

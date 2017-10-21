@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.9)
 project (bluff)
 
 add_definitions(
+    -g
     -std=c++14
 )
 
