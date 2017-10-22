@@ -31,11 +31,30 @@ std::string getString(const Doc& doc, const char* member)
 {
     return hasString(doc, member) ? doc[member].GetString() : "";
 }
+
+class Error
+{
+    json::Json doc_;
+public:
+    Error(const char* msg) : doc_({
+        {"success", false},
+        {"error", msg}
+    })
+    {
+    }
+
+    operator std::string() const
+    {
+        return doc_.str();
+    }
+};
+
 class Engine::Impl
 {
     const std::string filename_;
     // id - player
     std::map<std::string, std::string> players_;
+    // Id -> Game name
     std::unordered_map<std::string, std::string> joinedGames_;
     std::map<std::string, std::unique_ptr<Game>> games_;
     
@@ -131,6 +150,35 @@ public:
         joinedGames_.insert({id, game});
         gameIt->second->addPlayer(playerIt->second);
         return json::Json({"success", true}).str();
+    }
+
+    std::string status(const std::string& body) const
+    {
+        auto doc = dice::parse(body);
+        if (doc.IsObject() &&
+            doc.HasMember("id") && doc["id"].IsString())
+        {
+            const std::string id = doc.GetString();
+            const auto pit = players_.find(id);
+            if (pit == players_.end())
+            {
+                return Error{"ID_NOT_FOUND"};
+            }
+            const auto jit = joinedGames_.find(id);
+            if (jit != joinedGames_.end())
+            {
+                return json::Json({
+                    {"success", false},
+                    {"playerId", id},
+                    {"name", pit->second.c_str()},
+                    {"game", jit->second.c_str()}
+                }).str();
+            }
+        }
+        return json::Json({
+            {"success", false},
+            {"error", "NO_GAME"}
+        }).str();
     }
     
     std::string getGames() const
@@ -322,6 +370,11 @@ std::string Engine::joinGame(const std::string& body)
         }).str();
     }
     return impl_->joinGame(id, game);
+}
+
+std::string Engine::status(const std::string& body) const
+{
+    return impl_->status(body);
 }
 
 std::string Engine::getGames() const
