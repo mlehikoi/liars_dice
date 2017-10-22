@@ -12,6 +12,8 @@
   
 <div class="container">
     <h1>Liar's dice</h1>
+    
+    <div class="col-xs-12" id="welcomeMessage" class="hidden"></div>
 
     <div id="Login" class="hidden">
         <p>
@@ -29,7 +31,6 @@
     </div>
 
     <div id="SetupCreate" class="hidden">
-        <div class="col-xs-12" id="welcomeMessage" class="hidden"></div>
         <form>
             <select id="selectGame" class="form-control">
                 <option value="1">One</option>
@@ -76,36 +77,12 @@ function getParameterByName(name, url) {
     if (!results[2]) return '';
     return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
-$( document ).ready(function() {
+$(document).ready(function() {
     userId = getParameterByName("id");
-    $.ajax({
-        type: "POST",
-        url: "/api/status",
-        data: JSON.stringify({"id": userId}),
-        contentType: "application/json; charset=utf-8",
-        dataType: "json",
-        success: function (data) {
-            console.log(data);
-            if (data.success) {
-                $("#welcomeMessage").html("Welcome, " + data.name + "." +
-                                          " Start up a new game or select an existing" +
-                                          " game to join.");
-                $("#welcomeMessage").removeClass("hidden");
-                $("#Login").addClass('hidden');
-                $("#SetupCreate").removeClass('hidden');
-            } else {
-                $("#Login").removeClass('hidden');
-                $("#SetupCreate").addClass('hidden');
-            }
-            console.log(data);
-        },
-        error: function (xhr, statusText, err) {
-            //alert(errMsg);
-            console.log("error");
-            //console.log(errMsg);
-        }
-    });
+    console.log(userId);
+    getStatus();
 });
+
 $('#login').click(function() {
     login($('#userName').val());
 });

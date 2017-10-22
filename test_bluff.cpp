@@ -119,7 +119,7 @@ TEST(EngineTest, CreateGameInvalidId) {
     dice::Engine e{""};
     auto game = R"#(
 {
-    "playerId": "000",
+    "id": "000",
     "game": "game"
 }
     )#";
@@ -139,20 +139,21 @@ TEST(EngineTest, CreateGame) {
     auto result = e.login(anon);
     rapidjson::Document doc;
     doc.Parse(result.c_str());
+    cout << "Result: " << result << endl;
     EXPECT_TRUE(doc["success"].GetBool());
-    std::string id = doc["playerId"].GetString();
+    std::string id = doc["id"].GetString();
 
     auto game = json::Json({
-        {"playerId", id},
+        {"id", id},
         {"game", "game"}
     }).str();
     result = e.createGame(game);
-    //cout << "Result: " << result << endl;
+    cout << "Result: " << result << endl;
     doc.Parse(result.c_str());
     EXPECT_TRUE(doc["success"].GetBool());
     
     auto game2 = json::Json({
-        {"playerId", id},
+        {"id", id},
         {"game", "game2"}
     }).str();
     result = e.createGame(game2);
@@ -166,10 +167,10 @@ TEST(EngineTest, CreateGame) {
     doc.Parse(result.c_str());
     EXPECT_TRUE(doc["success"].GetBool());
     //cout << "Result: " << result << endl;
-    id = doc["playerId"].GetString();
+    id = doc["id"].GetString();
     
     auto game3 = json::Json({
-        {"playerId", id},
+        {"id", id},
         {"game", "game"}
     }).str();
     result = e.createGame(game3);
@@ -234,7 +235,7 @@ TEST(EngineTest, JoinGame) {
     EXPECT_EQ(2, dice::parse(e.getGames()).Size());
 
     auto ret = e.joinGame(R"#({
-        "playerId_": "1",
+        "id_": "1",
         "game": "final"
     })#");
 
@@ -242,16 +243,17 @@ TEST(EngineTest, JoinGame) {
     EXPECT_FALSE(dice::parse(ret)["success"].GetBool());
     EXPECT_STREQ("PARSE_ERROR", dice::parse(ret)["error"].GetString());
     
+    cout << "joinGame" << endl;
     ret = e.joinGame(R"#({
-        "playerId": "5",
+        "id": "5",
         "game": "final"
     })#");
-    //cout << "ret:" << ret << endl;
+    cout << "ret:" << ret << endl;
     EXPECT_FALSE(dice::parse(ret)["success"].GetBool());
     EXPECT_STREQ("NO_PLAYER", dice::parse(ret)["error"].GetString());
     
     ret = e.joinGame(R"#({
-        "playerId": "4",
+        "id": "4",
         "game": "final"
     })#");
     //cout << "ret:" << ret << endl;
@@ -260,7 +262,7 @@ TEST(EngineTest, JoinGame) {
     EXPECT_STREQ("semifinal", dice::parse(ret)["game"].GetString());
 
     ret = e.joinGame(R"#({
-        "playerId": "3",
+        "id": "3",
         "game": "quarterfinal"
     })#");
     //cout << "ret:" << ret << endl;
@@ -268,7 +270,7 @@ TEST(EngineTest, JoinGame) {
     EXPECT_STREQ("NO_GAME", dice::parse(ret)["error"].GetString());
     
     ret = e.joinGame(R"#({
-        "playerId": "3",
+        "id": "3",
         "game": "semifinal"
     })#");
     //cout << "ret:" << ret << endl;

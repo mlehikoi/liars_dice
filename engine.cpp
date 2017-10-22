@@ -67,30 +67,43 @@ public:
     }
     
     // -> login
-    std::string login(const std::string name)
+    std::string login(const std::string body)
     {
+        auto doc = parse(body);
+        const auto name = getString(doc, "name");
+        if (name.empty()) return Error{"INVALID_FORMAT"};
         for (const auto idName : players_)
         {
             if (idName.second == name)
             {
-                return "";
+                return Error{"PLAYER_EXISTS"};
             }
         }
         const auto id = uuid();
         const auto ret = players_.insert({id, name});
         assert(ret.second);
-        return id; 
+        return json::Json({
+            {"success", true},
+            {"id", id}
+        }).str();
     }
     
-    std::string createGame(const std::string id, const std::string game)
+    std::string createGame(const std::string body)
     {
+        // @TODO Move parse to json
+        auto doc = parse(body);
+        const auto id = getString(doc, "id");
+        const auto game = getString(doc, "game");
+        if (game.empty() || id.empty())
+        {
+            return Error{"PARSE_ERROR"};
+        }
+
+        std::cout << "createGame " << id << " " << game << std::endl;
         // Make sure player exists
         auto playerIt = players_.find(id);
-        if (playerIt == players_.end())
-            return json::Json({
-                {"success", false},
-                {"error", "NO_PLAYER"}
-            }).str();
+        if (playerIt == players_.end()) return Error{"NO_PLAYER"};
+
         // And isn't already joined in a game
         auto it = joinedGames_.find(id);
         if (it != joinedGames_.end())
@@ -101,32 +114,33 @@ public:
             }).str();
         if (games_.find(game) != games_.end())
         {
-            return json::Json({
-                {"success", false},
-                {"error", "GAME_EXISTS"}
-            }).str();
+            return Error{"GAME_EXISTS"};
         }
         joinedGames_.insert({id, game});
         //games_.insert({game, {playerIt->second}});
         //@TODO game with player name
         auto ret = games_.insert({game, std::make_unique<Game>(game)});
         assert(ret.second);
-        //std::unique_ptr<Game>& g = ret.first->second;
-        //g->addPlayer(playerIt->second);
         ret.first->second->addPlayer(playerIt->second);
-        //games_[game]->addPlayer(playerIt->second);
         return json::Json({"success", true}).str();
     }
     
-    std::string joinGame(const std::string id, const std::string game)
+    std::string joinGame(const std::string body)
     {
-        // Make sure player exists
-        auto playerIt = players_.find(id);
-        if (playerIt == players_.end())
+        const auto doc = parse(body);
+        const auto id = getString(doc, "id");
+        const auto game = getString(doc, "game");
+        if (game.empty() || id.empty())
+        {
             return json::Json({
                 {"success", false},
-                {"error", "NO_PLAYER"}
+                {"error", "PARSE_ERROR"}
             }).str();
+        }
+        std::cout << "joinGame " << id << " " << game << std::endl;
+        // Make sure player exists
+        auto playerIt = players_.find(id);
+        if (playerIt == players_.end()) return Error{"NO_PLAYER"};
         
         { // And isn't already joined in a game
             auto it = joinedGames_.find(id);
@@ -154,31 +168,46 @@ public:
 
     std::string status(const std::string& body) const
     {
+        std::cout << "status " << body << std::endl;
+
         auto doc = dice::parse(body);
         if (doc.IsObject() &&
             doc.HasMember("id") && doc["id"].IsString())
         {
-            const std::string id = doc.GetString();
+            const std::string id = doc["id"].GetString();
             const auto pit = players_.find(id);
             if (pit == players_.end())
             {
                 return Error{"ID_NOT_FOUND"};
             }
+            const auto name = pit->second;
+
+            rapidjson::StringBuffer s;
+            rapidjson::PrettyWriter<rapidjson::StringBuffer> w{s};
+
+            w.StartObject();
+            w.Key("success"); w.Bool(true);
+            w.Key("id"); w.String(id.c_str());
+            w.Key("name"); w.String(name.c_str());
             const auto jit = joinedGames_.find(id);
+            std::cout << "Trying to find games..." << std::endl;
             if (jit != joinedGames_.end())
             {
-                return json::Json({
-                    {"success", false},
-                    {"playerId", id},
-                    {"name", pit->second.c_str()},
-                    {"game", jit->second.c_str()}
-                }).str();
+                std::cout << "There was a game joined..." << std::endl;
+                const auto git = games_.find(jit->second);
+                if (git != games_.end())
+                {
+                    std::cout << "And the game existed.." << std::endl;
+                    //@TODO Don't reveal other dice
+                    w.Key("game");
+                    git->second->serialize(w);
+                }
             }
+            w.EndObject();
+            return s.GetString();
+            
         }
-        return json::Json({
-            {"success", false},
-            {"error", "NO_GAME"}
-        }).str();
+        return Error{"INVALID_FORMAT"};
     }
     
     std::string getGames() const
@@ -326,50 +355,17 @@ Engine::~Engine() = default;
 
 std::string Engine::login(const std::string& body)
 {
-    rapidjson::Document doc;
-    doc.Parse(body.c_str());
-    if (doc.IsObject() && doc.HasMember("name") && doc["name"].IsString())
-    {
-        const auto id = impl_->login(doc["name"].GetString());
-        if (id.empty())
-        {
-            return json::Json({"success", false}).str();
-        }
-        return json::Json({{"success", true}, {"playerId", id}}).str(); 
-    }
-    return json::Json({"success", false}).str();
+    return impl_->login(body);
 }
 
 std::string Engine::createGame(const std::string& body)
 {
-    rapidjson::Document doc;
-    doc.Parse(body.c_str());
-    const auto id = getString(doc, "playerId");
-    const auto game = getString(doc, "game");
-    if (game.empty() || id.empty())
-    {
-        return json::Json({
-            {"success", false},
-            {"error", "PARSE_ERROR"}
-        }).str();
-    }
-    return impl_->createGame(id, game);
+    return impl_->createGame(body);
 }
 
 std::string Engine::joinGame(const std::string& body)
 {
-    rapidjson::Document doc;
-    doc.Parse(body.c_str());
-    const auto id = getString(doc, "playerId");
-    const auto game = getString(doc, "game");
-    if (game.empty() || id.empty())
-    {
-        return json::Json({
-            {"success", false},
-            {"error", "PARSE_ERROR"}
-        }).str();
-    }
-    return impl_->joinGame(id, game);
+    return impl_->joinGame(body);
 }
 
 std::string Engine::status(const std::string& body) const

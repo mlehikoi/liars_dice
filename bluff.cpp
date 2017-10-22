@@ -3,6 +3,7 @@
 
 #include "json.hpp"
 #include "helpers.hpp"
+#include "engine.hpp"
 
 #include <string>
 #include <sstream>
@@ -55,13 +56,7 @@ static std::unordered_set<std::string> games_;
 
 int main()
 {
-    std::ifstream is("players.dat");
-    while (is.good())
-    {
-        std::string id, name, game;
-        is >> id >> name >> game;
-        players_[id] = {name, game};
-    }
+    static dice::Engine engine{"db.json"};
     
     crow::SimpleApp app;
 
@@ -72,23 +67,7 @@ int main()
         .methods("POST"_method)
         ([](const crow::request& req)
         {
-            auto j = crow::json::load(req.body);
-            
-            //@TODO don't allow empty name because it has special meaning
-            const std::string name = j["name"].s();
-            for (const auto& idName : players_)
-            {
-                if (idName.second.name_ == name)
-                {
-                    return json::Json({"success", false}).str();
-                }
-            }
-            const auto id = uuid();
-            players_.insert({id, {name, ""}});
-            std::ofstream os("players.dat");
-            for (const auto& idName : players_)
-                os << idName.first << "\t" << idName.second.name_ << "\t" << idName.second.game_ << endl;
-            return json::Json({{"success", true}, {"playerId", id}}).str();
+            return engine.login(req.body);
         }
     );
     
@@ -96,23 +75,7 @@ int main()
         .methods("POST"_method)
         ([](const crow::request& req)
         {
-            crow::json::wvalue response;
-            auto j = crow::json::load(req.body);
-            if (j["id"].t() == crow::json::type::String)
-            {
-                const std::string id = j["id"].s();
-                const auto it = players_.find(id);
-                if (it != players_.end())
-                {
-                    response["success"] = true;
-                    response["playerId"] = id;
-                    response["name"] = it->second.name_;
-                    response["game"] = it->second.game_;
-                    return crow::response{response};
-                }
-            }
-            response["success"] = false;
-            return crow::response(response);
+            return engine.status(req.body);
         }
     );
     
@@ -120,18 +83,7 @@ int main()
         .methods("POST"_method)
         ([](const crow::request& req)
         {
-            crow::json::wvalue response;
-            auto j = crow::json::load(req.body);
-            cout << req.body << endl;
-            const std::string id = j["id"].s();
-            const std::string game = j["game"].s();
-            if (games_.insert(game).second)
-            {
-                response["success"] = true;
-                return response;
-            }
-            response["success"] = false;
-            return response;
+            return engine.createGame(req.body);
         }
     );
 
