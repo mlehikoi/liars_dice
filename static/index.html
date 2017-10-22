@@ -20,7 +20,7 @@
             Provide a user name so other's know who they're playing with.
             If the user name is already taken, you'll be provided an alternative name.
         </p>
-        <form>
+        <form id="LoginForm">
             <div class="form-group">
                 <label for="userName" class="control-label col-xs-6">User name</label>
                 <input type="text" class="form-control" id="userName" placeholder="User name" value="anon">
@@ -86,6 +86,14 @@ $(document).ready(function() {
 $('#login').click(function() {
     login($('#userName').val());
 });
+$('#userName').keypress(function(e){
+    if(e.which == 13) {
+        //dosomething
+        event.preventDefault();
+        login($('#userName').val());
+    }
+});
+    
 $('#create').click(function () {
     createGame($('#gameName').val());
 });
