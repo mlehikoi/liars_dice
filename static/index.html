@@ -88,7 +88,6 @@ $('#login').click(function() {
 });
 $('#userName').keypress(function(e){
     if(e.which == 13) {
-        //dosomething
         event.preventDefault();
         login($('#userName').val());
     }
