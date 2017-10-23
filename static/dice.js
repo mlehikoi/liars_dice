@@ -1,10 +1,23 @@
 /*global $, console*/
 /*eslint no-console: ["error", { allow: ["log"] }] */
 ///*eslint no-unused-vars: ["error", { "vars": "local" }]*/
-/*global window*/
+/*global window, Option */
+/*eslint-disable-vars-on-top */
 
-var userName = "";
+var userName;
 var userId = "";
+
+function refreshGames() { // eslint-disable-line no-unused-vars
+    'use strict';
+    
+    $.get("/api/games", function (json) {
+        var games = $("#games");
+        games.empty();
+        for (var i = 0; i < json.length; i++) { // eslint-disable-vars-on-top
+            games.append(new Option(json[i].game, json[i].game));
+        }
+    }, "json");
+}
 
 function getStatus() {
     'use strict';
@@ -33,6 +46,7 @@ function getStatus() {
                     $("#welcomeMessage").removeClass("hidden");
                     $("#Login").addClass('hidden');
                     $("#SetupCreate").removeClass('hidden');
+                    refreshGames();
                 }
             } else {
                 $("#Login").removeClass('hidden');
@@ -66,9 +80,7 @@ function login(name) { // eslint-disable-line no-unused-vars
             console.log(data);
         },
         error: function () {
-            //alert(errMsg);
             console.log("error");
-            //console.log(errMsg);
         }
     });
 }

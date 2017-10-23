@@ -87,6 +87,14 @@ int main()
         }
     );
 
+    CROW_ROUTE(app, "/api/games")([]{
+        const auto data = engine.getGames();
+        return data;
+        // crow::response r{data};
+        // r.add_header("Content-Type", "application/json; charset=utf-8");
+        // return r;
+    });
+
     CROW_ROUTE(app, "/api/list")([]{
         std::stringstream ss;
         ss << "Games" << std::endl;
