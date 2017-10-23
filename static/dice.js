@@ -26,6 +26,7 @@ function getStatus() {
                     $("#Login").addClass('hidden');
                     $("#SetupCreate").addClass('hidden');
                 } else {
+                    userName = data.name;
                     $("#welcomeMessage").html("Welcome, " + data.name + "." +
                                               " Start up a new game or select an existing" +
                                               " game to join.");
@@ -39,9 +40,7 @@ function getStatus() {
             }
         },
         error: function () {
-            //alert(errMsg);
             console.log("error");
-            //console.log(errMsg);
         }
     });
 }
@@ -58,13 +57,7 @@ function login(name) { // eslint-disable-line no-unused-vars
         success: function (data) {
             console.log(data);
             if (data.success) {
-                //@TODO Is the following necessary? The URL is changed anyway.
-//                $("#welcomeMessage").html("Welcome, " + name + "." +
-//                                          " Start up a new game or select an existing" +
-//                                          " game to join.");
-//                $("#welcomeMessage").removeClass("hidden");
-//                $("#Login").addClass('hidden');
-//                $("#SetupCreate").removeClass('hidden');
+                userName = data.userName;
                 window.location.replace("?id=" + data.id);
             } else {
                 $("#userNameStatus").html(name + " is already taken.");
