@@ -6,7 +6,9 @@
 #include <rapidjson/stringbuffer.h>
 
 #include <iostream>
+#include <map>
 #include <string>
+#include <unordered_map>
 
 namespace dice {
 

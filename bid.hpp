@@ -2,6 +2,8 @@
 #include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
 
+#include <vector>
+
 const int STAR = 6;
 class Bid
 {

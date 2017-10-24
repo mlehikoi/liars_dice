@@ -31,7 +31,7 @@ public:
 
 inline std::string tmpName(const char* prefix)
 {
-    char tmp[PATH_MAX];
+    char tmp[4096];
     std::strcpy(tmp, prefix);
     std::strcat(tmp, "XXXXXX");
     auto f = ::mkstemp(tmp);
@@ -41,10 +41,9 @@ inline std::string tmpName(const char* prefix)
 
 class TmpFile
 {
-    const std::string& filename_;
+    const std::string filename_;
 public:
     TmpFile(const std::string& filename) : filename_{filename} {}
-    //TmpFile(TmpFile&&) = delete;
     ~TmpFile() { std::remove(filename_.c_str()); }
     auto str() { return filename_; }
 };
@@ -195,7 +194,7 @@ TEST(EngineTest, Load) {
     const auto doc = dice::parse(e.getGames());
     //dice::prettyPrint(doc);
     auto games = doc.GetArray();
-    EXPECT_EQ(2, games.Size());
+    ASSERT_EQ(2, games.Size());
     
     EXPECT_EQ("final", games[0]["game"]);
     EXPECT_EQ(2, games[0]["players"].Size());

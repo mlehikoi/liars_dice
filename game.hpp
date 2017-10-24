@@ -293,7 +293,7 @@ public:
             v.HasMember("bid") && v["bid"].IsObject() &&
             v.HasMember("players") && v["players"].IsArray())
         {
-            auto game = std::make_unique<Game>(v["game"].GetString());
+            auto game = std::make_shared<Game>(v["game"].GetString());
             game->turn_ = v["turn"].GetInt();
             game->state_ = fromString(v["state"].GetString());
             game->currentBid_ = Bid::fromJson(v["bid"]);
@@ -313,7 +313,7 @@ public:
             return game;
         }
         
-        return std::unique_ptr<Game>{};
+        return std::shared_ptr<Game>{};
     }
 };
 

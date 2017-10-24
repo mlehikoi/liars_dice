@@ -56,7 +56,7 @@ class Engine::Impl
     std::map<std::string, std::string> players_;
     // Id -> Game name
     std::unordered_map<std::string, std::string> joinedGames_;
-    std::map<std::string, std::unique_ptr<Game>> games_;
+    std::map<std::string, std::shared_ptr<Game>> games_;
     
 public:
     Impl(const std::string& filename)
@@ -335,7 +335,7 @@ private:
         {
             for (const auto& jgame : doc["games"].GetArray())
             {
-                std::unique_ptr<Game> game = Game::fromJson(jgame);
+                auto game = Game::fromJson(jgame);
                 if (game)
                 {
                     games_.insert({game->name(), std::move(game)});
