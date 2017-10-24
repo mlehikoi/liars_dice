@@ -1,4 +1,4 @@
-//#include "crow.h"
+#include "crow.h"
 //#include "crow_all.h"
 
 #include "json.hpp"
@@ -84,6 +84,14 @@ int main()
         ([](const crow::request& req)
         {
             return engine.createGame(req.body);
+        }
+    );
+
+    CROW_ROUTE(app, "/api/join")
+        .methods("POST"_method)
+        ([](const crow::request& req)
+        {
+            return engine.joinGame(req.body);
         }
     );
 

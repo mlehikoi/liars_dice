@@ -67,8 +67,10 @@
                             </div>
                         </div>
                     </div>
+                    <div id="players"></div>
+                    <button type="button" id="join" class="btn btn-success pull-right">Join</button>
                 </form>
-                <br/>
+                <div style="height:50px;"></div>
                 <p>...or create a new game</p>
                 <form>
                     <div class="form-group">
@@ -79,19 +81,15 @@
                 </form>
             </div>
 
+            
             <div id="WaitGameStart" class="hidden">
-                <p>
-                    Waiting for players. Click start when you're ready to start.
-                </p>
-                <br/>
-                <form>
-                    <div class="form-group">
-                        <label for="gameName" class="control-label col-xs-6">Name of the game</label>
-                        <input type="text" class="form-control" id="gameName" placeholder="Name of game">
-                    </div>
-                    <button type="button" class="btn btn-primary" id="create">Create</button>
-                </form>
+                <div id="players"></div>
+                <div style="height:50px;"></div>
+                <div class="col-xs-12">
+                    <button type="button" id="join" class="btn btn-success pull-right">Join</button>
+                </div>
             </div>
+            
 
 
         </div>

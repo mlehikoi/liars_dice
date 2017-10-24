@@ -6,16 +6,39 @@
 
 var usrName = ''; // eslint-disable-line no-unused-vars
 var userId = '';
+var games;
 
+function join(game) {
+    console.log(game);
+    $.post('/api/join', JSON.stringify({id: userId, game: game}), function(json) {
+        console.log(json);
+        getStatus();
+    }, 'json');
+}
+
+function selectedGame() {
+    const selectedGame = $('#games').val();
+    for (let game of games) {
+        if (game.game == selectedGame) {
+            console.log(game);
+            let txt = 'Players: ';
+            txt += game.players.join(', ');
+            $('#players').html(txt);
+        }
+    }
+}
 function refreshGames() { 
     'use strict';
     
-    $.get('/api/games', function (json) {
-        var games = $('#games');
-        for (let game of json) {
-            games.append(new Option(game.game, game.game));
+    $.getJSON('/api/games', function (json) {
+        games = json;
+        let gameSelect = $('#games');
+        gameSelect.empty();
+        for (let game of games) {
+            gameSelect.append(new Option(game.game, game.game));
         }
-    }, 'json');
+        selectedGame();
+    });
 }
 
 function getStatus() {
@@ -38,6 +61,7 @@ function getStatus() {
                     $('#welcomeMessage').removeClass('hidden');
                     $('#Login').addClass('hidden');
                     $('#SetupCreate').addClass('hidden');
+                    $('#WaitGameStart').removeClass('hidden');
                 } else {
                     usrName = data.name;
                     $('#welcomeMessage').html('Welcome, ' + data.name + '.' +
@@ -110,4 +134,13 @@ function createGame(name) { // eslint-disable-line no-unused-vars
         }
     });
 }
+
+// HTML hooks
+$('#games').on('change', function () {
+    selectedGame();
+});
+$('#join').click(function() {
+    join($('#games').val());
+});
+
 
