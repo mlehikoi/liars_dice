@@ -1,0 +1,118 @@
+<table class="table table-condensed">
+    <thead class="w3-blue">
+        <tr>
+            <td>Player</td>
+            <td>Hand</td>
+            <td>Bid</td>
+        </tr>
+    </thead>
+    <tr>
+        <td>joe</td>
+        <td>
+            <img class="img" src="question-512x512.png" alt="?" width="24" height="24">
+            <img class="img" src="question-512x512.png" alt="?" width="24" height="24">
+            <img class="img" src="question-512x512.png" alt="?" width="24" height="24">
+            <img class="img" src="question-512x512.png" alt="?" width="24" height="24">
+            <img class="img" src="question-512x512.png" alt="?" width="24" height="24">
+        </td>
+        <td><img class="img" src="three-512x512.png" alt="3" width="24" height="24"> * 1</td>
+    </tr>
+    <tr>
+        <td>ann</td>
+        <td>
+            <img class="img" src="question-512x512.png" alt="?" width="24" height="24">
+            <img class="img" src="question-512x512.png" alt="?" width="24" height="24">
+            <img class="img" src="question-512x512.png" alt="?" width="24" height="24">
+        </td>
+        <td><img class="img" src="four-512x512.png" alt="4" width="24" height="24"> * 1</td>
+    </tr>
+    <tr class="active">
+        <td>
+            <span class="glyphicon glyphicon-play"></span>
+            mary
+        </td>
+        <td>
+            <img class="img" src="one-512x512.png" alt="?" width="24" height="24">
+            <img class="img" src="one-512x512.png" alt="?" width="24" height="24">
+            <img class="img" src="two-512x512.png" alt="?" width="24" height="24">
+            <img class="img" src="two-512x512.png" alt="?" width="24" height="24">
+            <img class="img" src="three-512x512.png" alt="?" width="24" height="24">
+        </td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>ken</td>
+        <td>
+            <img class="img" src="question-512x512.png" alt="?" width="24" height="24">
+            <img class="img" src="question-512x512.png" alt="?" width="24" height="24">
+            <img class="img" src="question-512x512.png" alt="?" width="24" height="24">
+            <img class="img" src="question-512x512.png" alt="?" width="24" height="24">
+        </td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>hank</td>
+        <td>
+            <img class="img" src="question-512x512.png" alt="?" width="24" height="24">
+        </td>
+        <td></td>
+    </tr>
+</table>
+<p>It's your turn. You can either make a higher bid or challeng the bid.
+</p>
+
+<div id="BidOrChallenge" class="">
+    <div class="row">
+        <div class="col-xs-6">
+            Face
+        </div>
+        <div class="col-xs-6">
+            How many
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-6">
+            <div class="input-group">
+                <span class="input-group-btn">
+                    <button type="button" id="face-minus" class="btn btn-default">
+                        <span class="glyphicon glyphicon-chevron-left"></span>
+                    </button>
+                </span>
+                <div id="face-1"><img class="center-block" src="one-512x512.png" width="32" height="32" alt="1"></div>
+                <div id="face-2" class="hidden"><img class="center-block" src="two-512x512.png" width="32" height="32" alt="2"></div>
+                <div id="face-3" class="hidden"><img class="center-block" src="three-512x512.png" width="32" height="32" alt="3"></div>
+                <div id="face-4" class="hidden"><img class="center-block" src="four-512x512.png" width="32" height="32" alt="4"></div>
+                <div id="face-5" class="hidden"><img class="center-block" src="five-512x512.png" width="32" height="32" alt="5"></div>
+                <div id="face-6" class="hidden"><img class="center-block" src="star-512x512.png" width="32" height="32" alt="6"></div>
+                <span class="input-group-btn">
+                    <button type="button" id="face-plus" class="btn btn-default">
+                        <span class="glyphicon glyphicon-chevron-right"></span>
+                    </button>
+                </span>
+            </div>
+        </div>
+        <div class="col-xs-6">
+            <div class="input-group">
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default">
+                        <span class="glyphicon glyphicon-minus" id="n-minus"></span>
+                    </button>
+                </span>
+                <!--<input type="text" class="form-control" name="qty" id="qty" value="1">-->
+                <h4 class="text-center"><span class="label label-default" id="n">1</span></h4>
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-default" id="n-plus">
+                        <span class="glyphicon glyphicon-plus btn-default"></span>
+                    </button>
+                </span>
+            </div>
+        </div>
+    </div>
+    <div style="height:50px;"></div>
+    <div class="row">
+        <div class="col-xs-12">
+            <button type="button" id="challenge" class="btn btn-danger">Challenge</button>
+            <button type="button" id="bid" class="btn btn-success pull-right">Bid</button>
+        </div>
+    </div>
+</div>

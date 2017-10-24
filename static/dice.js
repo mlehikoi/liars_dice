@@ -16,6 +16,9 @@ const State = {
     GAME_ON: 4
 };
 var myState;
+var timer;
+var n = 1;
+var face = 1;
 
 function show(toShow) {
     const divs = [
@@ -31,6 +34,7 @@ function show(toShow) {
     $(toShow).removeClass('hidden');
 }
 function handleState() {
+    console.log('handleState ' + myState);
     if (myState == State.WAITING) {
         $('#welcomeMessage').html(usrName + ', waiting for others' +
                                   ' to join the game. Click start when you\'re' +
@@ -44,7 +48,7 @@ function handleState() {
             players.push(player.name);
         }
         $('#players-waiting').html('Players: ' + players.join(', '));
-        //setTimeout(function(){ getStatus(); }, 1000);
+        //timer = setTimeout(function(){ getStatus(); }, 1000);
     } else if (myState == State.GAME_ON) {
         console.log('GAME ON');
         show('#GameOn');
@@ -61,7 +65,7 @@ function join(game) {
 function startGame() {
     console.log('startGame');
     $.post('/api/startGame', JSON.stringify({id: userId}), function(json) {
-        console.log(json);
+        if (json.success) getStatus();
     }, 'json');
 }
 
@@ -197,6 +201,33 @@ $('#join').click(function() {
 });
 $('#start-game').click(function() {
     startGame();
+});
+
+$(function() {
+    $.get('/gameon.html', function (html) {
+        $('#GameOn').html(html);
+        
+        $('#n-minus').click(function() {
+            if (n > 0) --n;
+            $('#n').html(n);
+        });
+        $('#n-plus').click(function() {
+            ++n;
+            $('#n').html(n);
+        });
+        $('#face-minus').click(function() {
+            $('#face-' + face).addClass('hidden');
+            --face;
+            if (face <= 0) face = 6;
+            $('#face-' + face).removeClass('hidden');
+        });
+        $('#face-plus').click(function() {
+            $('#face-' + face).addClass('hidden');
+            ++face;
+            if (face > 6) face = 1;
+            $('#face-' + face).removeClass('hidden');
+        });
+    });
 });
 
 
