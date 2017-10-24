@@ -95,6 +95,16 @@ int main()
         }
     );
 
+    CROW_ROUTE(app, "/api/startGame")
+    .methods("POST"_method)
+    ([](const crow::request& req)
+    {
+        auto r = engine.startGame(req.body);
+        std::cout << "Return " << r << endl;
+        return r;
+    }
+);
+
     CROW_ROUTE(app, "/api/games")([]{
         const auto data = engine.getGames();
         return data;

@@ -7,12 +7,61 @@
 var usrName = ''; // eslint-disable-line no-unused-vars
 var userId = '';
 var games;
+var myGame;
 
+const State = {
+    NOT_JOINED: 1,
+    JOINED: 2,
+    WAITING: 3,
+    GAME_ON: 4
+};
+var myState;
+
+function show(toShow) {
+    const divs = [
+        '#welcomeMessage',
+        '#Login',
+        '#SetupCreate',
+        '#WaitGameStart',
+        '#GameOn'
+    ];
+    for (const div of divs)
+        if (div != toShow)
+            $(div).addClass('hidden');
+    $(toShow).removeClass('hidden');
+}
+function handleState() {
+    if (myState == State.WAITING) {
+        $('#welcomeMessage').html(usrName + ', waiting for others' +
+                                  ' to join the game. Click start when you\'re' +
+                                  ' ready to start the game.');
+        $('#welcomeMessage').removeClass('hidden');
+        $('#Login').addClass('hidden');
+        $('#SetupCreate').addClass('hidden');
+        $('#WaitGameStart').removeClass('hidden');
+        let players = [];
+        for (let player of myGame.players) {
+            players.push(player.name);
+        }
+        $('#players-waiting').html('Players: ' + players.join(', '));
+        //setTimeout(function(){ getStatus(); }, 1000);
+    } else if (myState == State.GAME_ON) {
+        console.log('GAME ON');
+        show('#GameOn');
+    }
+}
 function join(game) {
     console.log(game);
     $.post('/api/join', JSON.stringify({id: userId, game: game}), function(json) {
         console.log(json);
         getStatus();
+    }, 'json');
+}
+
+function startGame() {
+    console.log('startGame');
+    $.post('/api/startGame', JSON.stringify({id: userId}), function(json) {
+        console.log(json);
     }, 'json');
 }
 
@@ -27,9 +76,7 @@ function selectedGame() {
         }
     }
 }
-function refreshGames() { 
-    'use strict';
-    
+function refreshGames() {
     $.getJSON('/api/games', function (json) {
         games = json;
         let gameSelect = $('#games');
@@ -42,8 +89,6 @@ function refreshGames() {
 }
 
 function getStatus() {
-    'use strict';
-    console.log(userId);
     $.ajax({
         type: 'POST',
         url: '/api/status',
@@ -51,17 +96,25 @@ function getStatus() {
         contentType: 'application/json; charset=utf-8',
         dataType: 'json',
         success: function (data) {
-            console.log(data);
             if (data.success) {
                 if (data.hasOwnProperty('game')) {
-                    console.log(data.game);
-                    $('#welcomeMessage').html(data.name + ', waiting for others' +
-                        ' to join the game. Click start when you\'re' +
-                        ' ready to start the game.');
-                    $('#welcomeMessage').removeClass('hidden');
-                    $('#Login').addClass('hidden');
-                    $('#SetupCreate').addClass('hidden');
-                    $('#WaitGameStart').removeClass('hidden');
+                    usrName = data.name;
+                    myGame = data.game;
+                    if (data.game.state == 'GAME_STARTED') {
+                        myState = State.GAME_ON;
+                        handleState(myState);
+                    } else if (data.game.state == 'GAME_NOT_STARTED') {
+                        console.log(data);
+                        myState = State.WAITING;
+                        $('#welcomeMessage').html(data.name + ', waiting for others' +
+                                                  ' to join the game. Click start when you\'re' +
+                                                  ' ready to start the game.');
+                        $('#welcomeMessage').removeClass('hidden');
+                        $('#Login').addClass('hidden');
+                        $('#SetupCreate').addClass('hidden');
+                        $('#WaitGameStart').removeClass('hidden');
+                        handleState();
+                    }
                 } else {
                     usrName = data.name;
                     $('#welcomeMessage').html('Welcome, ' + data.name + '.' +
@@ -141,6 +194,9 @@ $('#games').on('change', function () {
 });
 $('#join').click(function() {
     join($('#games').val());
+});
+$('#start-game').click(function() {
+    startGame();
 });
 
 

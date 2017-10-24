@@ -43,10 +43,15 @@ public:
     {
     }
 
-    operator std::string() const
-    {
-        return doc_.str();
-    }
+    auto str() const { return doc_.str(); }
+    operator std::string() const { return str(); }
+};
+
+class Success
+{
+public:
+    auto str() const { return "{\"success\": true}"; }
+    operator std::string() const { return str(); }
 };
 
 class Engine::Impl
@@ -164,6 +169,23 @@ public:
         joinedGames_.insert({id, game});
         gameIt->second->addPlayer(playerIt->second);
         return json::Json({"success", true}).str();
+    }
+
+    std::string startGame(const std::string body)
+    {
+        const auto id = getString(parse(body), "id");        
+        if (id.empty()) return Error{"PARSE_ERROR"};
+        
+        const auto pit = players_.find(id);
+        if (pit == players_.end()) return Error{"NO_PLAYER"};
+        
+        const auto jit = joinedGames_.find(id);
+        if (jit == joinedGames_.end()) return Error{"ALREADY_JOINED"};
+        
+        auto git = games_.find(jit->second);
+        if (git == games_.end()) return Error{"FATAL"};
+
+        return git->second->startGame() ? Success{}.str() : Error{"COULD_NOT_START"}.str();
     }
 
     std::string status(const std::string& body) const
@@ -366,6 +388,11 @@ std::string Engine::createGame(const std::string& body)
 std::string Engine::joinGame(const std::string& body)
 {
     return impl_->joinGame(body);
+}
+
+std::string Engine::startGame(const std::string& body)
+{
+    return impl_->startGame(body);
 }
 
 std::string Engine::status(const std::string& body) const
