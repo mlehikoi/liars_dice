@@ -15,10 +15,29 @@ const State = {
     WAITING: 3,
     GAME_ON: 4
 };
+const Images = [
+    ['question', '?'],
+    ['one', '1'],
+    ['two', '2'],
+    ['three', '3'],
+    ['four', '4'],
+    ['five', '5'],
+    ['star', '6'],
+];
 var myState;
 var timer;
 var n = 1;
 var face = 1;
+
+function getParameterByName(name, url) {
+    if (!url) url = window.location.href;
+    name = name.replace(/[\[\]]/g, '\\$&');
+    var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, ' '));
+}
 
 function show(toShow) {
     const divs = [
@@ -32,6 +51,14 @@ function show(toShow) {
         if (div != toShow)
             $(div).addClass('hidden');
     $(toShow).removeClass('hidden');
+}
+
+function drawDice(pid, cell) {
+    let images = '';
+    for (let dice of myGame.players[pid].hand) {
+        images += '<img src="' + Images[dice][0] + '-512x512.png" alt="' + Images[dice][1] + '" width="24" height="24">\n';
+    }
+    cell.html(images);
 }
 function handleState() {
     console.log('handleState ' + myState);
@@ -50,7 +77,21 @@ function handleState() {
         $('#players-waiting').html('Players: ' + players.join(', '));
         //timer = setTimeout(function(){ getStatus(); }, 1000);
     } else if (myState == State.GAME_ON) {
-        console.log('GAME ON');
+        // If first time
+        let table = document.getElementById('player-table');
+        let numPlayers = myGame.players.length;
+        for (let i = 0; i < table.rows.length; ++i) {
+            if (i == 0) continue;
+            let pid = i - 1;
+            if (pid < numPlayers) {
+                $(table.rows[i].cells[0]).html(myGame.players[pid].name);
+                drawDice(pid, $(table.rows[i].cells[1]));
+                $(table.rows[i]).removeClass('hidden');
+            } else {
+                $(table.rows[i]).addClass('hidden');
+            }
+        }
+        
         show('#GameOn');
     }
 }
@@ -93,6 +134,7 @@ function refreshGames() {
 }
 
 function getStatus() {
+    console.log("getStatus");
     $.ajax({
         type: 'POST',
         url: '/api/status',
@@ -101,6 +143,7 @@ function getStatus() {
         dataType: 'json',
         success: function (data) {
             if (data.success) {
+                console.log(data);
                 if (data.hasOwnProperty('game')) {
                     usrName = data.name;
                     myGame = data.game;
@@ -227,6 +270,10 @@ $(function() {
             if (face > 6) face = 1;
             $('#face-' + face).removeClass('hidden');
         });
+        userId = getParameterByName('id');
+        console.log('Loaded content for ' + userId);
+        getStatus();
+        
     });
 });
 
