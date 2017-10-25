@@ -139,6 +139,7 @@ public:
     
     bool startRound()
     {
+        std::cout << "startRound " << toString(state_) << std::endl;
         switch (state_)
         {
         case CHALLENGE:

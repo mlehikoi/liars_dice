@@ -72,7 +72,7 @@ public:
     }
     
     // -> login
-    std::string login(const std::string body)
+    std::string login(const std::string& body)
     {
         auto doc = parse(body);
         const auto name = getString(doc, "name");
@@ -93,7 +93,7 @@ public:
         }).str();
     }
     
-    std::string createGame(const std::string body)
+    std::string createGame(const std::string& body)
     {
         // @TODO Move parse to json
         auto doc = parse(body);
@@ -130,7 +130,7 @@ public:
         return json::Json({"success", true}).str();
     }
     
-    std::string joinGame(const std::string body)
+    std::string joinGame(const std::string& body)
     {
         const auto doc = parse(body);
         const auto id = getString(doc, "id");
@@ -171,7 +171,7 @@ public:
         return json::Json({"success", true}).str();
     }
 
-    std::string startGame(const std::string body)
+    std::string startGame(const std::string& body)
     {
         const auto id = getString(parse(body), "id");        
         if (id.empty()) return Error{"PARSE_ERROR"};
@@ -180,12 +180,30 @@ public:
         if (pit == players_.end()) return Error{"NO_PLAYER"};
         
         const auto jit = joinedGames_.find(id);
-        if (jit == joinedGames_.end()) return Error{"ALREADY_JOINED"};
+        if (jit == joinedGames_.end()) return Error{"NOT_JOINED"};
         
         auto git = games_.find(jit->second);
         if (git == games_.end()) return Error{"FATAL"};
 
-        return git->second->startGame() ? Success{}.str() : Error{"COULD_NOT_START"}.str();
+        return git->second->startGame() ? Success{}.str() : Error{"COULD_NOT_START_GAME"}.str();
+    }
+
+    std::string startRound(const std::string& body)
+    {
+        std::cout << "startRound " << body << std::endl;
+        const auto id = getString(parse(body), "id");        
+        if (id.empty()) return Error{"PARSE_ERROR"};
+        
+        const auto pit = players_.find(id);
+        if (pit == players_.end()) return Error{"NO_PLAYER"};
+        
+        const auto jit = joinedGames_.find(id);
+        if (jit == joinedGames_.end()) return Error{"NOT_JOINED"};
+        
+        auto git = games_.find(jit->second);
+        if (git == games_.end()) return Error{"FATAL"};
+
+        return git->second->startRound() ? Success{}.str() : Error{"COULD_NOT_START_ROUND"}.str();
     }
 
     std::string status(const std::string& body) const
@@ -393,6 +411,11 @@ std::string Engine::joinGame(const std::string& body)
 std::string Engine::startGame(const std::string& body)
 {
     return impl_->startGame(body);
+}
+
+std::string Engine::startRound(const std::string& body)
+{
+    return impl_->startRound(body);
 }
 
 std::string Engine::status(const std::string& body) const
