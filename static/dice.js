@@ -61,17 +61,22 @@ function splitString(str, len) {
 }
 
 function show(toShow) {
+    if (!Array.isArray(toShow)) toShow = [toShow];
+    console.log(toShow);
     const divs = [
         '#welcomeMessage',
         '#Login',
         '#SetupCreate',
         '#WaitGameStart',
-        '#GameOn'
+        '#GameOn',
+        '#GameStarted',
+        '#start-round'
     ];
     for (const div of divs)
-        if (div != toShow)
+        if (toShow.indexOf(div) == -1)
             $(div).addClass('hidden');
-    $(toShow).removeClass('hidden');
+    for (const div of toShow)
+        $(div).removeClass('hidden');
 }
 
 function drawDice(pid, cell) {
@@ -98,22 +103,35 @@ function handleState() {
         $('#players-waiting').html('Players: ' + players.join(', '));
         //timer = setTimeout(function(){ getStatus(); }, 1000);
     } else if (myState == State.GAME_ON) {
-        // If first time
-        let table = document.getElementById('player-table');
-        let numPlayers = myGame.players.length;
-        for (let i = 0; i < table.rows.length; ++i) {
-            if (i == 0) continue;
-            let pid = i - 1;
-            if (pid < numPlayers) {
-                $(table.rows[i].cells[0]).html(splitString(myGame.players[pid].name, 10));
-                drawDice(pid, $(table.rows[i].cells[1]));
-                $(table.rows[i]).removeClass('hidden');
-            } else {
-                $(table.rows[i]).addClass('hidden');
-            }
+        console.log(myGame);
+        if (myGame.state == 'GAME_STARTED') {
+            let txt = '';
+            txt += 'Game "' + myGame.game + '" started. Waiting for ';
+            const who = myGame.players[myGame.turn].name;
+            const myTurn = who == usrName;
+            txt += myTurn ? 'you' : who;
+            txt += ' to start the round.';
+            $('#game-started-message').html(txt);
+            if (myTurn) show(['#GameStarted', "#start-round"]); else show('#GameStarted');
         }
-        
-        show('#GameOn');
+        else {
+            // If first time
+            let table = document.getElementById('player-table');
+            let numPlayers = myGame.players.length;
+            for (let i = 0; i < table.rows.length; ++i) {
+                if (i == 0) continue;
+                let pid = i - 1;
+                if (pid < numPlayers) {
+                    if (pid == 0) $(table.rows[i]).addClass('active'); else $(table.rows[i]).removeClass('active');
+                    $(table.rows[i].cells[0]).html(splitString(myGame.players[pid].name, 10));
+                    drawDice(pid, $(table.rows[i].cells[1]));
+                    $(table.rows[i]).removeClass('hidden');
+                } else {
+                    $(table.rows[i]).addClass('hidden');
+                }
+            }
+            show('#GameOn');
+        }
     }
 }
 function join(game) {
@@ -127,6 +145,13 @@ function join(game) {
 function startGame() {
     console.log('startGame');
     $.post('/api/startGame', JSON.stringify({id: userId}), function(json) {
+        if (json.success) getStatus();
+    }, 'json');
+}
+
+function startRound() {
+    console.log('startRound');
+    $.post('/api/startRound', JSON.stringify({id: userId}), function(json) {
         if (json.success) getStatus();
     }, 'json');
 }
@@ -155,7 +180,7 @@ function refreshGames() {
 }
 
 function getStatus() {
-    console.log("getStatus");
+    console.log('getStatus');
     $.ajax({
         type: 'POST',
         url: '/api/status',
@@ -266,11 +291,14 @@ $('#join').click(function() {
 $('#start-game').click(function() {
     startGame();
 });
+$('#start-round').click(function() {
+    startRound();
+});
 
 $(function() {
     $.get('/gameon.html', function (html) {
         $('#GameOn').html(html);
-        
+
         $('#n-minus').click(function() {
             if (n > 0) --n;
             $('#n').html(n);
@@ -294,7 +322,7 @@ $(function() {
         userId = getParameterByName('id');
         console.log('Loaded content for ' + userId);
         getStatus();
-        
+
     });
 });
 
