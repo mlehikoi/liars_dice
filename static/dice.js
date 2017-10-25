@@ -24,6 +24,7 @@ const Images = [
     ['five', '5'],
     ['star', '6'],
 ];
+
 var myState;
 var timer;
 var n = 1;
@@ -37,6 +38,26 @@ function getParameterByName(name, url) {
     if (!results) return null;
     if (!results[2]) return '';
     return decodeURIComponent(results[2].replace(/\+/g, ' '));
+}
+
+function splitString(str, len) {
+    let lines = [];
+    let line = '';
+    for (let c of str) {
+        if (c == ' ') {
+            lines.push(line);
+            line = '';
+        }
+        else {
+            line += c;
+            if (line.length >= len) {
+                lines.push(line);
+                line = '';
+            }
+        }
+    }
+    lines.push(line);
+    return lines.join(' ');
 }
 
 function show(toShow) {
@@ -84,7 +105,7 @@ function handleState() {
             if (i == 0) continue;
             let pid = i - 1;
             if (pid < numPlayers) {
-                $(table.rows[i].cells[0]).html(myGame.players[pid].name);
+                $(table.rows[i].cells[0]).html(splitString(myGame.players[pid].name, 10));
                 drawDice(pid, $(table.rows[i].cells[1]));
                 $(table.rows[i]).removeClass('hidden');
             } else {
