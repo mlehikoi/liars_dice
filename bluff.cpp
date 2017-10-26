@@ -113,6 +113,15 @@ int main()
         return r;
     });
 
+    CROW_ROUTE(app, "/api/bid")
+    .methods("POST"_method)
+    ([](const crow::request& req)
+    {
+        auto r = engine.bid(req.body);
+        std::cout << "Return " << r << endl;
+        return r;
+    });
+
     CROW_ROUTE(app, "/api/games")([]{
         const auto data = engine.getGames();
         return data;

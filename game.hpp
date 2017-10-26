@@ -196,6 +196,7 @@ public:
             std::cout << "Too low bid" << std::endl;
             return false;
         }
+        std::cout << "Not current " << player << std::endl;
         return false;
     }
     

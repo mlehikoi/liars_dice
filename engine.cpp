@@ -32,6 +32,13 @@ std::string getString(const Doc& doc, const char* member)
     return hasString(doc, member) ? doc[member].GetString() : "";
 }
 
+template<typename Doc>
+int getInt(const Doc& doc, const char* member)
+{
+    return doc.IsObject() && doc.HasMember(member) && doc[member].IsInt() ?
+        doc[member].GetInt() : -1;
+}
+
 class Error
 {
     json::Json doc_;
@@ -191,7 +198,7 @@ public:
     std::string startRound(const std::string& body)
     {
         std::cout << "startRound " << body << std::endl;
-        const auto id = getString(parse(body), "id");        
+        const auto id = getString(parse(body), "id");
         if (id.empty()) return Error{"PARSE_ERROR"};
         
         const auto pit = players_.find(id);
@@ -204,6 +211,29 @@ public:
         if (git == games_.end()) return Error{"FATAL"};
 
         return git->second->startRound() ? Success{}.str() : Error{"COULD_NOT_START_ROUND"}.str();
+    }
+
+    std::string bid(const std::string& body)
+    {
+        std::cout << "bid " << body << std::endl;
+        auto doc = parse(body);
+        const auto id = getString(doc, "id");
+        const auto n = getInt(doc, "n");
+        const auto face = getInt(doc, "face");
+        std::cout << n << " " << face << " " << id << std::endl;
+        if (id.empty() || n == -1 || face == -1)
+            return Error{"PARSE_ERROR"};
+        
+        const auto pit = players_.find(id);
+        if (pit == players_.end()) return Error{"NO_PLAYER"};
+        
+        const auto jit = joinedGames_.find(id);
+        if (jit == joinedGames_.end()) return Error{"NOT_JOINED"};
+        
+        auto git = games_.find(jit->second);
+        if (git == games_.end()) return Error{"FATAL"};
+
+        return git->second->bid(pit->second, n, face) ? Success{}.str() : Error{"COULD_NOT_BID"}.str();
     }
 
     std::string status(const std::string& body) const
@@ -416,6 +446,11 @@ std::string Engine::startGame(const std::string& body)
 std::string Engine::startRound(const std::string& body)
 {
     return impl_->startRound(body);
+}
+
+std::string Engine::bid(const std::string& body)
+{
+    return impl_->bid(body);
 }
 
 std::string Engine::status(const std::string& body) const

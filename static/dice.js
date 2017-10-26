@@ -4,7 +4,7 @@
 /*global window, Option */
 /*eslint-disable-vars-on-top */
 
-var usrName = ''; // eslint-disable-line no-unused-vars
+var myName = ''; // eslint-disable-line no-unused-vars
 var userId = '';
 var games;
 var myGame;
@@ -89,7 +89,7 @@ function drawDice(pid, cell) {
 function handleState() {
     console.log('handleState ' + myState);
     if (myState == State.WAITING) {
-        $('#welcomeMessage').html(usrName + ', waiting for others' +
+        $('#welcomeMessage').html(myName + ', waiting for others' +
                                   ' to join the game. Click start when you\'re' +
                                   ' ready to start the game.');
         $('#welcomeMessage').removeClass('hidden');
@@ -103,13 +103,13 @@ function handleState() {
         $('#players-waiting').html('Players: ' + players.join(', '));
         //timer = setTimeout(function(){ getStatus(); }, 1000);
     } else if (myState == State.GAME_ON) {
-        console.log("State == game_on");
+        console.log('State == game_on');
         console.log(myGame);
         if (myGame.state == 'GAME_STARTED') {
             let txt = '';
             txt += 'Game "' + myGame.game + '" started. Waiting for ';
             const who = myGame.players[myGame.turn].name;
-            const myTurn = who == usrName;
+            const myTurn = who == myName;
             txt += myTurn ? 'you' : who;
             txt += ' to start the round.';
             $('#game-started-message').html(txt);
@@ -125,7 +125,9 @@ function handleState() {
                 let pid = i - 1;
                 if (pid < numPlayers) {
                     if (pid == 0) $(table.rows[i]).addClass('active'); else $(table.rows[i]).removeClass('active');
-                    $(table.rows[i].cells[0]).html(splitString(myGame.players[pid].name, 10));
+                    let name = splitString(myGame.players[pid].name, 10);
+                    if (name == myName) name = '<strong>' + name + '</strong>';
+                    $(table.rows[i].cells[0]).html(name);
                     drawDice(pid, $(table.rows[i].cells[1]));
                     $(table.rows[i]).removeClass('hidden');
                 } else {
@@ -154,6 +156,14 @@ function startGame() {
 function startRound() {
     console.log('startRound');
     $.post('/api/startRound', JSON.stringify({id: userId}), function(json) {
+        if (json.success) getStatus();
+    }, 'json');
+}
+
+function bid() {
+    console.log('bid');
+    $.post('/api/bid', JSON.stringify({id: userId, n: n, face: face}), function(json) {
+        console.log(json);
         if (json.success) getStatus();
     }, 'json');
 }
@@ -193,7 +203,7 @@ function getStatus() {
             if (data.success) {
                 console.log(data);
                 if (data.hasOwnProperty('game')) {
-                    usrName = data.name;
+                    myName = data.name;
                     myGame = data.game;
                     if (data.game.state != 'GAME_NOT_STARTED') {
                         myState = State.GAME_ON;
@@ -211,7 +221,7 @@ function getStatus() {
                         handleState();
                     }
                 } else {
-                    usrName = data.name;
+                    myName = data.name;
                     $('#welcomeMessage').html('Welcome, ' + data.name + '.' +
                                               ' Start up a new game or select an existing' +
                                               ' game to join.');
@@ -243,7 +253,7 @@ function login(name) { // eslint-disable-line no-unused-vars
         success: function (data) {
             console.log(data);
             if (data.success) {
-                usrName = data.userName;
+                myName = data.userName;
                 window.location.replace('?id=' + data.id);
             } else {
                 $('#userNameStatus').html(name + ' is already taken.');
@@ -320,6 +330,9 @@ $(function() {
             ++face;
             if (face > 6) face = 1;
             $('#face-' + face).removeClass('hidden');
+        });
+        $('#bid').click(function() {
+            bid(n, face);
         });
         userId = getParameterByName('id');
         console.log('Loaded content for ' + userId);
