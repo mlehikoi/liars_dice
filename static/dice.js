@@ -103,6 +103,7 @@ function handleState() {
         $('#players-waiting').html('Players: ' + players.join(', '));
         //timer = setTimeout(function(){ getStatus(); }, 1000);
     } else if (myState == State.GAME_ON) {
+        console.log("State == game_on");
         console.log(myGame);
         if (myGame.state == 'GAME_STARTED') {
             let txt = '';
@@ -112,9 +113,10 @@ function handleState() {
             txt += myTurn ? 'you' : who;
             txt += ' to start the round.';
             $('#game-started-message').html(txt);
-            if (myTurn) show(['#GameStarted', "#start-round"]); else show('#GameStarted');
+            if (myTurn) show(['#GameStarted', '#start-round']); else show('#GameStarted');
         }
         else {
+            console.log(myGame.state);
             // If first time
             let table = document.getElementById('player-table');
             let numPlayers = myGame.players.length;
@@ -193,7 +195,7 @@ function getStatus() {
                 if (data.hasOwnProperty('game')) {
                     usrName = data.name;
                     myGame = data.game;
-                    if (data.game.state == 'GAME_STARTED') {
+                    if (data.game.state != 'GAME_NOT_STARTED') {
                         myState = State.GAME_ON;
                         handleState(myState);
                     } else if (data.game.state == 'GAME_NOT_STARTED') {
