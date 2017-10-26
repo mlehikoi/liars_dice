@@ -86,6 +86,17 @@ function drawDice(pid, cell) {
     }
     cell.html(images);
 }
+
+function drawBid(pid, cell) {
+    let txt = '';
+    const bid = myGame.players[pid].bid;
+    if (bid.n > 0 && bid.face > 0) {
+        txt += bid.n + ' ';
+        txt += '<img src="' + Images[bid.face][0] + '-512x512.png" alt="' + Images[bid.face][1] + '" width="24" height="24">\n';
+    }
+    cell.html(txt);
+}
+
 function handleState() {
     console.log('handleState ' + myState);
     if (myState == State.WAITING) {
@@ -124,11 +135,12 @@ function handleState() {
                 if (i == 0) continue;
                 let pid = i - 1;
                 if (pid < numPlayers) {
-                    if (pid == 0) $(table.rows[i]).addClass('active'); else $(table.rows[i]).removeClass('active');
+                    if (pid == myGame.turn) $(table.rows[i]).addClass('active'); else $(table.rows[i]).removeClass('active');
                     let name = splitString(myGame.players[pid].name, 10);
                     if (name == myName) name = '<strong>' + name + '</strong>';
                     $(table.rows[i].cells[0]).html(name);
                     drawDice(pid, $(table.rows[i].cells[1]));
+                    drawBid(pid, $(table.rows[i].cells[2]));
                     $(table.rows[i]).removeClass('hidden');
                 } else {
                     $(table.rows[i]).addClass('hidden');
