@@ -18,49 +18,6 @@ using namespace rapidjson;
 
 namespace dice {
 
-template<typename Doc>
-bool hasString(const Doc& doc, const char* member)
-{
-    return doc.IsObject() &&
-           doc.HasMember(member) &&
-           doc[member].IsString();
-}
-
-template<typename Doc>
-std::string getString(const Doc& doc, const char* member)
-{
-    return hasString(doc, member) ? doc[member].GetString() : "";
-}
-
-template<typename Doc>
-int getInt(const Doc& doc, const char* member)
-{
-    return doc.IsObject() && doc.HasMember(member) && doc[member].IsInt() ?
-        doc[member].GetInt() : -1;
-}
-
-class Error
-{
-    json::Json doc_;
-public:
-    Error(const char* msg) : doc_({
-        {"success", false},
-        {"error", msg}
-    })
-    {
-    }
-
-    auto str() const { return doc_.str(); }
-    operator std::string() const { return str(); }
-};
-
-class Success
-{
-public:
-    auto str() const { return "{\"success\": true}"; }
-    operator std::string() const { return str(); }
-};
-
 class Engine::Impl
 {
     const std::string filename_;
@@ -233,7 +190,7 @@ public:
         auto git = games_.find(jit->second);
         if (git == games_.end()) return Error{"FATAL"};
 
-        return git->second->bid(pit->second, n, face) ? Success{}.str() : Error{"COULD_NOT_BID"}.str();
+        return git->second->bid(pit->second, n, face);
     }
 
     std::string status(const std::string& body) const

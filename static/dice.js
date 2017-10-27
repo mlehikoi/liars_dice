@@ -138,6 +138,7 @@ function handleState() {
                     if (pid == myGame.turn) $(table.rows[i]).addClass('active'); else $(table.rows[i]).removeClass('active');
                     let name = splitString(myGame.players[pid].name, 10);
                     if (name == myName) name = '<strong>' + name + '</strong>';
+                    if (pid == myGame.turn) name = '<span class="glyphicon glyphicon-play"></span>' + name;
                     $(table.rows[i].cells[0]).html(name);
                     drawDice(pid, $(table.rows[i].cells[1]));
                     drawBid(pid, $(table.rows[i].cells[2]));

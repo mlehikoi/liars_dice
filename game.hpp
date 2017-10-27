@@ -174,30 +174,23 @@ public:
         assert(false);
     }
     
-    bool bid(const std::string& player, int n, int face)
+    RetVal bid(const std::string& player, int n, int face)
     {
-        //std::cout << "turn: " << turn_ << std::endl;
-        //std::cout << player << " vs " << currentPlayer().name()  << std::endl;
-        //@TODO return enum to indicate reason of failure
-        std::cout << toString(state_) << " " << currentPlayer().name() << std::endl;
-        if (state_ != ROUND_STARTED) return false;
-        if (player == currentPlayer().name())
+        if (state_ != ROUND_STARTED) return Error{"ROUND_NOT_STARTED"};
+        if (player != currentPlayer().name())
         {
-            Bid bid{n, face};
-            if (currentBid_ < bid)
-            {
-                currentBid_ = bid;
-                //@TODO set bit to player
-                bidder_ = &currentPlayer();
-                currentPlayer().bid(bid);
-                nextPlayer();
-                return true;
-            }
-            std::cout << "Too low bid" << std::endl;
-            return false;
+            return Error{"NOT_YOUR_TURN"};
+                //json::Json{"turn", currentPlayer().name()}};
         }
-        std::cout << "Not current " << player << std::endl;
-        return false;
+        Bid bid{n, face};
+        if (!(currentBid_ < bid)) return Error{"TOO_LOW_BID"};
+
+        currentBid_ = bid;
+        //@TODO set bit to player
+        bidder_ = &currentPlayer();
+        currentPlayer().bid(bid);
+        nextPlayer();
+        return Success{};
     }
     
     bool challenge(const std::string player)
@@ -267,6 +260,7 @@ public:
         w.String(toString(state_));
 
         w.Key("turn");
+        std::cout << "turn: " << turn_ << std::endl;
         w.Int(turn_);
 
         w.Key("bid");

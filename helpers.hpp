@@ -1,5 +1,7 @@
 #pragma once
 
+#include "json.hpp"
+
 #include <rapidjson/document.h>
 #include <rapidjson/writer.h>
 #include <rapidjson/prettywriter.h>
@@ -12,6 +14,58 @@
 
 namespace dice {
 
+template<typename Doc>
+bool hasString(const Doc& doc, const char* member)
+{
+    return doc.IsObject() &&
+            doc.HasMember(member) &&
+            doc[member].IsString();
+}
+
+template<typename Doc>
+std::string getString(const Doc& doc, const char* member)
+{
+    return hasString(doc, member) ? doc[member].GetString() : "";
+}
+
+template<typename Doc>
+int getInt(const Doc& doc, const char* member)
+{
+    return doc.IsObject() && doc.HasMember(member) && doc[member].IsInt() ?
+        doc[member].GetInt() : -1;
+}
+
+class RetVal
+{
+    std::string str_;
+    const bool good_;
+public:
+    RetVal(const std::string& str, bool good) : str_{str}, good_{good} {}
+    auto str() const { return str_; }
+    operator std::string() const { return str(); }
+    operator bool() const { return good_; }
+};
+
+class Error : public RetVal
+{
+public:
+    Error(const char* msg)
+      : RetVal{json::Json({
+            {"success", false},
+            {"error", msg}
+        }).str(),
+        false}
+    {
+    }
+};
+
+class Success : public RetVal
+{
+public:
+    Success() : RetVal{"{\"success\": true}", true} {}
+};
+
+// Enum class
 template<typename T>
 constexpr inline std::size_t enumSize()
 {
