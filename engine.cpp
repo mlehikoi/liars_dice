@@ -193,6 +193,24 @@ public:
         return git->second->bid(pit->second, n, face);
     }
 
+    std::string challenge(const std::string& body)
+    {
+        std::cout << "challenge " << body << std::endl;
+        const auto id = getString(parse(body), "id");
+        if (id.empty()) return Error{"PARSE_ERROR"};
+        
+        const auto pit = players_.find(id);
+        if (pit == players_.end()) return Error{"NO_PLAYER"};
+        
+        const auto jit = joinedGames_.find(id);
+        if (jit == joinedGames_.end()) return Error{"NOT_JOINED"};
+        
+        auto git = games_.find(jit->second);
+        if (git == games_.end()) return Error{"FATAL"};
+
+        return git->second->challenge(pit->second);
+    }
+
     std::string status(const std::string& body) const
     {
         std::cout << "status " << body << std::endl;
@@ -408,6 +426,11 @@ std::string Engine::startRound(const std::string& body)
 std::string Engine::bid(const std::string& body)
 {
     return impl_->bid(body);
+}
+
+std::string Engine::challenge(const std::string& body)
+{
+    return impl_->challenge(body);
 }
 
 std::string Engine::status(const std::string& body) const

@@ -193,12 +193,11 @@ public:
         return Success{};
     }
     
-    bool challenge(const std::string player)
+    RetVal challenge(const std::string player)
     {
-        if (currentBid_ == Bid{})
-            return false;
-        if (player != currentPlayer().name())
-            return false;
+        if (currentBid_ == Bid{}) return Error{"NOTHING_TO_CHALLENGE"};
+        if (player != currentPlayer().name()) return Error{"NOT_YOUR_TURN"};
+        
         const auto offset = getOffset();
         
         // Is it done...
@@ -217,7 +216,7 @@ public:
         {
             setTurn(*bidder_);
         }
-        return true;
+        return Success{};
     }
     
     std::string getStatus(const std::string& player)
@@ -273,8 +272,18 @@ public:
 
         w.Key("players");
         w.StartArray();
-        for (const auto& p : players_)
-            p.serialize(w);
+        if (state_ == CHALLENGE || state_ == GAME_FINISHED)
+        {
+            const auto offset = getOffset();
+            for (const auto& p : players_)
+            {
+                auto result = getResult(offset, p);
+                p.serialize(w, result);
+            }
+        }
+        else
+            for (const auto& p : players_)
+                p.serialize(w);
         w.EndArray();
         w.EndObject();
     }

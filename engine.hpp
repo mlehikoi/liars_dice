@@ -16,6 +16,7 @@ public:
     std::string startGame(const std::string& body);
     std::string startRound(const std::string& body);
     std::string bid(const std::string& body);
+    std::string challenge(const std::string& body);
     std::string status(const std::string& body) const;
     std::string getGames() const;
     

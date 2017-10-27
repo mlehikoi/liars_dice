@@ -122,6 +122,15 @@ int main()
         return r;
     });
 
+    CROW_ROUTE(app, "/api/challenge")
+    .methods("POST"_method)
+    ([](const crow::request& req)
+    {
+        auto r = engine.challenge(req.body);
+        std::cout << "Return " << r << endl;
+        return r;
+    });
+
     CROW_ROUTE(app, "/api/games")([]{
         const auto data = engine.getGames();
         return data;

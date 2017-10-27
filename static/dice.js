@@ -90,7 +90,7 @@ function drawDice(pid, cell) {
 function drawBid(pid, cell) {
     let txt = '';
     const bid = myGame.players[pid].bid;
-    if (bid.n > 0 && bid.face > 0) {
+    if (bid && bid.n > 0 && bid.face > 0) {
         txt += bid.n + ' ';
         txt += '<img src="' + Images[bid.face][0] + '-512x512.png" alt="' + Images[bid.face][1] + '" width="24" height="24">\n';
     }
@@ -176,6 +176,14 @@ function startRound() {
 function bid() {
     console.log('bid');
     $.post('/api/bid', JSON.stringify({id: userId, n: n, face: face}), function(json) {
+        console.log(json);
+        if (json.success) getStatus();
+    }, 'json');
+}
+
+function challenge() {
+    console.log('challenge');
+    $.post('/api/challenge', JSON.stringify({id: userId}), function(json) {
         console.log(json);
         if (json.success) getStatus();
     }, 'json');
@@ -346,6 +354,9 @@ $(function() {
         });
         $('#bid').click(function() {
             bid(n, face);
+        });
+        $('#challenge').click(function() {
+            challenge();
         });
         userId = getParameterByName('id');
         console.log('Loaded content for ' + userId);
