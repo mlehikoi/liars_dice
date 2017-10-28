@@ -14,6 +14,8 @@
 
 namespace dice {
 
+using Writer = rapidjson::PrettyWriter<rapidjson::StringBuffer>;
+
 template<typename Doc>
 bool hasString(const Doc& doc, const char* member)
 {

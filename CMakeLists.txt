@@ -7,9 +7,7 @@ add_definitions(
 )
 
 enable_testing()
-#find_package(GTest REQUIRED)
-#MESSAGE(STATUS "GTest" ${GTEST_INCLUDE_DIRS})
-#MESSAGE(STATUS "GTest" ${GTEST_INCLUDE_DIRS})
+
 find_package(Boost COMPONENTS system REQUIRED)
 
 include_directories(
@@ -19,32 +17,30 @@ include_directories(
     ${GTEST_INCLUDE_DIRS}
 )
 
-# clang++ -std=c++14 -x c++-header  -I/usr/local/Cellar/boost/1.65.0/include/ ./crow_all.h -o crow_all.h.pch
-# SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -include-pch ../crow_all.h.pch")
-
+add_library(libdice
+    helpers.cpp
+    bid.cpp
+    engine.cpp
+)
 add_executable(bluff
     bluff.cpp
-    helpers.cpp
-    engine.cpp
 )
 
 target_link_libraries(bluff
+    libdice
     ${Boost_LIBRARIES}
     ${Boost_SYSTEM_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT}
 )
 
-#if (GTEST_FOUND)
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    link_directories(../googletest/build-clang/googlemock/gtest)
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     link_directories(../googletest/build-gcc/googlemock/gtest)
-    add_executable(runUnitTests
-        test_bluff.cpp
-        engine.cpp
-        helpers.cpp)
-    
-    target_link_libraries(runUnitTests gtest gtest_main ${Boost_LIBRARIES})
-    add_test(runUnitTests runUnitTests)
-#endif(GTEST_FOUND)
+endif()
+add_executable(runUnitTests
+    test_bluff.cpp
+)
 
-if (Tcmalloc_FOUND)
-    target_link_libraries(example ${Tcmalloc_LIBRARIES})
-endif(Tcmalloc_FOUND)
+target_link_libraries(runUnitTests libdice gtest gtest_main ${Boost_LIBRARIES})
+add_test(runUnitTests runUnitTests)
