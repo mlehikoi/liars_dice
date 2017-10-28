@@ -168,8 +168,15 @@ function handleState() {
                 }
             }
             if (myGame.state == 'ROUND_STARTED') {
-                $('#game-msg').html('hello');
-                $('#BidOrChallenge').removeClass('hidden');
+                const playerInTurn = myGame.players[myGame.turn].name;
+                if (myGame.players[myGame.turn].name == myName) {
+                    $('#game-msg').html(myName + ', it\'s your turn. You can either make a higher bid or challeng the bid.');
+                    $('#BidOrChallenge').removeClass('hidden');
+                }
+                else {
+                    $('#game-msg').html('Waiting for ' + playerInTurn + ' to bid or challenge.');
+                    $('#BidOrChallenge').addClass('hidden');
+                }
                 $('#DoneViewingResults').addClass('hidden');
             } else if (myGame.state == 'CHALLENGE') {
                 $('#game-msg').html('Round ended. ' + winners.join(', ') + ' won. ' +
