@@ -26,7 +26,7 @@ const Images = [
 ];
 
 var myState;
-var timer;
+//var timer;
 var n = 1;
 var face = 1;
 
@@ -84,12 +84,19 @@ function drawDice(pid, cell) {
     for (let dice of myGame.players[pid].hand) {
         images += '<img src="' + Images[dice][0] + '-512x512.png" alt="' + Images[dice][1] + '" width="24" height="24">\n';
     }
+    const adj = myGame.players[pid].adjustment;
+    if (adj) {
+        images += '<br><span class="label label-default">' + adj + '</span>';
+    }
     cell.html(images);
 }
 
 function drawBid(pid, cell) {
+    //console.log('drawBid');
+    //console.log(bid);
     let txt = '';
     const bid = myGame.players[pid].bid;
+    //console.log(bid);
     if (bid && bid.n > 0 && bid.face > 0) {
         txt += bid.n + ' ';
         txt += '<img src="' + Images[bid.face][0] + '-512x512.png" alt="' + Images[bid.face][1] + '" width="24" height="24">\n';
@@ -127,18 +134,31 @@ function handleState() {
             if (myTurn) show(['#GameStarted', '#start-round']); else show('#GameStarted');
         }
         else {
+            // ROUND_STARTED
+            // CHALLENGE
             console.log(myGame.state);
             // If first time
             let table = document.getElementById('player-table');
             let numPlayers = myGame.players.length;
+            let winners = [];
+            let losers = [];
             for (let i = 0; i < table.rows.length; ++i) {
                 if (i == 0) continue;
                 let pid = i - 1;
                 if (pid < numPlayers) {
+                    const fullname = myGame.players[pid].name;
                     if (pid == myGame.turn) $(table.rows[i]).addClass('active'); else $(table.rows[i]).removeClass('active');
                     let name = splitString(myGame.players[pid].name, 10);
                     if (name == myName) name = '<strong>' + name + '</strong>';
-                    if (pid == myGame.turn) name = '<span class="glyphicon glyphicon-play"></span>' + name;
+                    if (myGame.players[pid].winner) {
+                        winners.push(fullname);
+                        name = '<span class="glyphicon glyphicon-thumbs-up"></span> ' + name;
+                    }
+                    else if (myGame.players[pid].loser) {
+                        losers.push(fullname);
+                        name = '<span class="glyphicon glyphicon-thumbs-down"></span> ' + name;
+                    } 
+                    else if (pid == myGame.turn) name = '<span class="glyphicon glyphicon-play"></span>' + name;
                     $(table.rows[i].cells[0]).html(name);
                     drawDice(pid, $(table.rows[i].cells[1]));
                     drawBid(pid, $(table.rows[i].cells[2]));
@@ -146,6 +166,17 @@ function handleState() {
                 } else {
                     $(table.rows[i]).addClass('hidden');
                 }
+            }
+            if (myGame.state == 'ROUND_STARTED') {
+                $('#game-msg').html('hello');
+                $('#BidOrChallenge').removeClass('hidden');
+                $('#DoneViewingResults').addClass('hidden');
+            } else if (myGame.state == 'CHALLENGE') {
+                $('#game-msg').html('Round ended. ' + winners.join(', ') + ' won. ' +
+                                   losers.join(', ') + ' lost ' + 1 + ' dice.<br>' +
+                                   'Click done to start new round.');
+                $('#BidOrChallenge').addClass('hidden');
+                $('#DoneViewingResults').removeClass('hidden');
             }
             show('#GameOn');
         }
@@ -169,7 +200,8 @@ function startGame() {
 function startRound() {
     console.log('startRound');
     $.post('/api/startRound', JSON.stringify({id: userId}), function(json) {
-        if (json.success) getStatus();
+        console.log(json);
+        getStatus();
     }, 'json');
 }
 
@@ -357,6 +389,9 @@ $(function() {
         });
         $('#challenge').click(function() {
             challenge();
+        });
+        $('#done-viewing-results').click(function() {
+            startRound();
         });
         userId = getParameterByName('id');
         console.log('Loaded content for ' + userId);

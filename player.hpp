@@ -91,6 +91,9 @@ public:
         w.Key("name");
         w.String(name_.c_str());
 
+        w.Key("bid");
+        bid_.serialize(w);
+
         w.Key("adjustment"); w.Int(std::get<0>(result));
         w.Key("winner"); w.Bool(std::get<1>(result));
         w.Key("loser"); w.Bool(std::get<2>(result));
