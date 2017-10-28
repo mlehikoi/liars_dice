@@ -21,6 +21,7 @@ add_library(libdice
     helpers.cpp
     bid.cpp
     engine.cpp
+    game.cpp
 )
 add_executable(bluff
     bluff.cpp
