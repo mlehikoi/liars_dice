@@ -245,7 +245,7 @@ public:
                     std::cout << "And the game existed.." << std::endl;
                     //@TODO Don't reveal other dice
                     w.Key("game");
-                    git->second->serialize(w);
+                    git->second->serialize(w, name);
                 }
             }
             w.EndObject();
@@ -343,7 +343,7 @@ public:
         w.StartArray();
         for (const auto& it : games_)
         {
-            it.second->serialize(w);
+            it.second->serialize(w, "");
         }
 
         w.EndArray();

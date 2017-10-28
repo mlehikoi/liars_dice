@@ -249,7 +249,15 @@ public:
         return s.GetString();
     }
 
-    void serialize(rapidjson::PrettyWriter<rapidjson::StringBuffer>& w) const
+    /**
+     * Serialize engine state to give writer. If round is still in progress,
+     * only given player's dice are "shown".
+     *
+     * @param w [out] state is serialized here
+     * @param name [in] who's dice to show if round is in progress. If empty,
+     *     show all dice.
+     */
+    void serialize(rapidjson::PrettyWriter<rapidjson::StringBuffer>& w, const std::string& name) const
     {
         w.StartObject();
         w.Key("game");
@@ -283,7 +291,7 @@ public:
         }
         else
             for (const auto& p : players_)
-                p.serialize(w);
+                p.serialize(w, name);
         w.EndArray();
         w.EndObject();
     }

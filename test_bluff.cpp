@@ -464,7 +464,7 @@ TEST(EngineGame, Save) {
 
     rapidjson::StringBuffer s;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> w{s};
-    game->serialize(w);
+    game->serialize(w, "");
     cout << s.GetString() << endl;
     ASSERT_STREQ(txt0.c_str(), s.GetString());
 }

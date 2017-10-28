@@ -74,6 +74,10 @@ public:
         w.StartObject();
         w.Key("name");
         w.String(name_.c_str());
+
+        w.Key("bid");
+        bid_.serialize(w);
+        
         w.Key("hand");
         w.StartArray();
         for (auto d : hand_)
