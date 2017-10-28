@@ -85,9 +85,8 @@ bool Game::startGame()
     return true;
 }
 
-bool Game::startRound()
+RetVal Game::startRound()
 {
-    std::cout << "startRound " << toString(state_) << std::endl;
     switch (state_)
     {
     case CHALLENGE:
@@ -104,9 +103,9 @@ bool Game::startRound()
         state_ = ROUND_STARTED;
         currentBid_ = Bid{};
         for (auto& p : players_) p.roll();
-        return true;
+        return Success{};
     default:
-        return false;
+        return Error{"CANNOT_BE_STARTED"};
     }
 }
 

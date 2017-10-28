@@ -66,7 +66,7 @@ public:
     
     bool startGame();
     
-    bool startRound();
+    RetVal startRound();
     void nextPlayer();
     RetVal bid(const std::string& player, int n, int face);
     RetVal challenge(const std::string player);

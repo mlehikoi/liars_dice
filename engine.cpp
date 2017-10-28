@@ -149,7 +149,7 @@ public:
         auto git = games_.find(jit->second);
         if (git == games_.end()) return Error{"FATAL"};
 
-        return git->second->startGame() ? Success{}.str() : Error{"COULD_NOT_START_GAME"}.str();
+        return git->second->startGame() ? git->second->startRound() : Error{"COULD_NOT_START_GAME"}.str();
     }
 
     std::string startRound(const std::string& body)
