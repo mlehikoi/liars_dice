@@ -30,23 +30,14 @@ class Game
     Bid currentBid_;
     bool roundStarted_;
     const IDice& diceRoll_;
-    // enum State
-    // {
-    //     GAME_NOT_STARTED,
-    //     GAME_STARTED,
-    //     ROUND_STARTED,
-    //     CHALLENGE,
-    //     GAME_FINISHED
-    // } state_;
-    MAKE_ENUM(GameState,
+    enum State
+    {
         GAME_NOT_STARTED,
         GAME_STARTED,
         ROUND_STARTED,
         CHALLENGE,
         GAME_FINISHED
-    );
-
-    GameState state_;
+    } state_;
 
     // Used for challenge
     const Player* bidder_;
@@ -66,7 +57,18 @@ class Game
         return 0;
     }
 
-    static auto fromString(const std::string str)
+    static const char* toString(State state)
+    {
+        switch (state)
+        {
+        case GAME_NOT_STARTED: return "GAME_NOT_STARTED";
+        case GAME_STARTED: return "GAME_STARTED";
+        case ROUND_STARTED: return "ROUND_STARTED";
+        case CHALLENGE: return "CHALLENGE";
+        case GAME_FINISHED: return "GAME_FINISHED";
+        }
+    }
+    static auto fromString(const std::string& str)
     {
         if (str == "GAME_NOT_STARTED") return GAME_NOT_STARTED;
         if (str == "GAME_STARTED") return GAME_STARTED;
