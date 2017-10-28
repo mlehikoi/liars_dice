@@ -16,9 +16,9 @@ std::string slurp(const std::string& path)
     if (sz > 0)
     {
         f.seekg(0, std::ios::beg);
-        auto buf = std::make_unique<char[]>(sz);
+        auto buf = std::make_unique<char[]>(std::size_t(sz));
         f.read(buf.get(), sz);
-        return std::string(buf.get(), sz);
+        return std::string(buf.get(), std::size_t(sz));
     }
     return "";
 }
@@ -26,7 +26,7 @@ std::string slurp(const std::string& path)
 void dump(const std::string& path, const std::string& data)
 {
     std::ofstream f{path, std::ios::binary};
-    f.write(data.data(), data.size());
+    f.write(data.data(), std::streamsize(data.size()));
 }
 
 std::string uuid()

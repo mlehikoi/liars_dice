@@ -18,7 +18,7 @@ using namespace std;
 using namespace dice;
 
 namespace dice {
-auto readFile(const std::string& name)
+inline auto readFile(const std::string& name)
 {
     const auto path = "../static/"s + name;
     const auto data = dice::slurp("../static/"s + path);
@@ -28,31 +28,6 @@ auto readFile(const std::string& name)
     return r;
 }
 } // dice
-
-class Games
-{
-public:
-    std::unordered_map<std::string, int> map_;
-
-    void addGame(const std::string& id)
-    {
-        map_.insert({id, 0});
-        std::cout << map_.size() << std::endl;
-    }
-};
-
-auto& games()
-{
-    static Games games_;
-    return games_;
-}
-struct PlayerInfo
-{
-    std::string name_;
-    std::string game_;
-};
-static std::unordered_map<std::string, PlayerInfo> players_;
-static std::unordered_set<std::string> games_;
 
 int main()
 {
@@ -137,16 +112,6 @@ int main()
         // crow::response r{data};
         // r.add_header("Content-Type", "application/json; charset=utf-8");
         // return r;
-    });
-
-    CROW_ROUTE(app, "/api/list")([]{
-        std::stringstream ss;
-        ss << "Games" << std::endl;
-        for (const auto& game : games().map_)
-        {
-            ss << "..." << game.first << std::endl;
-        }
-        return ss.str();
     });
 
     CROW_ROUTE(app, "/<string>")(readFile);

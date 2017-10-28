@@ -5,7 +5,7 @@ namespace dice {
 int Game::getOffset() const
 {
     std::vector<int> commonHand;
-    for (const auto p : players_)
+    for (const auto& p : players_)
     {
         commonHand.insert(commonHand.end(), p.hand().begin(), p.hand().end());
     }
@@ -63,10 +63,10 @@ void Game::setTurn(const Player& player)
 Game::Game(const std::string& game, const IDice& diceRoll)
     : game_{game},
     players_{},
-    round_{},
+    //round_{},
     turn_{0},
     currentBid_{},
-    roundStarted_{false},
+    //roundStarted_{false},
     diceRoll_{diceRoll},
     state_{GAME_NOT_STARTED}
 {
@@ -95,16 +95,18 @@ RetVal Game::startRound()
         for (auto& p : players_)
         {
             auto result = getResult(offset, p);
-            p.remove(-std::get<0>(result));
+            p.remove(static_cast<std::size_t>(-std::get<0>(result)));
         }
     }
-    //[[clang::fallthrough]];
+    [[clang::fallthrough]];
     case GAME_STARTED:
         state_ = ROUND_STARTED;
         currentBid_ = Bid{};
         for (auto& p : players_) p.roll();
         return Success{};
-    default:
+    case GAME_NOT_STARTED:
+    case ROUND_STARTED:
+    case GAME_FINISHED:
         return Error{"CANNOT_BE_STARTED"};
     }
 }
@@ -116,7 +118,7 @@ void Game::nextPlayer()
     for (size_t i = 0; i < players_.size(); ++turn_)
     {
         turn_ %= nPlayers;
-        if (players_[turn_].isPlaying()) return;
+        if (players_[static_cast<std::size_t>(turn_)].isPlaying()) return;
     }
     assert(false);
 }
@@ -153,7 +155,7 @@ RetVal Game::challenge(const std::string player)
     {
         auto result = getResult(offset, p);
         //std::cout << p.name() << " " << p.hand().size() << " "
-        if (p.hand().size() > -std::get<0>(result)) ++numPlayers;
+        if (p.hand().size() > std::size_t(-std::get<0>(result))) ++numPlayers;
     }
     assert(numPlayers >= 1);
     state_ = numPlayers == 1 ? GAME_FINISHED : CHALLENGE;

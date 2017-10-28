@@ -45,13 +45,14 @@ class TmpFile
 public:
     TmpFile(const std::string& filename) : filename_{filename} {}
     ~TmpFile() { std::remove(filename_.c_str()); }
+    TmpFile(TmpFile&& other) : filename_{other.filename_} {}
     auto str() { return filename_; }
 };
 
 inline auto tmpCopy(const char* src, const char* targetPrefix)
 {
     auto tmp = tmpName(targetPrefix);
-    dice::dump(tmp, dice::slurp("../test-game.json"));
+    dice::dump(tmp, dice::slurp(src));
     return TmpFile{tmp};
 }
 

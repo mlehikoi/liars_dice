@@ -1,4 +1,5 @@
 #pragma once
+
 #include "player.hpp"
 
 #include "bid.hpp"
@@ -25,10 +26,10 @@ class Game
 {
     std::string game_;
     std::vector<Player> players_;
-    int round_;
+    //int round_;
     int turn_;
     Bid currentBid_;
-    bool roundStarted_;
+    //bool roundStarted_;
     const IDice& diceRoll_;
     enum State
     {
@@ -48,9 +49,9 @@ class Game
     static const char* toString(State state);
     static State fromString(const std::string& str);
     
-    auto& currentPlayer() { return players_[turn_]; }
-    const auto& currentPlayer() const { return players_[turn_]; }
-    const auto challenger() const { return challenger_; }
+    auto& currentPlayer() { return players_[static_cast<std::size_t>(turn_)]; }
+    const auto& currentPlayer() const { return players_[static_cast<std::size_t>(turn_)]; }
+    const auto& challenger() const { return challenger_; }
     
     std::tuple<int, bool, bool> getResult(int offset, const Player& player) const;
     
@@ -84,4 +85,4 @@ public:
     static std::shared_ptr<Game> fromJson(const rapidjson::Value& v);
 };
 
-} // namespace game
+} // namespace dice

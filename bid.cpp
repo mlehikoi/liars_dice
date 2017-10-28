@@ -41,5 +41,4 @@ Bid Bid::fromJson(const rapidjson::Value& v)
     return Bid{};
 }
 
-const bool Bid::operator==(const Bid& bid) const { return n_ == bid.n_ && face_ == bid.face_; }
 } // namespace dice

@@ -124,7 +124,7 @@ const char* findFromMap(T key)
 }
 
 template<typename T, size_t SIZE>
-constexpr inline int numElements(const T (&arrayP)[SIZE])
+constexpr inline int numElements(const T (&)[SIZE])
 {
     return SIZE;
 }

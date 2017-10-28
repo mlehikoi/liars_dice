@@ -142,4 +142,4 @@ public:
     bool isPlaying() const { return !hand_.empty(); }
 };
 
-}
+} // namespace dice

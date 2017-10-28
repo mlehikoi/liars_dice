@@ -4,13 +4,21 @@ project (bluff)
 add_definitions(
     -g
     -std=c++14
+    -Weverything
+
+    -Wno-c++98-compat
+    #-Wno-padded
+    -Wno-c++98-compat-pedantic
+    #-Wno-disabled-macro-expansion
+    -Wno-exit-time-destructors
 )
+set_source_files_properties(test_bluff.cpp PROPERTIES COMPILE_FLAGS -Wno-everything)
 
 enable_testing()
 
 find_package(Boost COMPONENTS system REQUIRED)
 
-include_directories(
+include_directories(SYSTEM
     ../crow/include
     ../rapidjson/include
     ${Boost_INCLUDE_DIRS}
@@ -20,6 +28,7 @@ include_directories(
 add_library(libdice
     helpers.cpp
     bid.cpp
+    dice.cpp
     engine.cpp
     game.cpp
 )

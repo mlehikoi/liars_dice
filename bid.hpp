@@ -30,7 +30,7 @@ public:
     int challenge(const std::vector<int>& commonHand) const;
     void serialize(Writer& w) const;
     static Bid fromJson(const rapidjson::Value& v);
-    const bool operator==(const Bid& bid) const;
+    bool operator==(const Bid& bid) const { return n_ == bid.n_ && face_ == bid.face_; }
 };
 
 } // namespace dice

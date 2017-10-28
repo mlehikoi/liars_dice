@@ -41,7 +41,7 @@ public:
         auto doc = parse(body);
         const auto name = getString(doc, "name");
         if (name.empty()) return Error{"INVALID_FORMAT"};
-        for (const auto idName : players_)
+        for (const auto& idName : players_)
         {
             if (idName.second == name)
             {
