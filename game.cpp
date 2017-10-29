@@ -126,12 +126,9 @@ void Game::nextPlayer()
 RetVal Game::bid(const std::string& player, int n, int face)
 {
     if (state_ != ROUND_STARTED) return Error{"ROUND_NOT_STARTED"};
-    if (player != currentPlayer().name())
-    {
-        return Error{"NOT_YOUR_TURN"};
-            //json::Json{"turn", currentPlayer().name()}};
-    }
+    if (player != currentPlayer().name()) return Error{"NOT_YOUR_TURN"};
     Bid bid{n, face};
+    if (!bid.valid()) return Error{"INVALID_BID"};
     if (!(currentBid_ < bid)) return Error{"TOO_LOW_BID"};
 
     currentBid_ = bid;

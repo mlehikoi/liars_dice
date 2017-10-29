@@ -12,14 +12,18 @@ class Bid
     int n_;
     int face_;
 public:
-    Bid() : n_{}, face_{} {}
-    Bid(int n, int face) : n_{n}, face_{face} {}
+    Bid();
+    Bid(int n, int face);
     
     auto n() const { return n_; }
     auto face() const { return face_; }
 
     int score() const;
+    bool valid() const { return score() > 0; }
     bool operator<(const Bid& other) const;
+    bool operator<=(const Bid& other) const;
+    bool operator>(const Bid& other) const;
+    bool operator>=(const Bid& other) const;
 
     /**
       * @return bid's difference to actual
