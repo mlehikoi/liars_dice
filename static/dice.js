@@ -8,6 +8,7 @@ var myName = ''; // eslint-disable-line no-unused-vars
 var myId = '';
 var games;
 var myGame;
+var prevStatusTxt = '';
 var prevBid = {
     n: 0,
     face: 1
@@ -32,6 +33,8 @@ const Images = [
     ['five', '5'],
     ['star', '6'],
 ];
+var diceImages = [];
+var bidImages = [];
 
 var myState;
 var timer;
@@ -118,12 +121,14 @@ function drawDice(pid, cell) {
     if (adj) {
         images += '<br><span class="label label-default">' + adj + '</span>';
     }
-    cell.html(images);
+    if (images != diceImages[pid]) {
+        diceImages[pid] = images;
+        cell.html(images);
+    }
+    
 }
 
 function drawBid(pid, cell) {
-    //console.log('drawBid');
-    console.log('Bid: ' + pid);
     let txt = '';
     const theBid = myGame.players[pid].bid;
     console.log(theBid);
@@ -132,7 +137,11 @@ function drawBid(pid, cell) {
         txt += '<img src="' + Images[theBid.face][0] + '-512x512.png" alt="' + Images[theBid.face][1] +
             '" width="24" height="24">\n';
     }
-    cell.html(txt);
+    if (txt != bidImages[pid]) {
+        bidImages[pid] = txt;
+        cell.html(txt);
+    }
+    
 }
 
 function pollStatus() {
@@ -313,50 +322,44 @@ function refreshGames() {
 
 function getStatus() {
     console.log('getStatus');
-    $.ajax({
-        type: 'POST',
-        url: '/api/status',
-        data: JSON.stringify({id: myId}),
-        contentType: 'application/json; charset=utf-8',
-        dataType: 'json',
-        success: function (data) {
-            if (data.success) {
-                console.log(data);
-                if (data.hasOwnProperty('game')) {
-                    myName = data.name;
-                    myGame = data.game;
-                    if (data.game.state != 'GAME_NOT_STARTED') {
-                        myState = State.GAME_ON;
-                        handleState(myState);
-                    } else if (data.game.state == 'GAME_NOT_STARTED') {
-                        console.log(data);
-                        myState = State.WAITING;
-                        $('#welcomeMessage').html(data.name + ', waiting for others' +
-                                                  ' to join the game. Click start when you\'re' +
-                                                  ' ready to start the game.');
-                        $('#welcomeMessage').removeClass('hidden');
-                        $('#Login').addClass('hidden');
-                        $('#SetupCreate').addClass('hidden');
-                        $('#WaitGameStart').removeClass('hidden');
-                        handleState();
-                    }
-                } else {
-                    myName = data.name;
-                    $('#welcomeMessage').html('Welcome, ' + data.name + '.' +
-                                              ' Start up a new game or select an existing' +
-                                              ' game to join.');
+    $.post('/api/status', JSON.stringify({id: myId}), function (data) {
+//        if (prevStatusTxt == data) {
+//            return pollStatus();
+//        }
+        prevStatusTxt = data;
+        const json = JSON.parse(data);    
+        if (json.success) {
+            console.log(json);
+            if (json.hasOwnProperty('game')) {
+                myName = json.name;
+                myGame = json.game;
+                if (myGame.state != 'GAME_NOT_STARTED') {
+                    myState = State.GAME_ON;
+                    handleState(myState);
+                } else if (myGame.state == 'GAME_NOT_STARTED') {
+                    myState = State.WAITING;
+                    $('#welcomeMessage').html(data.name + ', waiting for others' +
+                                              ' to join the game. Click start when you\'re' +
+                                              ' ready to start the game.');
                     $('#welcomeMessage').removeClass('hidden');
                     $('#Login').addClass('hidden');
-                    $('#SetupCreate').removeClass('hidden');
-                    refreshGames();
+                    $('#SetupCreate').addClass('hidden');
+                    $('#WaitGameStart').removeClass('hidden');
+                    handleState();
                 }
             } else {
-                $('#Login').removeClass('hidden');
-                $('#SetupCreate').addClass('hidden');
+                myName = data.name;
+                $('#welcomeMessage').html('Welcome, ' + data.name + '.' +
+                                          ' Start up a new game or select an existing' +
+                                          ' game to join.');
+                $('#welcomeMessage').removeClass('hidden');
+                $('#Login').addClass('hidden');
+                $('#SetupCreate').removeClass('hidden');
+                refreshGames();
             }
-        },
-        error: function () {
-            console.log('error');
+        } else {
+            $('#Login').removeClass('hidden');
+            $('#SetupCreate').addClass('hidden');
         }
     });
 }
