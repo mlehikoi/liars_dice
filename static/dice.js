@@ -34,7 +34,7 @@ const Images = [
 ];
 
 var myState;
-//var timer;
+var timer;
 
 function getParameterByName(name, url) {
     if (!url) url = window.location.href;
@@ -135,6 +135,11 @@ function drawBid(pid, cell) {
     cell.html(txt);
 }
 
+function pollStatus() {
+    clearTimeout(timer);
+    timer = setTimeout(function(){ getStatus(); }, 1000);
+}
+
 function handleState() {
     console.log('handleState ' + myState);
     if (myState == State.WAITING) {
@@ -150,10 +155,12 @@ function handleState() {
             players.push(player.name);
         }
         $('#players-waiting').html('Players: ' + players.join(', '));
-        //timer = setTimeout(function(){ getStatus(); }, 1000);
+        pollStatus();
     } else if (myState == State.GAME_ON) {
         console.log(myGame);
         if (myGame.state == 'GAME_STARTED') {
+            // This is dead code.
+            
             let txt = '';
             txt += 'Game "' + myGame.game + '" started. Waiting for ';
             const who = myGame.players[myGame.turn].name;
@@ -164,12 +171,15 @@ function handleState() {
             if (myTurn) show(['#GameStarted', '#start-round']); else show('#GameStarted');
         }
         else {
-            if (myGame.bid) {
-                prevBid = myGame.bid;
+            const bid = myGame.bid;
+            if (bid) {
+                prevBid.n = bid.n;
+                prevBid.face = bid.face >= 1 && bid.face <= 6 ? bid.face : 1;
             } else {
                 prevBid.n = 0;
                 prevBid.face = 1;
             }
+            myBid = { n: prevBid.n, face: prevBid.face };
             drawMyBid();
             // ROUND_STARTED
             // CHALLENGE
@@ -217,11 +227,20 @@ function handleState() {
                 else {
                     $('#game-msg').html('Waiting for ' + playerInTurn + ' to bid or challenge.');
                     $('#BidOrChallenge').addClass('hidden');
+                    pollStatus();
                 }
                 $('#DoneViewingResults').addClass('hidden');
-            } else if (myGame.state == 'CHALLENGE') {
+            }
+            else if (myGame.state == 'CHALLENGE') {
                 $('#game-msg').html('Round ended. ' + winners.join(', ') + ' won. ' +
                                    losers.join(', ') + ' lost ' + -diceLost + ' dice.<br>' +
+                                   'Click done to start new round.');
+                $('#BidOrChallenge').addClass('hidden');
+                $('#DoneViewingResults').removeClass('hidden');
+                // Not polling status here. Player will start the round when he or she is ready.
+            }
+            else if (myGame.state == 'GAME_FINISHED') {
+                $('#game-msg').html('Game ended. Winner is <strong>' + winners.join(', ') + '</strong>.<br>' +
                                    'Click done to start new round.');
                 $('#BidOrChallenge').addClass('hidden');
                 $('#DoneViewingResults').removeClass('hidden');

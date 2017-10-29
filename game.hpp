@@ -74,7 +74,7 @@ public:
     std::string getStatus(const std::string& player);
 
     /**
-     * Serialize engine state to give writer. If round is still in progress,
+     * Serialize engine state to given writer. If round is still in progress,
      * only given player's dice are "shown".
      *
      * @param w [out] state is serialized here

@@ -150,9 +150,16 @@ RetVal Game::challenge(const std::string player)
     int numPlayers = 0;
     for (const auto& p : players_)
     {
-        auto result = getResult(offset, p);
-        //std::cout << p.name() << " " << p.hand().size() << " "
-        if (p.hand().size() > std::size_t(-std::get<0>(result))) ++numPlayers;
+        const auto result = getResult(offset, p);
+        std::cout << p.name() << " " << p.hand().size() << " " << std::get<0>(result) << std::endl;
+        
+        const auto numDice = static_cast<int>(p.hand().size());
+        const auto numDiceRemoved = -std::get<0>(result);
+        const int diceLeft = numDice - numDiceRemoved;
+        if (diceLeft > 0)
+        {
+            ++numPlayers;
+        }
     }
     assert(numPlayers >= 1);
     state_ = numPlayers == 1 ? GAME_FINISHED : CHALLENGE;
@@ -195,14 +202,6 @@ std::string Game::getStatus(const std::string& player)
     return s.GetString();
 }
 
-/**
- * Serialize engine state to give writer. If round is still in progress,
- * only given player's dice are "shown".
- *
- * @param w [out] state is serialized here
- * @param name [in] who's dice to show if round is in progress. If empty,
- *     show all dice.
- */
 void Game::serialize(rapidjson::PrettyWriter<rapidjson::StringBuffer>& w, const std::string& name) const
 {
     w.StartObject();
