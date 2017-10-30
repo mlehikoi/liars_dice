@@ -297,6 +297,13 @@ function challenge() {
     }, 'json');
 }
 
+function done() {
+    if (myGame.state == 'GAME_FINISHED')
+        startGame();
+    else
+        startRound();
+}
+
 function selectedGame() {
     const selectedGame = $('#games').val();
     for (let game of games) {
@@ -465,7 +472,7 @@ $(function() {
             challenge();
         });
         $('#done-viewing-results').click(function() {
-            startRound();
+            done();
         });
         myId = getParameterByName('id');
         console.log('Loaded content for ' + myId);
