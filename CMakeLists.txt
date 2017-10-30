@@ -1,17 +1,22 @@
 cmake_minimum_required(VERSION 3.9)
 project (bluff)
 
+find_package(Threads)
+
 add_definitions(
     -g
     -std=c++14
-    -Weverything
-
-    -Wno-c++98-compat
-    #-Wno-padded
-    -Wno-c++98-compat-pedantic
-    #-Wno-disabled-macro-expansion
-    -Wno-exit-time-destructors
 )
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    add_definitions(
+        -Weverything
+        -Wno-c++98-compat
+        -Wno-c++98-compat-pedantic
+        -Wno-exit-time-destructors
+    )
+endif()
+
 set_source_files_properties(test_bluff.cpp PROPERTIES COMPILE_FLAGS -Wno-everything)
 
 enable_testing()
@@ -21,8 +26,8 @@ find_package(Boost COMPONENTS system REQUIRED)
 include_directories(SYSTEM
     ../crow/include
     ../rapidjson/include
+    ../googletest/googletest/include
     ${Boost_INCLUDE_DIRS}
-    ${GTEST_INCLUDE_DIRS}
 )
 
 add_library(libdice
@@ -52,5 +57,11 @@ add_executable(runUnitTests
     test_bluff.cpp
 )
 
-target_link_libraries(runUnitTests libdice gtest gtest_main ${Boost_LIBRARIES})
+target_link_libraries(runUnitTests
+    libdice
+    gtest
+    gtest_main
+    ${Boost_LIBRARIES}
+    ${CMAKE_THREAD_LIBS_INIT}
+)
 add_test(runUnitTests runUnitTests)
