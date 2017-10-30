@@ -304,8 +304,8 @@ TEST(EngineGame, TestConstruct) {
     
     auto s = g.getStatus("joe");
     auto doc = parse(g.getStatus("joe"));
-    //cout << s << endl;
-    EXPECT_STREQ("joe", doc["turn"].GetString());
+    cout << s << endl;
+    EXPECT_EQ(0, doc["turn"].GetInt());
     
     EXPECT_STREQ("joe", doc["players"][0]["name"].GetString());
     EXPECT_EQ(5, doc["players"][0]["hand"].Size());
@@ -325,7 +325,7 @@ TEST(EngineGame, TestConstruct) {
     // Joe can play
     EXPECT_TRUE(g.bid("joe", 1, 1));
     doc = parse(g.getStatus("joe"));
-    EXPECT_STREQ("ann", doc["turn"].GetString());
+    EXPECT_EQ(1, doc["turn"].GetInt());
     
     // Hold on Mary, it's still not your turn
     EXPECT_FALSE(g.bid("mary", 1, 2));
@@ -334,12 +334,12 @@ TEST(EngineGame, TestConstruct) {
     EXPECT_FALSE(g.bid("ann", 1, 1));
     EXPECT_TRUE(g.bid("ann", 1, 2));
     doc = parse(g.getStatus("joe"));
-    EXPECT_STREQ("mary", doc["turn"].GetString());
+    EXPECT_EQ(2, doc["turn"].GetInt());
     
     // Okay Mary, now it's your turn
     EXPECT_TRUE(g.bid("mary", 5, 4));
     doc = parse(g.getStatus("joe"));
-    EXPECT_STREQ("joe", doc["turn"].GetString());
+    EXPECT_EQ(0, doc["turn"].GetInt());
     
     EXPECT_TRUE(g.bid("joe", 5, 5));
     EXPECT_FALSE(g.bid("ann", 3, 5));
@@ -352,7 +352,7 @@ TEST(EngineGame, TestConstruct) {
     cout << g.getStatus("mary") << endl;
     doc = parse(g.getStatus("mary"));
     
-    ASSERT_STREQ("mary", doc["turn"].GetString());
+    ASSERT_EQ(2, doc["turn"].GetInt());
     
     EXPECT_STREQ("joe", doc["players"][0]["name"].GetString());
     EXPECT_EQ(       0, doc["players"][0]["adjustment"].GetInt());
@@ -377,7 +377,7 @@ TEST(EngineGame, TestConstruct) {
     cout << g.getStatus("mary") << endl;
     doc = parse(g.getStatus("mary"));
 
-    EXPECT_STREQ("mary", doc["turn"].GetString());
+    EXPECT_EQ(2, doc["turn"].GetInt());
     
     EXPECT_STREQ("joe", doc["players"][0]["name"].GetString());
     EXPECT_EQ(      -1, doc["players"][0]["adjustment"].GetInt());
@@ -403,7 +403,7 @@ TEST(EngineGame, TestConstruct) {
     cout << g.getStatus("mary") << endl;
     doc = parse(g.getStatus("mary"));
 
-    EXPECT_STREQ("ann", doc["turn"].GetString());
+    EXPECT_EQ(1, doc["turn"].GetInt());
     
     EXPECT_STREQ("joe", doc["players"][0]["name"].GetString());
     EXPECT_EQ(     -10, doc["players"][0]["adjustment"].GetInt());
@@ -434,7 +434,7 @@ TEST(EngineGame, TestConstruct) {
     EXPECT_TRUE(g.challenge("mary"));
     cout << g.getStatus("mary") << endl;
     doc = parse(g.getStatus("mary"));
-    ASSERT_STREQ("mary", doc["turn"].GetString());
+    ASSERT_EQ(2, doc["turn"].GetInt());
     
     EXPECT_STREQ("joe", doc["players"][0]["name"].GetString());
     EXPECT_EQ(       0, doc["players"][0]["adjustment"].GetInt());

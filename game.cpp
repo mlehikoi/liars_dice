@@ -176,29 +176,7 @@ std::string Game::getStatus(const std::string& player)
 {
     rapidjson::StringBuffer s;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> w{s};
-    w.StartObject();
-    w.Key("turn"); w.String(currentPlayer().name().c_str());
-    w.Key("state"); w.String(toString(state_));
-
-    w.Key("players");
-    w.StartArray();
-    
-    const auto offset = getOffset();
-    for (const auto& p : players_)
-    {
-        if (state_ == CHALLENGE || state_ == GAME_FINISHED)
-        {
-            auto result = getResult(offset, p);
-            std::cout << p.name() << " " << offset << " " << std::get<0>(result) << std::endl;
-            p.serialize(w, result);
-        }
-        else
-        {
-            p.serialize(w, player);
-        }
-    }
-    w.EndArray();
-    w.EndObject();
+    serialize(w, player);
     return s.GetString();
 }
 
