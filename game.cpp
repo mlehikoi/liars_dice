@@ -241,9 +241,8 @@ void Game::serialize(rapidjson::PrettyWriter<rapidjson::StringBuffer>& w, const 
     w.EndObject();
 }
 
-std::shared_ptr<Game> Game::fromJson(const rapidjson::Value& v)
+std::unique_ptr<Game> Game::fromJson(const rapidjson::Value& v)
 {
-    std::cout << "ParseGame" << std::endl;
     if (v.IsObject() &&
         v.HasMember("game") && v["game"].IsString() &&
         v.HasMember("turn") && v["turn"].IsInt() &&
@@ -251,7 +250,7 @@ std::shared_ptr<Game> Game::fromJson(const rapidjson::Value& v)
         v.HasMember("bid") && v["bid"].IsObject() &&
         v.HasMember("players") && v["players"].IsArray())
     {
-        auto game = std::make_shared<Game>(v["game"].GetString());
+        auto game = std::make_unique<Game>(v["game"].GetString());
         game->turn_ = v["turn"].GetInt();
         game->state_ = fromString(v["state"].GetString());
         game->currentBid_ = Bid::fromJson(v["bid"]);
@@ -271,7 +270,7 @@ std::shared_ptr<Game> Game::fromJson(const rapidjson::Value& v)
         return game;
     }
     
-    return std::shared_ptr<Game>{};
+    return std::unique_ptr<Game>{};
 }
 
 } // namespace dice

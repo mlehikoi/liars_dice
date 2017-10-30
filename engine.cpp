@@ -25,7 +25,7 @@ class Engine::Impl
     std::map<std::string, std::string> players_;
     // Id -> Game name
     std::unordered_map<std::string, std::string> joinedGames_;
-    std::map<std::string, std::shared_ptr<Game>> games_;
+    std::map<std::string, std::unique_ptr<Game>> games_;
     
 public:
     Impl(const std::string& filename)
@@ -59,8 +59,7 @@ public:
     
     std::string createGame(const std::string& body)
     {
-        // @TODO Move parse to json
-        auto doc = parse(body);
+        const auto doc = parse(body);
         const auto id = getString(doc, "id");
         const auto game = getString(doc, "game");
         if (game.empty() || id.empty())
@@ -88,7 +87,7 @@ public:
         joinedGames_.insert({id, game});
         //games_.insert({game, {playerIt->second}});
         //@TODO game with player name
-        auto ret = games_.insert({game, std::make_unique<Game>(game)});
+        auto ret = games_.emplace(game, std::make_unique<Game>(game));
         assert(ret.second);
         ret.first->second->addPlayer(playerIt->second);
         return json::Json({"success", true}).str();
@@ -383,7 +382,7 @@ private:
                 auto game = Game::fromJson(jgame);
                 if (game)
                 {
-                    games_.insert({game->name(), std::move(game)});
+                    games_.emplace(game->name(), std::move(game));
                 }
             }
         }

@@ -6,8 +6,10 @@
 #include "json.hpp"
 #include "helpers.hpp"
 
+
 #include <rapidjson/prettywriter.h>
 
+#include <memory>
 #include <random>
 #include <string>
 #include <vector>
@@ -82,7 +84,7 @@ public:
      *     show all dice.
      */
     void serialize(rapidjson::PrettyWriter<rapidjson::StringBuffer>& w, const std::string& name) const;
-    static std::shared_ptr<Game> fromJson(const rapidjson::Value& v);
+    static std::unique_ptr<Game> fromJson(const rapidjson::Value& v);
 };
 
 } // namespace dice

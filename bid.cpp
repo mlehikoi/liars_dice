@@ -27,7 +27,7 @@ bool Bid::operator<(const Bid& other) const
     return score() < other.score();
 }
 bool Bid::operator>(const Bid& other) const { return other < *this; }
-bool Bid::operator<=(const Bid& other) const {return !(*this > other); }
+bool Bid::operator<=(const Bid& other) const { return !(*this > other); }
 bool Bid::operator>=(const Bid& other) const { return !(*this < other); }
 
 int Bid::challenge(const std::vector<int>& commonHand) const

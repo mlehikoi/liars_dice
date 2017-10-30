@@ -1,23 +1,19 @@
 #include "crow.h"
-//#include "crow_all.h"
 
-#include "json.hpp"
 #include "helpers.hpp"
 #include "engine.hpp"
 
 #include <string>
-#include <sstream>
-#include <unordered_map>
-#include <unordered_set>
-#include <boost/uuid/uuid.hpp>            // uuid class
-#include <boost/uuid/uuid_generators.hpp> // generators
-#include <boost/uuid/uuid_io.hpp>         // streaming operators etc.
-
 
 using namespace std;
 using namespace dice;
 
 namespace dice {
+/**
+ * Read the given file
+ * @param name [in] filename
+ * @return crow response
+ */
 inline auto readFile(const std::string& name)
 {
     const auto path = "../static/"s + name;
@@ -107,11 +103,7 @@ int main()
     });
 
     CROW_ROUTE(app, "/api/games")([]{
-        const auto data = engine.getGames();
-        return data;
-        // crow::response r{data};
-        // r.add_header("Content-Type", "application/json; charset=utf-8");
-        // return r;
+        return engine.getGames();
     });
 
     CROW_ROUTE(app, "/<string>")(readFile);
