@@ -1,10 +1,12 @@
 #pragma once
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
+#include "rapidjson/document.h"
 #include <string>
 
 namespace json {
 
+// Simple writer
 class Value
 {
     enum class Type { Null, Bool, Object0, Object1, ObjectN, Int, Double, String, Array } type_;
@@ -111,4 +113,99 @@ public:
     Json(const Value& obj) : s_{}, w_{s_} { obj.print(w_); }
     std::string str() const { return s_.GetString(); }
 };
+
+// More versatile writer
+template<typename Writer, typename F>
+inline auto Object(Writer& w, F&& f)
+{
+    w.StartObject();
+    std::forward<F>(f)(w);
+    w.EndObject();
+}
+
+template<typename Writer, typename F>
+inline auto Object(Writer& w, const std::string& k, F&& f)
+{
+    w.Key(k.c_str());
+    w.StartObject();
+    std::forward<F>(f)(w);
+    w.EndObject();
+}
+
+template<typename Writer, typename F>
+inline auto Array(Writer& w, F&& f)
+{
+    w.StartArray();
+    std::forward<F>(f)(w);
+    w.EndArray();
+}
+
+template<typename Writer, typename F>
+inline auto Array(Writer& w, const std::string& k, F&& f)
+{
+    w.Key(k.c_str());
+    w.StartArray();
+    std::forward<F>(f)(w);
+    w.EndArray();
+}
+
+template<typename Writer>
+inline void KeyValue(Writer& w, const std::string& k, const std::string& v)
+{
+    w.Key(k.c_str());
+    w.String(v.c_str());
+}
+
+template<typename Writer>
+inline void KeyValue(Writer& w, const std::string& k, int v)
+{
+    w.Key(k.c_str());
+    w.Int(v);
+}
+
+template<typename Writer, typename F>
+inline void KeyValueF(Writer& w, const std::string& k, F&& v)
+{
+    w.Key(k.c_str());
+    std::forward<F>(v)(w);
+}
+
+// For parsing
+struct ParseError {};
+inline auto getString(const rapidjson::Value& v, const char* k)
+{
+    if (v.IsObject() && v.HasMember(k) && v[k].IsString())
+    {
+        return v[k].GetString();
+    }
+    throw ParseError{};
+}
+
+inline auto getInt(const rapidjson::Value& v, const char* k)
+{
+    if (v.IsObject() && v.HasMember(k) && v[k].IsInt())
+    {
+        return v[k].GetInt();
+    }
+    throw ParseError{};
+}
+
+inline const auto& getValue(const rapidjson::Value& v, const char* k)
+{
+    if (v.IsObject() && v.HasMember(k) && v[k].IsObject())
+    {
+        return v[k];
+    }
+    throw ParseError{};
+}
+
+inline auto getArray(const rapidjson::Value& v, const char* k)
+{
+    if (v.IsObject() && v.HasMember(k) && v[k].IsArray())
+    {
+        return v[k].GetArray();
+    }
+    throw ParseError{};
+}
+
 } // namespace json

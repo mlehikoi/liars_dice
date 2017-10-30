@@ -180,74 +180,56 @@ std::string Game::getStatus(const std::string& player)
     return s.GetString();
 }
 
-void Game::serialize(rapidjson::PrettyWriter<rapidjson::StringBuffer>& w, const std::string& name) const
+void Game::serialize(Writer& writer, const std::string& name) const
 {
-    w.StartObject();
-    w.Key("game");
-    w.String(game_.c_str());
-
-    w.Key("state");
-    w.String(toString(state_));
-
-    w.Key("turn");
-    std::cout << "turn: " << turn_ << std::endl;
-    w.Int(turn_);
-
-    w.Key("bid");
-    w.StartObject();
-    w.Key("n");
-    w.Int(currentBid_.n());
-    w.Key("face");
-    w.Int(currentBid_.face());
-    w.EndObject();
-
-    w.Key("players");
-    w.StartArray();
-    if (state_ == CHALLENGE || state_ == GAME_FINISHED)
+    using namespace json;
+    Object(writer, [=](auto& w)
     {
-        const auto offset = getOffset();
-        for (const auto& p : players_)
+        KeyValue(w, "game", game_);
+        KeyValue(w, "state", toString(state_));
+        KeyValue(w, "turn", turn_);
+        KeyValueF(w, "bid", [=](auto& w)
         {
-            auto result = getResult(offset, p);
-            p.serialize(w, result);
-        }
-    }
-    else
-        for (const auto& p : players_)
-            p.serialize(w, name);
-    w.EndArray();
-    w.EndObject();
+            currentBid_.serialize(w);
+        });
+
+        Array(w, "players", [=](auto& w1)
+        {
+            const auto offset = getOffset();
+            const bool allRevealed = state_ == CHALLENGE || state_ == GAME_FINISHED;
+            for (const auto& p : players_)
+            {
+                if (allRevealed)
+                    p.serialize(w1, getResult(offset, p));
+                else
+                    p.serialize(w1, name);
+            }
+        });
+    });
 }
 
 std::unique_ptr<Game> Game::fromJson(const rapidjson::Value& v)
 {
-    if (v.IsObject() &&
-        v.HasMember("game") && v["game"].IsString() &&
-        v.HasMember("turn") && v["turn"].IsInt() &&
-        v.HasMember("state") && v["state"].IsString() &&
-        v.HasMember("bid") && v["bid"].IsObject() &&
-        v.HasMember("players") && v["players"].IsArray())
+    try
     {
-        auto game = std::make_unique<Game>(v["game"].GetString());
-        game->turn_ = v["turn"].GetInt();
-        game->state_ = fromString(v["state"].GetString());
-        game->currentBid_ = Bid::fromJson(v["bid"]);
-        for (const auto& jplayer : v["players"].GetArray())
+        using namespace json;
+        auto game = std::make_unique<Game>(getString(v, "game"));
+        game->turn_ = getInt(v, "turn");
+        game->state_ = fromString(getString(v, "state"));
+        game->currentBid_ = Bid::fromJson(getValue(v, "bid"));
+        for (const auto& jplayer : getArray(v, "players"))
         {
             auto player = Player::fromJson(jplayer);
-            if (player)
-            {
-                std::cout << "Valid" << std::endl;
-                game->players_.push_back(player);
-            }
-            else
-            {
-                std::cout << "Invalid" << std::endl;
-            }
+            if (!player) return std::unique_ptr<Game>{};
+
+            game->players_.push_back(player);
         }
         return game;
     }
-    
+    catch (json::ParseError)
+    {
+        std::cerr << "Failed to parse game from json" << std::endl;
+    }
     return std::unique_ptr<Game>{};
 }
 

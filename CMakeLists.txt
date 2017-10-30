@@ -14,6 +14,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         -Wno-c++98-compat
         -Wno-c++98-compat-pedantic
         -Wno-exit-time-destructors
+        -Wno-shadow-uncaptured-local
     )
 endif()
 

@@ -6,9 +6,6 @@
 #include "json.hpp"
 #include "helpers.hpp"
 
-
-#include <rapidjson/prettywriter.h>
-
 #include <memory>
 #include <random>
 #include <string>
@@ -58,7 +55,6 @@ class Game
     std::tuple<int, bool, bool> getResult(int offset, const Player& player) const;
     
     void setTurn(const Player& player);
-
 public:
     Game(const std::string& game, const IDice& diceRoll = Dice::instance());
 
@@ -83,7 +79,7 @@ public:
      * @param name [in] who's dice to show if round is in progress. If empty,
      *     show all dice.
      */
-    void serialize(rapidjson::PrettyWriter<rapidjson::StringBuffer>& w, const std::string& name) const;
+    void serialize(Writer& w, const std::string& name) const;
     static std::unique_ptr<Game> fromJson(const rapidjson::Value& v);
 };
 
