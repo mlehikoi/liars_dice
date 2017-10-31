@@ -115,6 +115,15 @@ TEST(EngineTest, Login) {
     EXPECT_FALSE(doc["success"].GetBool());
 }
 
+TEST(EngineTest, LoginInvalid) {
+    dice::Engine e{""};
+    auto anon = R"#({"nam": "anon"})#";
+    auto result = e.login(anon);
+    auto doc = parse(result);
+    EXPECT_FALSE(doc["success"].GetBool());
+    EXPECT_STREQ(doc["error"].GetString(), "PARSE_ERROR");
+}
+
 TEST(EngineTest, CreateGameInvalidId) {
     dice::Engine e{""};
     auto game = R"#(
@@ -233,39 +242,32 @@ TEST(EngineTest, JoinGame) {
     dice::Engine e{tmp.str()};
 
     EXPECT_EQ(2, dice::parse(e.getGames()).Size());
-
+    
     auto ret = e.joinGame(R"#({
         "id_": "1",
         "game": "final"
     })#");
-
-    //cout << "ret:" << ret << endl;
     EXPECT_FALSE(dice::parse(ret)["success"].GetBool());
     EXPECT_STREQ("PARSE_ERROR", dice::parse(ret)["error"].GetString());
     
-    cout << "joinGame" << endl;
     ret = e.joinGame(R"#({
         "id": "5",
         "game": "final"
     })#");
-    cout << "ret:" << ret << endl;
     EXPECT_FALSE(dice::parse(ret)["success"].GetBool());
     EXPECT_STREQ("NO_PLAYER", dice::parse(ret)["error"].GetString());
-    
+        
     ret = e.joinGame(R"#({
         "id": "4",
         "game": "final"
     })#");
-    //cout << "ret:" << ret << endl;
     EXPECT_FALSE(dice::parse(ret)["success"].GetBool());
     EXPECT_STREQ("ALREADY_JOINED", dice::parse(ret)["error"].GetString());
-    EXPECT_STREQ("semifinal", dice::parse(ret)["game"].GetString());
 
     ret = e.joinGame(R"#({
         "id": "3",
         "game": "quarterfinal"
     })#");
-    //cout << "ret:" << ret << endl;
     EXPECT_FALSE(dice::parse(ret)["success"].GetBool());
     EXPECT_STREQ("NO_GAME", dice::parse(ret)["error"].GetString());
     
@@ -273,15 +275,95 @@ TEST(EngineTest, JoinGame) {
         "id": "3",
         "game": "semifinal"
     })#");
-    //cout << "ret:" << ret << endl;
     EXPECT_TRUE(dice::parse(ret)["success"].GetBool());
     
     const auto doc = dice::parse(e.getGames());
-    //dice::prettyPrint(doc);
     EXPECT_EQ(2, doc.Size());
     EXPECT_STREQ("semifinal", doc[1]["game"].GetString());
     EXPECT_STREQ("ann", doc[1]["players"][0].GetString());
     EXPECT_STREQ("ken", doc[1]["players"][1].GetString());
+}
+
+TEST(EngineTest, TestBid) {
+    auto tmp = tmpCopy("../test-game.json", "./.json");
+    dice::Engine e{tmp.str()};
+
+    EXPECT_EQ(2, dice::parse(e.getGames()).Size());
+    
+    auto ret = e.startGame(R"#( {"id": "1"} )#");
+    ASSERT_TRUE(dice::parse(ret)["success"].GetBool());
+
+    // PARSE_ERROR
+    ret = e.bid(R"#({
+        "id": "1",
+        "n": 5
+    })#");
+    ASSERT_FALSE(parse(ret)["success"].GetBool());
+    ASSERT_STREQ("PARSE_ERROR", parse(ret)["error"].GetString());
+
+    // NO_PLAYER
+    ret = e.bid(R"#({
+        "id": "10",
+        "n": 5,
+        "face": 5
+    })#");
+    ASSERT_FALSE(parse(ret)["success"].GetBool());
+    ASSERT_STREQ("NO_PLAYER", parse(ret)["error"].GetString());
+
+    // NO_JOINED
+    ret = e.bid(R"#({
+        "id": "3",
+        "n": 5,
+        "face": 5
+    })#");
+    cout << ret << endl;
+    ASSERT_FALSE(parse(ret)["success"].GetBool());
+    ASSERT_STREQ("NOT_JOINED", parse(ret)["error"].GetString());
+
+    // SUCCESS
+    ret = e.bid(R"#({
+        "id": "1",
+        "n": 5,
+        "face": 5
+    })#");
+    ASSERT_TRUE(dice::parse(ret)["success"].GetBool());
+}
+
+TEST(EngineTest, TestChallenge) {
+    auto tmp = tmpCopy("../test-game.json", "./.json");
+    dice::Engine e{tmp.str()};
+    EXPECT_EQ(2, dice::parse(e.getGames()).Size());
+    
+    // start game and round
+    auto ret = e.startGame(R"#( {"id": "1"} )#");
+    ASSERT_TRUE(dice::parse(ret)["success"].GetBool());
+
+    // Make a bid
+    ret = e.bid(R"#({
+        "id": "1",
+        "n": 5,
+        "face": 5
+    })#");
+    ASSERT_TRUE(dice::parse(ret)["success"].GetBool());
+
+    // PARSE_ERROR
+    ret = e.challenge(R"#( {"id_": "1"} )#");
+    ASSERT_FALSE(parse(ret)["success"].GetBool());
+    ASSERT_STREQ("PARSE_ERROR", parse(ret)["error"].GetString());
+
+    // NO_PLAYER
+    ret = e.challenge(R"#( {"id": "10"} )#");
+    ASSERT_FALSE(parse(ret)["success"].GetBool());
+    ASSERT_STREQ("NO_PLAYER", parse(ret)["error"].GetString());
+
+    // NO_JOINED
+    ret = e.bid(R"#( {"id": "3"} )#");
+    ASSERT_FALSE(parse(ret)["success"].GetBool());
+    ASSERT_STREQ("NOT_JOINED", parse(ret)["error"].GetString());
+
+    // SUCCESS
+    ret = e.challenge(R"#( {"id": "2"} )#");
+    ASSERT_TRUE(dice::parse(ret)["success"].GetBool());
 }
 
 class MockDice : public IDice

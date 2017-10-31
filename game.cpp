@@ -63,26 +63,37 @@ void Game::setTurn(const Player& player)
 Game::Game(const std::string& game, const IDice& diceRoll)
     : game_{game},
     players_{},
-    //round_{},
     turn_{0},
     currentBid_{},
-    //roundStarted_{false},
     diceRoll_{diceRoll},
     state_{GAME_NOT_STARTED}
 {
 }
 
-void Game::addPlayer(const std::string& player)
+Game::Game(const std::string& game, const std::string& player, const IDice& diceRoll)
+  : game_{game},
+    players_{},
+    turn_{0},
+    currentBid_{},
+    diceRoll_{diceRoll},
+    state_{GAME_NOT_STARTED}
 {
     players_.push_back({player, diceRoll_});
 }
 
-bool Game::startGame()
+RetVal Game::addPlayer(const std::string& player)
+{
+    if (players_.size() >= 8) return Error{"TOO_MANY_PLAYERS"};
+    players_.push_back({player, diceRoll_});
+    return Success{};
+}
+
+RetVal Game::startGame()
 {
     if (state_ != GAME_NOT_STARTED && state_ != GAME_FINISHED)
-        return false;
+        return Error{"GAME_ALREADY_STARTED"};
     state_ = GAME_STARTED;
-    return true;
+    return Success{};
 }
 
 RetVal Game::startRound()
@@ -107,7 +118,7 @@ RetVal Game::startRound()
     case GAME_NOT_STARTED:
     case ROUND_STARTED:
     case GAME_FINISHED:
-        return Error{"CANNOT_BE_STARTED"};
+        return Error{"GAME_NOT_STARTED"};
     }
 }
 

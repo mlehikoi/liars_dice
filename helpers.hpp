@@ -25,13 +25,13 @@ bool hasString(const Doc& doc, const char* member)
 }
 
 template<typename Doc>
-std::string getString(const Doc& doc, const char* member)
+std::string getString2(const Doc& doc, const char* member)
 {
     return hasString(doc, member) ? doc[member].GetString() : "";
 }
 
 template<typename Doc>
-int getInt(const Doc& doc, const char* member)
+int getInt2(const Doc& doc, const char* member)
 {
     return doc.IsObject() && doc.HasMember(member) && doc[member].IsInt() ?
         doc[member].GetInt() : -1;
@@ -51,7 +51,7 @@ public:
 class Error : public RetVal
 {
 public:
-    Error(const char* msg)
+    Error(const std::string& msg)
       : RetVal{json::Json({
             {"success", false},
             {"error", msg}

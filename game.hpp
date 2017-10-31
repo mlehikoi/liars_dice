@@ -57,16 +57,17 @@ class Game
     void setTurn(const Player& player);
 public:
     Game(const std::string& game, const IDice& diceRoll = Dice::instance());
+    Game(const std::string& game, const std::string& player, const IDice& diceRoll = Dice::instance());
+    Game(Game&&) = delete;
 
     const auto& name() { return game_; }
-    void addPlayer(const std::string& player);
+    RetVal addPlayer(const std::string& player);
 
     auto players() const { return players_; }
     
-    bool startGame();
-    
+    RetVal startGame();
     RetVal startRound();
-    void nextPlayer();
+    void nextPlayer(); //@TODO Private?
     RetVal bid(const std::string& player, int n, int face);
     RetVal challenge(const std::string player);
     std::string getStatus(const std::string& player);

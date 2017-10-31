@@ -18,6 +18,26 @@ using namespace rapidjson;
 
 namespace dice {
 
+template<typename Container, typename KeyType>
+inline bool hasItem(const Container& c, const KeyType& k)
+{
+    return c.find(k) != c.end();
+}
+
+template<typename Container, typename ValueType>
+inline bool hasValue(const Container& c, const ValueType& v)
+{
+    for (const auto& kv : c)
+    {
+        if (kv.second == v)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+
 class Engine::Impl
 {
     const std::string filename_;
@@ -26,6 +46,32 @@ class Engine::Impl
     // Id -> Game name
     std::unordered_map<std::string, std::string> joinedGames_;
     std::map<std::string, std::unique_ptr<Game>> games_;
+
+    // Get the game and player for the given doc["id"] or
+    // thow an error if anything fails.
+    auto getGamePlayer(const rapidjson::Value& doc)
+    {
+        const std::string id = json::getString(doc, "id");
+        
+        const auto pit = players_.find(id);
+        if (pit == players_.end()) throw json::ParseError{"NO_PLAYER"};
+        
+        const auto jit = joinedGames_.find(id);
+        if (jit == joinedGames_.end()) throw json::ParseError{"NOT_JOINED"};
+        
+        const auto git = games_.find(jit->second);
+        assert(git != games_.end());
+
+        return std::make_pair(git->second.get(), pit->second);
+    }
+
+    // Get the player for the given doc["id"]
+    const auto& getPlayer(const std::string& id)
+    {
+        const auto it = players_.find(id);
+        if (it == players_.end()) throw json::ParseError{"NO_PLAYER"};
+        return it->second;
+    }
     
 public:
     Impl(const std::string& filename)
@@ -38,176 +84,86 @@ public:
     // -> login
     std::string login(const std::string& body)
     {
-        auto doc = parse(body);
-        const auto name = getString(doc, "name");
-        if (name.empty()) return Error{"INVALID_FORMAT"};
-        for (const auto& idName : players_)
-        {
-            if (idName.second == name)
-            {
-                return Error{"PLAYER_EXISTS"};
-            }
-        }
+        const auto name = json::getString(parse(body), "name");
+        // has value
+        // for (const auto& kv : players_)
+        // {
+        //     if (kv.second == name)
+        //     {
+        //         return Error{"PLAYER_EXISTS"};
+        //     }
+        // }
+        if (hasValue(players_, name)) return Error{"PLAYER_EXISTS"};
         const auto id = uuid();
         const auto ret = players_.insert({id, name});
         assert(ret.second);
-        return json::Json({
+        return json::Json(
+        {
             {"success", true},
             {"id", id}
-        }).str();
+        });
     }
     
     std::string createGame(const std::string& body)
     {
         const auto doc = parse(body);
-        const auto id = getString(doc, "id");
-        const auto game = getString(doc, "game");
-        if (game.empty() || id.empty())
-        {
-            return Error{"PARSE_ERROR"};
-        }
+        const std::string id = json::getString(doc, "id");
+        const std::string game = json::getString(doc, "game");
 
-        std::cout << "createGame " << id << " " << game << std::endl;
-        // Make sure player exists
-        auto playerIt = players_.find(id);
-        if (playerIt == players_.end()) return Error{"NO_PLAYER"};
+        const auto name = getPlayer(id);
+        if (hasItem(joinedGames_, id)) return Error{"ALREADY_JOINED"};
+        if (hasItem(games_, game)) return Error{"GAME_EXISTS"};
 
-        // And isn't already joined in a game
-        auto it = joinedGames_.find(id);
-        if (it != joinedGames_.end())
-            return json::Json({
-                {"success", false},
-                {"error", "ALREADY_JOINED"},
-                {"game", it->second}
-            }).str();
-        if (games_.find(game) != games_.end())
-        {
-            return Error{"GAME_EXISTS"};
-        }
         joinedGames_.insert({id, game});
-        //games_.insert({game, {playerIt->second}});
-        //@TODO game with player name
-        auto ret = games_.emplace(game, std::make_unique<Game>(game));
-        assert(ret.second);
-        ret.first->second->addPlayer(playerIt->second);
-        return json::Json({"success", true}).str();
+        games_.emplace(game, std::make_unique<Game>(game, name));
+        return Success{};
     }
     
     std::string joinGame(const std::string& body)
     {
         const auto doc = parse(body);
-        const auto id = getString(doc, "id");
-        const auto game = getString(doc, "game");
-        if (game.empty() || id.empty())
-        {
-            return json::Json({
-                {"success", false},
-                {"error", "PARSE_ERROR"}
-            }).str();
-        }
-        std::cout << "joinGame " << id << " " << game << std::endl;
-        // Make sure player exists
-        auto playerIt = players_.find(id);
-        if (playerIt == players_.end()) return Error{"NO_PLAYER"};
+        const std::string id = json::getString(doc, "id");
+        const std::string game = json::getString(doc, "game");
+
+        const auto name = getPlayer(id);
         
-        { // And isn't already joined in a game
-            auto it = joinedGames_.find(id);
-            if (it != joinedGames_.end())
-                return json::Json({
-                    {"success", false},
-                    {"error", "ALREADY_JOINED"},
-                    {"game", it->second}
-                }).str();
-        }
+        if (hasItem(joinedGames_, id)) return Error{"ALREADY_JOINED"};
         
-        auto gameIt = games_.find(game);
-        if (gameIt == games_.end())
-        {
-            return json::Json({
-                {"success", false},
-                {"error", "NO_GAME"}
-            }).str();
-        }
-        //@TODO TOO_MANY_PLAYES
+        const auto git = games_.find(game);
+        if (git == games_.end()) return Error{"NO_GAME"};
+
         joinedGames_.insert({id, game});
-        gameIt->second->addPlayer(playerIt->second);
-        return json::Json({"success", true}).str();
+        return git->second->addPlayer(name);
     }
 
     std::string startGame(const std::string& body)
     {
-        const auto id = getString(parse(body), "id");        
-        if (id.empty()) return Error{"PARSE_ERROR"};
-        
-        const auto pit = players_.find(id);
-        if (pit == players_.end()) return Error{"NO_PLAYER"};
-        
-        const auto jit = joinedGames_.find(id);
-        if (jit == joinedGames_.end()) return Error{"NOT_JOINED"};
-        
-        auto git = games_.find(jit->second);
-        if (git == games_.end()) return Error{"FATAL"};
+        const auto gp = getGamePlayer(parse(body));
 
-        return git->second->startGame() ? git->second->startRound() : Error{"COULD_NOT_START_GAME"}.str();
+        // Start game and round
+        const auto rv = gp.first->startGame();
+        return rv ? gp.first->startRound().str() : rv.str();
     }
 
     std::string startRound(const std::string& body)
     {
-        std::cout << "startRound " << body << std::endl;
-        const auto id = getString(parse(body), "id");
-        if (id.empty()) return Error{"PARSE_ERROR"};
-        
-        const auto pit = players_.find(id);
-        if (pit == players_.end()) return Error{"NO_PLAYER"};
-        
-        const auto jit = joinedGames_.find(id);
-        if (jit == joinedGames_.end()) return Error{"NOT_JOINED"};
-        
-        auto git = games_.find(jit->second);
-        if (git == games_.end()) return Error{"FATAL"};
-
-        return git->second->startRound() ? Success{}.str() : Error{"COULD_NOT_START_ROUND"}.str();
+        const auto gp = getGamePlayer(parse(body));
+        return gp.first->startRound();
     }
 
     std::string bid(const std::string& body)
     {
-        std::cout << "bid " << body << std::endl;
         auto doc = parse(body);
-        const auto id = getString(doc, "id");
-        const auto n = getInt(doc, "n");
-        const auto face = getInt(doc, "face");
-        std::cout << n << " " << face << " " << id << std::endl;
-        if (id.empty() || n == -1 || face == -1)
-            return Error{"PARSE_ERROR"};
-        
-        const auto pit = players_.find(id);
-        if (pit == players_.end()) return Error{"NO_PLAYER"};
-        
-        const auto jit = joinedGames_.find(id);
-        if (jit == joinedGames_.end()) return Error{"NOT_JOINED"};
-        
-        auto git = games_.find(jit->second);
-        if (git == games_.end()) return Error{"FATAL"};
-
-        return git->second->bid(pit->second, n, face);
+        auto gp = getGamePlayer(doc);
+        return gp.first->bid(gp.second,
+            json::getInt(doc, "n"),
+            json::getInt(doc, "face"));
     }
 
     std::string challenge(const std::string& body)
     {
-        std::cout << "challenge " << body << std::endl;
-        const auto id = getString(parse(body), "id");
-        if (id.empty()) return Error{"PARSE_ERROR"};
-        
-        const auto pit = players_.find(id);
-        if (pit == players_.end()) return Error{"NO_PLAYER"};
-        
-        const auto jit = joinedGames_.find(id);
-        if (jit == joinedGames_.end()) return Error{"NOT_JOINED"};
-        
-        auto git = games_.find(jit->second);
-        if (git == games_.end()) return Error{"FATAL"};
-
-        return git->second->challenge(pit->second);
+        auto gp = getGamePlayer(parse(body));
+        return gp.first->challenge(gp.second);
     }
 
     std::string status(const std::string& body) const
@@ -356,18 +312,18 @@ private:
     void load()
     {
         auto doc = parse(slurp(filename_));
-        prettyPrint(doc);
+        //prettyPrint(doc);
         // Players...
         if (doc.IsObject() && doc.HasMember("players") && doc["players"].IsArray())
         {
             for (const auto& el : doc["players"].GetArray())
             {
-                const auto id = getString(el, "id");
-                const auto name = getString(el, "name");
+                const auto id = getString2(el, "id");
+                const auto name = getString2(el, "name");
                 if (id.empty() || name.empty()) continue;
                 
                 players_.insert({id, name});
-                const auto game = getString(el, "game");
+                const auto game = getString2(el, "game");
                 if (!game.empty())
                 {
                     joinedGames_.insert({id, game});
@@ -399,37 +355,65 @@ Engine::~Engine() = default;
 
 std::string Engine::login(const std::string& body)
 {
-    return impl_->login(body);
+    try {
+        return impl_->login(body);
+    } catch (const json::ParseError& e) {
+        return Error{e};
+    }
 }
 
 std::string Engine::createGame(const std::string& body)
 {
-    return impl_->createGame(body);
+    try {
+        return impl_->createGame(body);
+    } catch (const json::ParseError& e) {
+        return Error{e};
+    }
 }
 
 std::string Engine::joinGame(const std::string& body)
 {
-    return impl_->joinGame(body);
+    try {
+        return impl_->joinGame(body);
+    } catch (const json::ParseError& e) {
+        return Error{e};
+    }
 }
 
 std::string Engine::startGame(const std::string& body)
 {
-    return impl_->startGame(body);
+    try {
+        return impl_->startGame(body);
+    } catch (const json::ParseError& e) {
+        return Error{e};
+    }
 }
 
 std::string Engine::startRound(const std::string& body)
 {
-    return impl_->startRound(body);
+    try {
+        return impl_->startRound(body);
+    } catch (const json::ParseError& e) {
+        return Error{e};
+    }
 }
 
 std::string Engine::bid(const std::string& body)
 {
-    return impl_->bid(body);
+    try {
+        return impl_->bid(body);
+    } catch (const json::ParseError& e) {
+        return Error{e};
+    }
 }
 
 std::string Engine::challenge(const std::string& body)
 {
-    return impl_->challenge(body);
+    try {
+        return impl_->challenge(body);
+    } catch (const json::ParseError& e) {
+        return Error{e};
+    }
 }
 
 std::string Engine::status(const std::string& body) const
