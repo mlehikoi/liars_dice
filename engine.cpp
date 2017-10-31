@@ -18,26 +18,6 @@ using namespace rapidjson;
 
 namespace dice {
 
-template<typename Container, typename KeyType>
-inline bool hasItem(const Container& c, const KeyType& k)
-{
-    return c.find(k) != c.end();
-}
-
-template<typename Container, typename ValueType>
-inline bool hasValue(const Container& c, const ValueType& v)
-{
-    for (const auto& kv : c)
-    {
-        if (kv.second == v)
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-
 class Engine::Impl
 {
     const std::string filename_;
@@ -49,7 +29,7 @@ class Engine::Impl
 
     // Get the game and player for the given doc["id"] or
     // thow an error if anything fails.
-    auto getGamePlayer(const rapidjson::Value& doc)
+    auto getGamePlayer(const rapidjson::Value& doc) const
     {
         const std::string id = json::getString(doc, "id");
         
@@ -66,11 +46,23 @@ class Engine::Impl
     }
 
     // Get the player for the given doc["id"]
-    const auto& getPlayer(const std::string& id)
+    const auto& getPlayer(const std::string& id) const
     {
         const auto it = players_.find(id);
         if (it == players_.end()) throw json::ParseError{"NO_PLAYER"};
         return it->second;
+    }
+
+    const Game* getJoinedGame(const std::string& id) const
+    {
+        const auto jit = joinedGames_.find(id);
+        if (jit != joinedGames_.end())
+        {
+            const auto git = games_.find(jit->second);
+            assert(git != games_.end());
+            return git->second.get();
+        }
+        return nullptr;
     }
     
 public:
@@ -80,19 +72,10 @@ public:
     {
         load();
     }
-    
-    // -> login
+
     std::string login(const std::string& body)
     {
         const auto name = json::getString(parse(body), "name");
-        // has value
-        // for (const auto& kv : players_)
-        // {
-        //     if (kv.second == name)
-        //     {
-        //         return Error{"PLAYER_EXISTS"};
-        //     }
-        // }
         if (hasValue(players_, name)) return Error{"PLAYER_EXISTS"};
         const auto id = uuid();
         const auto ret = players_.insert({id, name});
@@ -168,46 +151,27 @@ public:
 
     std::string status(const std::string& body) const
     {
-        std::cout << "status " << body << std::endl;
-
-        auto doc = dice::parse(body);
-        if (doc.IsObject() &&
-            doc.HasMember("id") && doc["id"].IsString())
+        rapidjson::StringBuffer s;
+        rapidjson::PrettyWriter<rapidjson::StringBuffer> w{s};
+        
+        json::Object(w, [this, &body](auto& w)
         {
-            const std::string id = doc["id"].GetString();
-            const auto pit = players_.find(id);
-            if (pit == players_.end())
-            {
-                return Error{"ID_NOT_FOUND"};
-            }
-            const auto name = pit->second;
+            auto doc = dice::parse(body);
+            const std::string id = json::getString(doc, "id");
+            const std::string name = getPlayer(id);
 
-            rapidjson::StringBuffer s;
-            rapidjson::PrettyWriter<rapidjson::StringBuffer> w{s};
+            json::KeyValue(w, "success", true);
+            json::KeyValue(w, "id", id);
+            json::KeyValue(w, "name", name);
 
-            w.StartObject();
-            w.Key("success"); w.Bool(true);
-            w.Key("id"); w.String(id.c_str());
-            w.Key("name"); w.String(name.c_str());
-            const auto jit = joinedGames_.find(id);
-            std::cout << "Trying to find games..." << std::endl;
-            if (jit != joinedGames_.end())
+            auto game = getJoinedGame(id);
+            if (game)
             {
-                std::cout << "There was a game joined..." << std::endl;
-                const auto git = games_.find(jit->second);
-                if (git != games_.end())
-                {
-                    std::cout << "And the game existed.." << std::endl;
-                    //@TODO Don't reveal other dice
-                    w.Key("game");
-                    git->second->serialize(w, name);
-                }
+                w.Key("game");
+                game->serialize(w, name);
             }
-            w.EndObject();
-            return s.GetString();
-            
-        }
-        return Error{"INVALID_FORMAT"};
+        });
+        return s.GetString();
     }
     
     std::string getGames() const
@@ -215,55 +179,14 @@ public:
         rapidjson::StringBuffer s;
         rapidjson::PrettyWriter<rapidjson::StringBuffer> w{s};
         
-        w.StartArray();
-        for (const auto& kv : games_)
+        json::Array(w, [this](auto& w)
         {
-            w.StartObject();
-            w.Key("game");
-            w.String(kv.first.c_str());
-            
-            w.Key("players");
-            w.StartArray();
-            for (const auto& player : kv.second->players())
+            for (const auto& kv : games_)
             {
-                w.String(player.name().c_str());
+                kv.second->serializeGameInfo(w);
             }
-            w.EndArray();
-            w.EndObject();
-        }
-        w.EndArray();
-        //std::cout << "games:" << s.GetString() << std::endl;
+        });
         return s.GetString();
-    }
-
-    void save()
-    {
-        rapidjson::StringBuffer s;
-        rapidjson::PrettyWriter<rapidjson::StringBuffer> w{s};
-        
-        w.StartArray();
-        for (const auto& kv : players_)
-        {
-            const auto id = kv.first;
-            
-            w.StartObject();
-            w.Key("id");
-            w.String(id.c_str());
-            
-            w.Key("name");
-            w.String(kv.second.c_str());
-            
-            const auto it = joinedGames_.find(id);
-            if (it != joinedGames_.end())
-            {
-                w.Key("game");
-                w.String(it->second.c_str());
-            }
-            w.EndObject();
-        }
-        w.EndArray();
-        //std::cout << s.GetString() << std::endl;
-        dump(filename_, s.GetString());
     }
 
     void save2()
@@ -271,45 +194,39 @@ public:
         rapidjson::StringBuffer s;
         rapidjson::PrettyWriter<rapidjson::StringBuffer> w{s};
         
-        w.StartObject();
-        w.Key("players");
-        w.StartArray();
-        for (const auto& kv : players_)
+        json::Object(w, [=](auto& w)
         {
-            const auto id = kv.first;
-            
-            w.StartObject();
-            w.Key("id");
-            w.String(id.c_str());
-            
-            w.Key("name");
-            w.String(kv.second.c_str());
-            
-            const auto it = joinedGames_.find(id);
-            if (it != joinedGames_.end())
+            json::Array(w, "players", [=](auto& w)
             {
-                w.Key("game");
-                w.String(it->second.c_str());
-            }
-            w.EndObject();
-        }
-        w.EndArray();
-        w.Key("games");
-        w.StartArray();
-        for (const auto& it : games_)
-        {
-            it.second->serialize(w, "");
-        }
-
-        w.EndArray();
-        w.EndObject();
-        std::cout << "***Games***" << std::endl;
-        std::cout << s.GetString() << std::endl;
+                for (const auto& kv : players_)
+                {
+                    const auto id = kv.first;
+                    json::Object(w, [=](auto& w)
+                    {
+                        json::KeyValue(w, "id", id);
+                        json::KeyValue(w, "name", kv.second);
+                        
+                        const auto it = joinedGames_.find(id);
+                        if (it != joinedGames_.end())
+                        {
+                            json::KeyValue(w, "game", it->second);
+                        }
+                    });
+                }
+            });
+            json::Array(w, "games", [=](auto& w){
+                for (const auto& it : games_)
+                {
+                    it.second->serialize(w, "");
+                }
+            });
+        });
+        
         dump(filename_, s.GetString());
     }
 
 private:
-    void load()
+    void load() noexcept
     {
         auto doc = parse(slurp(filename_));
         //prettyPrint(doc);
@@ -418,17 +335,16 @@ std::string Engine::challenge(const std::string& body)
 
 std::string Engine::status(const std::string& body) const
 {
-    return impl_->status(body);
+    try {
+        return impl_->status(body);
+    } catch (const json::ParseError& e) {
+        return Error{e};
+    }
 }
 
 std::string Engine::getGames() const
 {
     return impl_->getGames();
-}
-
-void Engine::save()
-{
-    impl_->save();
 }
 
 void Engine::save2()

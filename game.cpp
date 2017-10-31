@@ -36,8 +36,8 @@ Game::State Game::fromString(const std::string& str)
 
 std::tuple<int, bool, bool> Game::getResult(int offset, const Player& player) const
 {
-    std::cout << player.name() << " ";
-    std::cout << &player << " " << bidder_ << " " << challenger() << std::endl;
+    //std::cout << player.name() << " ";
+    //std::cout << &player << " " << bidder_ << " " << challenger() << std::endl;
     if (&player == bidder_)
         return std::make_tuple(offset < 0 ? offset : 0, offset >= 0, offset < 0);
     if (&player == challenger())
@@ -47,7 +47,7 @@ std::tuple<int, bool, bool> Game::getResult(int offset, const Player& player) co
 
 void Game::setTurn(const Player& player)
 {
-    std::cout << "Set turn " << player.name() << std::endl;
+    //std::cout << "Set turn " << player.name() << std::endl;
     int i = 0;
     for (const auto& p : players_)
     {
@@ -162,7 +162,7 @@ RetVal Game::challenge(const std::string player)
     for (const auto& p : players_)
     {
         const auto result = getResult(offset, p);
-        std::cout << p.name() << " " << p.hand().size() << " " << std::get<0>(result) << std::endl;
+        //std::cout << p.name() << " " << p.hand().size() << " " << std::get<0>(result) << std::endl;
         
         const auto numDice = static_cast<int>(p.hand().size());
         const auto numDiceRemoved = -std::get<0>(result);
@@ -214,6 +214,21 @@ void Game::serialize(Writer& writer, const std::string& name) const
                     p.serialize(w1, getResult(offset, p));
                 else
                     p.serialize(w1, name);
+            }
+        });
+    });
+}
+
+void Game::serializeGameInfo(Writer& w) const
+{
+    json::Object(w, [this](auto& w)
+    {
+        json::KeyValue(w, "game", game_);
+        json::Array(w, "players", [this](auto& w)
+        {
+            for (const auto& player : players_)
+            {
+                w.String(player.name().c_str());
             }
         });
     });

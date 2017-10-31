@@ -20,7 +20,6 @@ public:
     std::string status(const std::string& body) const;
     std::string getGames() const;
     
-    void save();
     void save2();
     
 private:

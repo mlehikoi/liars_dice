@@ -160,6 +160,13 @@ inline void KeyValue(Writer& w, const std::string& k, const std::string& v)
 }
 
 template<typename Writer>
+inline void KeyValue(Writer& w, const std::string& k, const char* v)
+{
+    w.Key(k.c_str());
+    w.String(v);
+}
+
+template<typename Writer>
 inline void KeyValue(Writer& w, const std::string& k, int v)
 {
     w.Key(k.c_str());
@@ -171,6 +178,13 @@ inline void KeyValueF(Writer& w, const std::string& k, F&& v)
 {
     w.Key(k.c_str());
     std::forward<F>(v)(w);
+}
+
+template<typename Writer>
+inline void KeyValue(Writer& w, const std::string& k, bool v)
+{
+    w.Key(k.c_str());
+    w.Bool(v);
 }
 
 // For parsing

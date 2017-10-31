@@ -14,6 +14,25 @@
 
 namespace dice {
 
+template<typename Container, typename KeyType>
+inline bool hasItem(const Container& c, const KeyType& k)
+{
+    return c.find(k) != c.end();
+}
+
+template<typename Container, typename ValueType>
+inline bool hasValue(const Container& c, const ValueType& v)
+{
+    for (const auto& kv : c)
+    {
+        if (kv.second == v)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 using Writer = rapidjson::PrettyWriter<rapidjson::StringBuffer>;
 
 template<typename Doc>

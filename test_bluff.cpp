@@ -148,7 +148,7 @@ TEST(EngineTest, CreateGame) {
     auto result = e.login(anon);
     rapidjson::Document doc;
     doc.Parse(result.c_str());
-    cout << "Result: " << result << endl;
+    //cout << "Result: " << result << endl;
     EXPECT_TRUE(doc["success"].GetBool());
     std::string id = doc["id"].GetString();
 
@@ -157,7 +157,7 @@ TEST(EngineTest, CreateGame) {
         {"game", "game"}
     }).str();
     result = e.createGame(game);
-    cout << "Result: " << result << endl;
+    //cout << "Result: " << result << endl;
     doc.Parse(result.c_str());
     EXPECT_TRUE(doc["success"].GetBool());
     
@@ -229,7 +229,7 @@ TEST(EngineTest, Save) {
 
     e.save2();
     EXPECT_TRUE(fileExists(tmp));
-    cout << slurp(tmp) << endl;
+    //cout << slurp(tmp) << endl;
     const auto doc = dice::parse(dice::slurp(tmp));
     EXPECT_TRUE(doc["players"].IsArray());
     EXPECT_EQ(4, doc["players"].Size());
@@ -316,17 +316,50 @@ TEST(EngineTest, TestBid) {
         "n": 5,
         "face": 5
     })#");
-    cout << ret << endl;
     ASSERT_FALSE(parse(ret)["success"].GetBool());
     ASSERT_STREQ("NOT_JOINED", parse(ret)["error"].GetString());
 
     // SUCCESS
     ret = e.bid(R"#({
         "id": "1",
-        "n": 5,
+        "n": 4,
         "face": 5
     })#");
     ASSERT_TRUE(dice::parse(ret)["success"].GetBool());
+
+    ret = e.status(R"#( {"id": "1"} )#");
+    //cout << "Ret: " << ret << endl;
+    auto doc = parse(ret);
+    ASSERT_TRUE(doc["success"].GetBool());
+    ASSERT_STREQ("1", doc["id"].GetString());
+    ASSERT_STREQ("joe", doc["name"].GetString());
+    ASSERT_STREQ("final", doc["game"]["game"].GetString());
+    ASSERT_STREQ("ROUND_STARTED", doc["game"]["state"].GetString());
+    ASSERT_EQ(1, doc["game"]["turn"].GetInt());
+    ASSERT_EQ(4, doc["game"]["bid"]["n"].GetInt());
+    ASSERT_EQ(5, doc["game"]["bid"]["face"].GetInt());
+
+    // joe
+    ASSERT_EQ(2, doc["game"]["players"].Size());
+    ASSERT_STREQ("joe", doc["game"]["players"][0]["name"].GetString());
+    ASSERT_EQ(4, doc["game"]["players"][0]["bid"]["n"].GetInt());
+    ASSERT_EQ(5, doc["game"]["players"][0]["bid"]["face"].GetInt());
+    ASSERT_EQ(5, doc["game"]["players"][0]["hand"].Size());
+    for (int i = 0; i < 5; ++i)
+    {
+        const auto dice = doc["game"]["players"][0]["hand"][i].GetInt();
+        ASSERT_TRUE(0 < dice && dice <= 6);
+    }
+
+    // mary
+    ASSERT_STREQ("mary", doc["game"]["players"][1]["name"].GetString());
+    ASSERT_EQ(0, doc["game"]["players"][1]["bid"]["n"].GetInt());
+    ASSERT_EQ(0, doc["game"]["players"][1]["bid"]["face"].GetInt());
+    ASSERT_EQ(5, doc["game"]["players"][1]["hand"].Size());
+    for (int i = 0; i < 5; ++i)
+    {
+        ASSERT_EQ(0, doc["game"]["players"][1]["hand"][i].GetInt());
+    }
 }
 
 TEST(EngineTest, TestChallenge) {
@@ -386,7 +419,7 @@ TEST(EngineGame, TestConstruct) {
     
     auto s = g.getStatus("joe");
     auto doc = parse(g.getStatus("joe"));
-    cout << s << endl;
+    //cout << s << endl;
     EXPECT_EQ(0, doc["turn"].GetInt());
     
     EXPECT_STREQ("joe", doc["players"][0]["name"].GetString());
@@ -429,9 +462,9 @@ TEST(EngineGame, TestConstruct) {
     
     EXPECT_FALSE(g.challenge("joe"));
     
-    cout << g.getStatus("mary") << endl;
+    //cout << g.getStatus("mary") << endl;
     EXPECT_TRUE(g.challenge("mary"));
-    cout << g.getStatus("mary") << endl;
+    //cout << g.getStatus("mary") << endl;
     doc = parse(g.getStatus("mary"));
     
     ASSERT_EQ(2, doc["turn"].GetInt());
@@ -456,7 +489,7 @@ TEST(EngineGame, TestConstruct) {
     EXPECT_TRUE(g.bid("mary", 12, 1));
     EXPECT_TRUE(g.challenge("joe"));
     
-    cout << g.getStatus("mary") << endl;
+    //cout << g.getStatus("mary") << endl;
     doc = parse(g.getStatus("mary"));
 
     EXPECT_EQ(2, doc["turn"].GetInt());
@@ -482,7 +515,7 @@ TEST(EngineGame, TestConstruct) {
     
     EXPECT_TRUE(g.challenge("ann"));
     
-    cout << g.getStatus("mary") << endl;
+    //cout << g.getStatus("mary") << endl;
     doc = parse(g.getStatus("mary"));
 
     EXPECT_EQ(1, doc["turn"].GetInt());
@@ -503,18 +536,18 @@ TEST(EngineGame, TestConstruct) {
     EXPECT_FALSE(        doc["players"][2]["loser"].GetBool());
     
     EXPECT_TRUE(g.startRound());
-    cout << g.getStatus("mary") << endl;
+    //cout << g.getStatus("mary") << endl;
     
     EXPECT_TRUE(g.bid("ann", 1, 1));
     EXPECT_TRUE(g.bid("mary", 1, 2));
     
-    cout << g.getStatus("mary") << endl;
+    //cout << g.getStatus("mary") << endl;
 
     EXPECT_TRUE(g.bid("ann", 1, 3));
-    cout << g.getStatus("mary") << endl;
+    //cout << g.getStatus("mary") << endl;
     
     EXPECT_TRUE(g.challenge("mary"));
-    cout << g.getStatus("mary") << endl;
+    //cout << g.getStatus("mary") << endl;
     doc = parse(g.getStatus("mary"));
     ASSERT_EQ(2, doc["turn"].GetInt());
     
@@ -548,7 +581,7 @@ TEST(EngineGame, Save) {
     rapidjson::StringBuffer s;
     rapidjson::PrettyWriter<rapidjson::StringBuffer> w{s};
     game->serialize(w, "");
-    cout << s.GetString() << endl;
+    //cout << s.GetString() << endl;
     ASSERT_STREQ(txt0.c_str(), s.GetString());
 }
 

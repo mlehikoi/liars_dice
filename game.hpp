@@ -81,6 +81,7 @@ public:
      *     show all dice.
      */
     void serialize(Writer& w, const std::string& name) const;
+    void serializeGameInfo(Writer& w) const;
     static std::unique_ptr<Game> fromJson(const rapidjson::Value& v);
 };
 
