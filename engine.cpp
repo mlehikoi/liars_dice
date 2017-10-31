@@ -231,6 +231,7 @@ private:
         auto doc = parse(slurp(filename_));
         //prettyPrint(doc);
         // Players...
+
         if (doc.IsObject() && doc.HasMember("players") && doc["players"].IsArray())
         {
             for (const auto& el : doc["players"].GetArray())
@@ -241,10 +242,6 @@ private:
                 
                 players_.insert({id, name});
                 const auto game = getString2(el, "game");
-                if (!game.empty())
-                {
-                    joinedGames_.insert({id, game});
-                }
             }
         }
         // Games...
@@ -253,8 +250,22 @@ private:
             for (const auto& jgame : doc["games"].GetArray())
             {
                 auto game = Game::fromJson(jgame);
+                
                 if (game)
                 {
+                    for (const auto& player : game->players())
+                    {
+                        for (auto kv : players_)
+                        {
+                            if (kv.second == player.name())
+                            {
+                                // @TODO if already exists in joined games, this is an error.
+                                // Need to remove game altogether.
+                                joinedGames_.emplace(kv.first, game->name());
+                                break;
+                            }
+                        }
+                    }
                     games_.emplace(game->name(), std::move(game));
                 }
             }
