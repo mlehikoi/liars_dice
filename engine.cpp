@@ -53,6 +53,18 @@ class Engine::Impl
         return it->second;
     }
 
+    std::string getId(const std::string& name) const
+    {
+        for (auto kv : players_)
+        {
+            if (kv.second == name)
+            {
+                return kv.first;
+            }
+        }
+        return "";
+    }
+
     const Game* getJoinedGame(const std::string& id) const
     {
         const auto jit = joinedGames_.find(id);
@@ -255,18 +267,21 @@ private:
                 {
                     for (const auto& player : game->players())
                     {
-                        for (auto kv : players_)
+                        const auto id = getId(player.name());
+                        if (id.empty())
                         {
-                            if (kv.second == player.name())
+                            game->removePlayer(player);
+                        }
+                        else
+                        {
+                            if (!joinedGames_.emplace(id, game->name()).second)
                             {
-                                // @TODO if already exists in joined games, this is an error.
-                                // Need to remove game altogether.
-                                joinedGames_.emplace(kv.first, game->name());
-                                break;
+                                game->removePlayer(player);
                             }
                         }
                     }
-                    games_.emplace(game->name(), std::move(game));
+                    if (!game->players().empty())
+                        games_.emplace(game->name(), std::move(game));
                 }
             }
         }

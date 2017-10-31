@@ -216,6 +216,47 @@ TEST(EngineTest, Load) {
     EXPECT_STREQ("ann", games[1]["players"][0].GetString());
 }
 
+TEST(EngineTest, LoadExtraPlayerInGame) {
+    auto tmp = tmpCopy("../game-with-extra-player.json", "./.json");
+    dice::Engine e{tmp.str()};
+    
+    const auto doc = dice::parse(e.getGames());
+    auto games = doc.GetArray();
+    ASSERT_EQ(1, games.Size());
+    
+    auto status = e.status("joe");
+    EXPECT_EQ("final", games[0]["game"]);
+    EXPECT_EQ(1, games[0]["players"].Size());
+    EXPECT_STREQ("joe", games[0]["players"][0].GetString());
+}
+
+TEST(EngineTest, PlayerInTwoGames) {
+    auto tmp = tmpCopy("../player-in-two-games.json", "./.json");
+    dice::Engine e{tmp.str()};
+    
+    const auto doc = dice::parse(e.getGames());
+    auto games = doc.GetArray();
+    ASSERT_EQ(2, games.Size());
+    
+    auto status = e.status("joe");
+    EXPECT_EQ("final", games[0]["game"]);
+    EXPECT_EQ(1, games[0]["players"].Size());
+    EXPECT_STREQ("joe", games[0]["players"][0].GetString());
+
+    EXPECT_EQ("semifinal", games[1]["game"]);
+    EXPECT_EQ(1, games[1]["players"].Size());
+    EXPECT_STREQ("mary", games[1]["players"][0].GetString());
+}
+
+TEST(EngineTest, GameWithNoPlayers) {
+    auto tmp = tmpCopy("../game-with-no-players.json", "./.json");
+    dice::Engine e{tmp.str()};
+    
+    const auto doc = dice::parse(e.getGames());
+    auto games = doc.GetArray();
+    ASSERT_EQ(0, games.Size());
+}
+
 TEST(EngineTest, Save) {
     auto tmp = tmpName("./.json");
     AtEnd ae{[tmp]{ std::remove(tmp.c_str()); }};

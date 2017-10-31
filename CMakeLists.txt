@@ -18,7 +18,9 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     )
 endif()
 
-set_source_files_properties(test_bluff.cpp PROPERTIES COMPILE_FLAGS -Wno-everything)
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set_source_files_properties(test_bluff.cpp PROPERTIES COMPILE_FLAGS -Wno-everything)
+endif()
 
 enable_testing()
 

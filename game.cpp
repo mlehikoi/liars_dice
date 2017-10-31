@@ -1,5 +1,7 @@
 #include "game.hpp"
 
+#include <algorithm>
+
 namespace dice {
 
 int Game::getOffset() const
@@ -78,14 +80,23 @@ Game::Game(const std::string& game, const std::string& player, const IDice& dice
     diceRoll_{diceRoll},
     state_{GAME_NOT_STARTED}
 {
-    players_.push_back({player, diceRoll_});
+    players_.emplace_back(player, diceRoll_);
 }
 
 RetVal Game::addPlayer(const std::string& player)
 {
     if (players_.size() >= 8) return Error{"TOO_MANY_PLAYERS"};
-    players_.push_back({player, diceRoll_});
+    players_.emplace_back(player, diceRoll_);
     return Success{};
+}
+
+void Game::removePlayer(const Player& player)
+{
+    auto it = std::find(players_.begin(), players_.end(), player);
+    if (it != players_.end())
+    {
+        players_.erase(it);
+    }
 }
 
 RetVal Game::startGame()
@@ -248,7 +259,7 @@ std::unique_ptr<Game> Game::fromJson(const rapidjson::Value& v)
             auto player = Player::fromJson(jplayer);
             if (!player) return std::unique_ptr<Game>{};
 
-            game->players_.push_back(player);
+            game->players_.push_back(std::move(player));
         }
         return game;
     }

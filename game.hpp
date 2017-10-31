@@ -62,6 +62,7 @@ public:
 
     const auto& name() { return game_; }
     RetVal addPlayer(const std::string& player);
+    void removePlayer(const Player& player);
 
     auto players() const { return players_; }
     
