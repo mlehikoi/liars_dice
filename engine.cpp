@@ -244,47 +244,43 @@ private:
         //prettyPrint(doc);
         // Players...
 
-        if (doc.IsObject() && doc.HasMember("players") && doc["players"].IsArray())
-        {
-            for (const auto& el : doc["players"].GetArray())
+        try {
+            for (const auto& p : json::getArray(doc, "players"))
             {
-                const auto id = getString2(el, "id");
-                const auto name = getString2(el, "name");
-                if (id.empty() || name.empty()) continue;
-                
-                players_.insert({id, name});
-                const auto game = getString2(el, "game");
+                try {
+                    players_.emplace(json::getString(p, "id"),
+                                     json::getString(p, "name"));
+                } catch (const json::ParseError&) {}
             }
-        }
-        // Games...
-        if (doc.IsObject() && doc.HasMember("games") && doc["games"].IsArray())
-        {
-            for (const auto& jgame : doc["games"].GetArray())
-            {
-                auto game = Game::fromJson(jgame);
-                
-                if (game)
+            // Games...
+            try {
+                for (const auto& jgame : json::getArray(doc, "games"))
                 {
-                    for (const auto& player : game->players())
+                    auto game = Game::fromJson(jgame);
+                    if (game)
                     {
-                        const auto id = getId(player.name());
-                        if (id.empty())
+                        for (const auto& player : game->players())
                         {
-                            game->removePlayer(player);
-                        }
-                        else
-                        {
-                            if (!joinedGames_.emplace(id, game->name()).second)
+                            const auto id = getId(player.name());
+                            if (id.empty())
                             {
                                 game->removePlayer(player);
                             }
+                            else
+                            {
+                                if (!joinedGames_.emplace(id, game->name()).second)
+                                {
+                                    game->removePlayer(player);
+                                }
+                            }
                         }
+                        if (!game->players().empty())
+                            games_.emplace(game->name(), std::move(game));
                     }
-                    if (!game->players().empty())
-                        games_.emplace(game->name(), std::move(game));
                 }
-            }
+            } catch (const json::ParseError&) {}
         }
+        catch (const json::ParseError& e) {}
     }
 };
 

@@ -257,6 +257,18 @@ TEST(EngineTest, GameWithNoPlayers) {
     ASSERT_EQ(0, games.Size());
 }
 
+TEST(EngineTest, GameInvalidJson) {
+    auto tmp = tmpCopy("../game-invalid.json", "./.json");
+    dice::Engine e{tmp.str()};
+    
+    const auto doc = dice::parse(e.getGames());
+    auto games = doc.GetArray();
+    ASSERT_EQ(1, games.Size());
+    EXPECT_EQ("semifinal", games[0]["game"]);
+    EXPECT_EQ(1, games[0]["players"].Size());
+    EXPECT_STREQ("mary", games[0]["players"][0].GetString());
+}
+
 TEST(EngineTest, Save) {
     auto tmp = tmpName("./.json");
     AtEnd ae{[tmp]{ std::remove(tmp.c_str()); }};

@@ -1,0 +1,50 @@
+{
+    "players": [
+        {
+            "id": "1",
+            "name": "joe",
+            "game": "final"
+        }
+    ],
+    "games": [
+        {
+            "game": "final",
+            "state": "GAME_NOT_STARTED",
+            "turn": 0,
+            "bid": {
+                "n": 0,
+                "face": 0
+            },
+            "players": [
+                {
+                    "name": "joe",
+                    "bid": {
+                        "n": 0,
+                        "face": 0
+                    },
+                    "hand": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ]
+                },
+                {
+                    "name": "mary",
+                    "bid": {
+                        "n": 0,
+                        "face": 0
+                    },
+                    "hand": [
+                        0,
+                        0,
+                        0,
+                        0,
+                        0
+                    ]
+                }
+            ]
+        }
+    ]
+}
