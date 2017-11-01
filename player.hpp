@@ -28,14 +28,6 @@ public:
     {
     }
 
-    Player(const Player& other)
-      : name_{other.name_},
-        hand_{other.hand_},
-        bid_{other.bid_},
-        diceRoll_{other.diceRoll_}
-    {
-    }
-
     Player(Player&& other)
       : name_{std::move(other.name_)},
         hand_{std::move(other.hand_)},
@@ -49,6 +41,7 @@ public:
         name_ = {std::move(other.name_)};
         hand_ = {std::move(other.hand_)};
         bid_ = {std::move(other.bid_)};
+        return *this;
     }
 
     bool operator==(const Player& other) { return name_ == other.name_; }

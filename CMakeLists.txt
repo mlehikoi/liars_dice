@@ -6,6 +6,7 @@ find_package(Threads)
 add_definitions(
     -g
     -std=c++14
+    -Werror
 )
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")

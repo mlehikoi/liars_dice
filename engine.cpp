@@ -238,49 +238,52 @@ public:
     }
 
 private:
+    void readPlayers(const rapidjson::Document& doc)
+    {
+        for (const auto& p : json::getArray(doc, "players"))
+        {
+            try {
+                players_.emplace(json::getString(p, "id"),
+                                 json::getString(p, "name"));
+            } catch (const json::ParseError&) {}
+        }
+    }
+
+    void readGames(const rapidjson::Document& doc)
+    {
+        for (const auto& jgame : json::getArray(doc, "games"))
+        {
+            auto game = Game::fromJson(jgame);
+            if (game)
+            {
+                for (const auto& player : game->players())
+                {
+                    const auto id = getId(player.name());
+                    if (id.empty())
+                    {
+                        game->removePlayer(player);
+                    }
+                    else
+                    {
+                        if (!joinedGames_.emplace(id, game->name()).second)
+                        {
+                            game->removePlayer(player);
+                        }
+                    }
+                }
+                if (!game->players().empty())
+                    games_.emplace(game->name(), std::move(game));
+            }
+        }
+    }
     void load() noexcept
     {
         auto doc = parse(slurp(filename_));
-        //prettyPrint(doc);
-        // Players...
-
         try {
-            for (const auto& p : json::getArray(doc, "players"))
-            {
-                try {
-                    players_.emplace(json::getString(p, "id"),
-                                     json::getString(p, "name"));
-                } catch (const json::ParseError&) {}
-            }
-            // Games...
-            try {
-                for (const auto& jgame : json::getArray(doc, "games"))
-                {
-                    auto game = Game::fromJson(jgame);
-                    if (game)
-                    {
-                        for (const auto& player : game->players())
-                        {
-                            const auto id = getId(player.name());
-                            if (id.empty())
-                            {
-                                game->removePlayer(player);
-                            }
-                            else
-                            {
-                                if (!joinedGames_.emplace(id, game->name()).second)
-                                {
-                                    game->removePlayer(player);
-                                }
-                            }
-                        }
-                        if (!game->players().empty())
-                            games_.emplace(game->name(), std::move(game));
-                    }
-                }
-            } catch (const json::ParseError&) {}
+            readPlayers(doc);
+            readGames(doc);
         }
-        catch (const json::ParseError& e) {}
+        catch (const json::ParseError&) {}
     }
 };
 

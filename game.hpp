@@ -64,7 +64,7 @@ public:
     RetVal addPlayer(const std::string& player);
     void removePlayer(const Player& player);
 
-    auto players() const { return players_; }
+    const auto& players() const { return players_; }
     
     RetVal startGame();
     RetVal startRound();
