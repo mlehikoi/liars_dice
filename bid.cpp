@@ -43,10 +43,11 @@ int Bid::challenge(const std::vector<int>& commonHand) const
 
 void Bid::serialize(Writer& w) const
 {
-    w.StartObject();
-    w.Key("n"); w.Int(n_);
-    w.Key("face"); w.Int(face_);
-    w.EndObject();
+    json::Object(w, [=](auto& w)
+    {
+        w.Key("n"); w.Int(n_);
+        w.Key("face"); w.Int(face_);
+    });
 }
 
 Bid Bid::fromJson(const rapidjson::Value& v)

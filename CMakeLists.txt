@@ -40,6 +40,7 @@ add_library(libdice
     dice.cpp
     engine.cpp
     game.cpp
+    player.cpp
 )
 add_executable(bluff
     bluff.cpp

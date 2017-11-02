@@ -256,10 +256,7 @@ std::unique_ptr<Game> Game::fromJson(const rapidjson::Value& v)
         game->currentBid_ = Bid::fromJson(getValue(v, "bid"));
         for (const auto& jplayer : getArray(v, "players"))
         {
-            auto player = Player::fromJson(jplayer);
-            if (!player) return std::unique_ptr<Game>{};
-
-            game->players_.push_back(std::move(player));
+            game->players_.push_back(Player::fromJson2(jplayer));
         }
         return game;
     }

@@ -212,9 +212,18 @@ inline auto getInt(const rapidjson::Value& v, const char* k)
     throw ParseError{"PARSE_ERROR"};
 }
 
+inline auto getInt(const rapidjson::Value& v)
+{
+    if (v.IsInt())
+    {
+        return v.GetInt();
+    }
+    throw ParseError{"PARSE_ERROR"};
+}
+
 inline const auto& getValue(const rapidjson::Value& v, const char* k)
 {
-    if (v.IsObject() && v.HasMember(k) && v[k].IsObject())
+    if (v.IsObject() && v.HasMember(k))
     {
         return v[k];
     }
