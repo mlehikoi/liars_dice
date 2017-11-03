@@ -5,8 +5,11 @@
 
 namespace dice {
 
-const int STAR = 6;
+constexpr int STAR = 6;
 
+/**
+ * Represents a bid, i.e. the face and how many.
+ */
 class Bid
 {
     int n_;
@@ -20,6 +23,8 @@ public:
 
     int score() const;
     bool valid() const { return score() > 0; }
+
+    bool operator==(const Bid& bid) const { return n_ == bid.n_ && face_ == bid.face_; }
     bool operator<(const Bid& other) const;
     bool operator<=(const Bid& other) const;
     bool operator>(const Bid& other) const;
@@ -32,9 +37,14 @@ public:
       * > 0: more than bid
     */
     int challenge(const std::vector<int>& commonHand) const;
-    void serialize(Writer& w) const;
+    void serialize(json::Writer& w) const;
+
+    /**
+     * Construct bid object from given json.
+     * @param v [in] json value to parse
+     * @throws ParseError if json format is unexpected
+     */
     static Bid fromJson(const rapidjson::Value& v);
-    bool operator==(const Bid& bid) const { return n_ == bid.n_ && face_ == bid.face_; }
 };
 
 } // namespace dice

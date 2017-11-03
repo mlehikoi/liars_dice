@@ -1,5 +1,6 @@
 #pragma once
 #include "rapidjson/writer.h"
+#include <rapidjson/prettywriter.h>
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/document.h"
 
@@ -7,6 +8,8 @@
 #include <string>
 
 namespace json {
+
+using Writer = rapidjson::PrettyWriter<rapidjson::StringBuffer>;
 
 // Simple writer
 class Value
@@ -50,7 +53,7 @@ public:
     Value(const char* str);
     Value(const std::string& str);
     
-    void print(rapidjson::Writer<rapidjson::StringBuffer>& w) const;
+    void print(Writer& w) const;
 protected:
     struct Dummy {};
     Value(Dummy&&, const std::initializer_list<Value>& values);
@@ -68,7 +71,7 @@ inline Value::Value(const char* str) : type_{Type::String}, data_{str} {}
 inline Value::Value(const std::string& str) : type_{Type::String}, data_{str.c_str()} {}
 inline Value::Value(Dummy&&, const std::initializer_list<Value>& values) : type_{Type::Array}, data_{&values} {}
 
-inline void Value::print(rapidjson::Writer<rapidjson::StringBuffer>& w) const
+inline void Value::print(Writer& w) const
 {
     switch (type_)
     {
@@ -110,9 +113,10 @@ public:
 class Json
 {
     rapidjson::StringBuffer s_;
-    rapidjson::Writer<rapidjson::StringBuffer> w_;
+    Writer w_;
 public:
     Json(const Value& obj) : s_{}, w_{s_} { obj.print(w_); }
+    Json(Writer& w, const Value& obj) : s_{}, w_{} { obj.print(w); }
     std::string str() const { return s_.GetString(); }
     operator std::string() const { return str(); }
 };

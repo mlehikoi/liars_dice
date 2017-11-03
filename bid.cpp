@@ -41,24 +41,19 @@ int Bid::challenge(const std::vector<int>& commonHand) const
     return n - n_;
 }
 
-void Bid::serialize(Writer& w) const
+void Bid::serialize(json::Writer& w) const
 {
-    json::Object(w, [=](auto& w)
+    json::Json(w,
     {
-        w.Key("n"); w.Int(n_);
-        w.Key("face"); w.Int(face_);
+        {"n", n_},
+        {"face", face_}
     });
 }
 
 Bid Bid::fromJson(const rapidjson::Value& v)
 {
-    if (v.IsObject() &&
-        v.HasMember("n") && v["n"].IsInt() &&
-        v.HasMember("face") && v["face"].IsInt())
-    {
-        return Bid{v["n"].GetInt(), v["face"].GetInt()};
-    }
-    return Bid{};
+    return Bid{json::getInt(v, "n"),
+               json::getInt(v, "face")};
 }
 
 } // namespace dice

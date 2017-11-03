@@ -33,8 +33,6 @@ inline bool hasValue(const Container& c, const ValueType& v)
     return false;
 }
 
-using Writer = rapidjson::PrettyWriter<rapidjson::StringBuffer>;
-
 template<typename Doc>
 bool hasString(const Doc& doc, const char* member)
 {

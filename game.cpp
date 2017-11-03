@@ -202,7 +202,7 @@ std::string Game::getStatus(const std::string& player)
     return s.GetString();
 }
 
-void Game::serialize(Writer& writer, const std::string& name) const
+void Game::serialize(json::Writer& writer, const std::string& name) const
 {
     using namespace json;
     Object(writer, [=](auto& w)
@@ -230,7 +230,7 @@ void Game::serialize(Writer& writer, const std::string& name) const
     });
 }
 
-void Game::serializeGameInfo(Writer& w) const
+void Game::serializeGameInfo(json::Writer& w) const
 {
     json::Object(w, [this](auto& w)
     {
