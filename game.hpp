@@ -21,6 +21,20 @@ inline T set(T& value, T newValue)
     return prev;
 }
 
+/**
+ * Represents a game with players and the state of the game.
+ * 
+ * @startuml
+ * [*] --> GAME_NOT_STARTED
+ * GAME_NOT_STARTED --> GAME_STARTED : startGame
+ * GAME_STARTED --> ROUND_STARTED : startRound
+ * ROUND_STARTED --> ROUND_STARTED : bid
+ * ROUND_STARTED --> CHALLENGE : challenge [remaining player > 1]
+ * ROUND_STARTED --> GAME_FINISHED : challenge [remaining player == 1]
+ * CHALLENGE --> ROUND_STARTED : startRound
+ * GAME_FINISHED --> GAME_STARTED : startGame
+ * @enduml
+ */
 class Game
 {
     std::string game_;
@@ -42,7 +56,7 @@ class Game
     // Used for challenge
     const Player* bidder_;
     const Player* challenger_;
-    
+
     int getOffset() const;
 
     static const char* toString(State state);
@@ -60,6 +74,7 @@ public:
     Game(const std::string& game, const std::string& player, const IDice& diceRoll = Dice::instance());
     Game(Game&&) = delete;
 
+    /** @return name of the game */
     const auto& name() { return game_; }
     RetVal addPlayer(const std::string& player);
     void removePlayer(const Player& player);

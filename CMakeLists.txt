@@ -16,6 +16,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         -Wno-c++98-compat-pedantic
         -Wno-exit-time-destructors
         -Wno-shadow-uncaptured-local
+        -Wno-documentation-unknown-command
     )
 endif()
 
@@ -70,3 +71,14 @@ target_link_libraries(runUnitTests
     ${CMAKE_THREAD_LIBS_INIT}
 )
 add_test(runUnitTests runUnitTests)
+
+find_package(Doxygen)
+if (DOXYGEN_FOUND)
+    MESSAGE( STATUS "PROJECT_BINARY_DIR: " ${CMAKE_CURRENT_BINARY_DIR} )
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+    add_custom_target(doc
+        ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Generating API documentation with Doxygen" VERBATIM
+    )
+endif (DOXYGEN_FOUND)

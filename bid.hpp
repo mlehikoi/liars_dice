@@ -1,5 +1,5 @@
 #pragma once
-#include "helpers.hpp"
+#include "json.hpp"
 
 #include <vector>
 
@@ -8,17 +8,32 @@ namespace dice {
 constexpr int STAR = 6;
 
 /**
- * Represents a bid, i.e. the face and how many.
+ * Represents a bid. The bid consist of a selected face and
+ * number of dice with that face. For example a bid could be
+ * - 2 x 5 (2 fives) or
+ * - 3 x * (3 stars)
  */
 class Bid
 {
     int n_;
     int face_;
 public:
+    /**
+     * Construct Bid. Default to n = 0, face = 0.
+     */
     Bid();
+
+    /**
+     * Construct Bid.
+     * @param n [in] number of dice with given face
+     * @param face [in] the dice face for the bid
+     */
     Bid(int n, int face);
     
+    /** @return number of face in the bid */
     auto n() const { return n_; }
+
+    /** @return the face in the bid */
     auto face() const { return face_; }
 
     int score() const;
@@ -32,11 +47,16 @@ public:
 
     /**
       * @return bid's difference to actual
-      * < 0: fewer than bid
-      *   0: exactly right amount
-      * > 0: more than bid
+      * - < 0: fewer than bid
+      * - 0: exactly right amount
+      * - > 0: more than bid
     */
     int challenge(const std::vector<int>& commonHand) const;
+
+    /**
+     * Serialize bid to give writer.
+     * @param w [out] where to serialize
+     */
     void serialize(json::Writer& w) const;
 
     /**
