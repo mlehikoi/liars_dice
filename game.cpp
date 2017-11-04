@@ -82,13 +82,13 @@ Game::Game(const std::string& game, const std::string& player)
     diceRoll_{Dice::instance()},
     state_{GAME_NOT_STARTED}
 {
-    players_.emplace_back(player, diceRoll_);
+    players_.emplace_back(player);
 }
 
 RetVal Game::addPlayer(const std::string& player)
 {
     if (players_.size() >= 8) return Error{"TOO_MANY_PLAYERS"};
-    players_.emplace_back(player, diceRoll_);
+    players_.emplace_back(player);
     return Success{};
 }
 
@@ -156,7 +156,6 @@ RetVal Game::bid(const std::string& player, int n, int face)
     if (!(currentBid_ < bid)) return Error{"TOO_LOW_BID"};
 
     currentBid_ = bid;
-    //@TODO set bit to player
     bidder_ = &currentPlayer();
     currentPlayer().bid(bid);
     nextPlayer();
@@ -217,7 +216,7 @@ void Game::serialize(json::Writer& writer, const std::string& name) const
             currentBid_.serialize(w);
         });
 
-        Array(w, "players", [=](auto& w1)
+        ArrayW(w, "players", [=](auto& w1)
         {
             const auto offset = getOffset();
             const bool allRevealed = state_ == CHALLENGE || state_ == GAME_FINISHED;
@@ -237,7 +236,7 @@ void Game::serializeGameInfo(json::Writer& w) const
     json::Object(w, [this](auto& w)
     {
         json::KeyValue(w, "game", game_);
-        json::Array(w, "players", [this](auto& w)
+        json::ArrayW(w, "players", [this](auto& w)
         {
             for (const auto& player : players_)
             {
@@ -258,7 +257,7 @@ std::unique_ptr<Game> Game::fromJson(const rapidjson::Value& v)
         game->currentBid_ = Bid::fromJson(getValue(v, "bid"));
         for (const auto& jplayer : getArray(v, "players"))
         {
-            game->players_.push_back(Player::fromJson2(jplayer));
+            game->players_.push_back(Player::fromJson(jplayer));
         }
         return game;
     }

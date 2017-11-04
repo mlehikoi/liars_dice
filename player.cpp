@@ -12,7 +12,7 @@ void Player::roll()
 {
     for (auto& d : hand_)
     {
-        d = diceRoll_.roll();
+        d = Dice::instance().roll();
     }
     bid_ = {};
 }
@@ -59,7 +59,7 @@ void Player::doSerialize(
             json::KeyValue(w, "loser", std::get<2>(*result));
         }
     
-        json::Array(w, "hand", [=](auto& w){
+        json::ArrayW(w, "hand", [=](auto& w){
             const bool faceShown = (result || !player || *player == name_);
             for (auto d : hand_)
             {
@@ -70,18 +70,14 @@ void Player::doSerialize(
     });
 }
 
-Player Player::fromJson2(const rapidjson::Value& v)
+Player Player::fromJson(const rapidjson::Value& v)
 {
-    Player player(json::getString(v, "name"), Dice::instance());
+    Player player(json::getString(v, "name"));
     player.hand_.clear();
     for (const auto& d : json::getArray(v, "hand"))
     {
-        if (d.IsInt())
-        {
-            player.hand_.push_back(json::getInt(d));
-        }
+        player.hand_.push_back(json::getInt(d));
     }
-    //@TODO Bid reading failure
     player.bid_ = Bid::fromJson(json::getValue(v, "bid"));
     return player;
 }

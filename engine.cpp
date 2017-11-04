@@ -197,7 +197,7 @@ public:
         rapidjson::StringBuffer s;
         rapidjson::PrettyWriter<rapidjson::StringBuffer> w{s};
         
-        json::Array(w, [this](auto& w)
+        json::ArrayW(w, [this](auto& w)
         {
             for (const auto& kv : games_)
             {
@@ -214,7 +214,7 @@ public:
         
         json::Object(w, [=](auto& w)
         {
-            json::Array(w, "players", [=](auto& w)
+            json::ArrayW(w, "players", [=](auto& w)
             {
                 for (const auto& kv : players_)
                 {
@@ -232,7 +232,7 @@ public:
                     });
                 }
             });
-            json::Array(w, "games", [=](auto& w){
+            json::ArrayW(w, "games", [=](auto& w){
                 for (const auto& it : games_)
                 {
                     it.second->serialize(w, "");
@@ -293,15 +293,14 @@ private:
     }
 };
 
-Engine::Engine(const std::string& filename)
+Engine::Engine(const std::string& filename) noexcept
     : impl_{std::make_unique<Impl>(filename)}
 {
-    
 }
 
-Engine::~Engine() = default;
+Engine::~Engine() noexcept = default;
 
-std::string Engine::login(const std::string& body)
+std::string Engine::login(const std::string& body) noexcept
 {
     try {
         return impl_->login(body);
@@ -310,7 +309,7 @@ std::string Engine::login(const std::string& body)
     }
 }
 
-std::string Engine::createGame(const std::string& body)
+std::string Engine::createGame(const std::string& body) noexcept
 {
     try {
         return impl_->createGame(body);
@@ -319,7 +318,7 @@ std::string Engine::createGame(const std::string& body)
     }
 }
 
-std::string Engine::joinGame(const std::string& body)
+std::string Engine::joinGame(const std::string& body) noexcept
 {
     try {
         return impl_->joinGame(body);
@@ -328,7 +327,7 @@ std::string Engine::joinGame(const std::string& body)
     }
 }
 
-std::string Engine::startGame(const std::string& body)
+std::string Engine::startGame(const std::string& body) noexcept
 {
     try {
         return impl_->startGame(body);
@@ -337,7 +336,7 @@ std::string Engine::startGame(const std::string& body)
     }
 }
 
-std::string Engine::startRound(const std::string& body)
+std::string Engine::startRound(const std::string& body) noexcept
 {
     try {
         return impl_->startRound(body);
@@ -346,7 +345,7 @@ std::string Engine::startRound(const std::string& body)
     }
 }
 
-std::string Engine::bid(const std::string& body)
+std::string Engine::bid(const std::string& body) noexcept
 {
     try {
         return impl_->bid(body);
@@ -355,7 +354,7 @@ std::string Engine::bid(const std::string& body)
     }
 }
 
-std::string Engine::challenge(const std::string& body)
+std::string Engine::challenge(const std::string& body) noexcept
 {
     try {
         return impl_->challenge(body);
@@ -364,7 +363,7 @@ std::string Engine::challenge(const std::string& body)
     }
 }
 
-std::string Engine::status(const std::string& body) const
+std::string Engine::status(const std::string& body) const noexcept
 {
     try {
         return impl_->status(body);
@@ -373,12 +372,12 @@ std::string Engine::status(const std::string& body) const
     }
 }
 
-std::string Engine::getGames() const
+std::string Engine::getGames() const noexcept
 {
     return impl_->getGames();
 }
 
-void Engine::save()
+void Engine::save() noexcept
 {
     impl_->save();
 }

@@ -23,11 +23,6 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     )
 endif()
 
-if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set_source_files_properties(test_bluff.cpp PROPERTIES COMPILE_FLAGS -Wno-everything)
-    set_source_files_properties(test/test_dice.cpp PROPERTIES COMPILE_FLAGS -Wno-everything)
-endif()
-
 enable_testing()
 
 find_package(Boost COMPONENTS system REQUIRED)
@@ -67,10 +62,21 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     link_directories(../googletest/build-gcc/googlemock/gtest)
 endif()
-add_executable(runUnitTests
+
+set(TEST_FILES
     test_bluff.cpp
     test/test_dice.cpp
+    test/test_game.cpp
+    test/test_player.cpp
 )
+
+add_executable(runUnitTests ${TEST_FILES})
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set_source_files_properties(
+        ${TEST_FILES}
+        PROPERTIES COMPILE_FLAGS -Wno-everything)
+endif()
 
 target_link_libraries(runUnitTests
     libdice

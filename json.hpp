@@ -118,6 +118,12 @@ public:
     Json(const Value& obj) : s_{}, w_{s_} { obj.print(w_); }
     Json(Writer& w, const Value& obj) : s_{}, w_{} { obj.print(w); }
     std::string str() const { return s_.GetString(); }
+    auto json() const
+    {
+        rapidjson::Document doc;
+        doc.Parse(s_.GetString());
+        return doc;
+    }
     operator std::string() const { return str(); }
 };
 
@@ -140,7 +146,7 @@ inline auto Object(Writer& w, const std::string& k, F&& f)
 }
 
 template<typename Writer, typename F>
-inline auto Array(Writer& w, F&& f)
+inline auto ArrayW(Writer& w, F&& f)
 {
     w.StartArray();
     std::forward<F>(f)(w);
@@ -148,7 +154,7 @@ inline auto Array(Writer& w, F&& f)
 }
 
 template<typename Writer, typename F>
-inline auto Array(Writer& w, const std::string& k, F&& f)
+inline auto ArrayW(Writer& w, const std::string& k, F&& f)
 {
     w.Key(k.c_str());
     w.StartArray();

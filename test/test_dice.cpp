@@ -6,6 +6,7 @@
 #include <unordered_map>
 
 namespace {
+
 TEST(DiceTest, Random) {
     std::unordered_map<int, int> faces;
     for (int i = 0; i < 1000; ++i)
@@ -34,4 +35,5 @@ TEST(DiceTest, Fixed) {
     for (int i = 1; i <= 6; ++i)
         ASSERT_GT(faces[i], 0);
 }
+
 } // unnamed namespace
