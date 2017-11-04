@@ -18,6 +18,12 @@ using namespace rapidjson;
 
 namespace dice {
 
+class LogicError : public std::runtime_error
+{
+public:
+    LogicError(const std::string& what) : std::runtime_error{what} {}
+};
+
 class Engine::Impl
 {
     const std::string filename_;
@@ -34,10 +40,10 @@ class Engine::Impl
         const std::string id = json::getString(doc, "id");
         
         const auto pit = players_.find(id);
-        if (pit == players_.end()) throw json::ParseError{"NO_PLAYER"};
+        if (pit == players_.end()) throw LogicError{"NO_PLAYER"};
         
         const auto jit = joinedGames_.find(id);
-        if (jit == joinedGames_.end()) throw json::ParseError{"NOT_JOINED"};
+        if (jit == joinedGames_.end()) throw LogicError{"NOT_JOINED"};
         
         const auto git = games_.find(jit->second);
         assert(git != games_.end());
@@ -49,7 +55,7 @@ class Engine::Impl
     const auto& getPlayer(const std::string& id) const
     {
         const auto it = players_.find(id);
-        if (it == players_.end()) throw json::ParseError{"NO_PLAYER"};
+        if (it == players_.end()) throw LogicError{"NO_PLAYER"};
         return it->second;
     }
 
@@ -201,7 +207,7 @@ public:
         return s.GetString();
     }
 
-    void save2()
+    void save()
     {
         rapidjson::StringBuffer s;
         rapidjson::PrettyWriter<rapidjson::StringBuffer> w{s};
@@ -245,7 +251,7 @@ private:
             try {
                 players_.emplace(json::getString(p, "id"),
                                  json::getString(p, "name"));
-            } catch (const json::ParseError&) {}
+            } catch (const std::exception&) {}
         }
     }
 
@@ -283,7 +289,7 @@ private:
             readPlayers(doc);
             readGames(doc);
         }
-        catch (const json::ParseError&) {}
+        catch (const std::exception&) {}
     }
 };
 
@@ -299,8 +305,8 @@ std::string Engine::login(const std::string& body)
 {
     try {
         return impl_->login(body);
-    } catch (const json::ParseError& e) {
-        return Error{e};
+    } catch (const std::exception& e) {
+        return Error{e.what()};
     }
 }
 
@@ -308,8 +314,8 @@ std::string Engine::createGame(const std::string& body)
 {
     try {
         return impl_->createGame(body);
-    } catch (const json::ParseError& e) {
-        return Error{e};
+    } catch (const std::exception& e) {
+        return Error{e.what()};
     }
 }
 
@@ -317,8 +323,8 @@ std::string Engine::joinGame(const std::string& body)
 {
     try {
         return impl_->joinGame(body);
-    } catch (const json::ParseError& e) {
-        return Error{e};
+    } catch (const std::exception& e) {
+        return Error{e.what()};
     }
 }
 
@@ -326,8 +332,8 @@ std::string Engine::startGame(const std::string& body)
 {
     try {
         return impl_->startGame(body);
-    } catch (const json::ParseError& e) {
-        return Error{e};
+    } catch (const std::exception& e) {
+        return Error{e.what()};
     }
 }
 
@@ -335,8 +341,8 @@ std::string Engine::startRound(const std::string& body)
 {
     try {
         return impl_->startRound(body);
-    } catch (const json::ParseError& e) {
-        return Error{e};
+    } catch (const std::exception& e) {
+        return Error{e.what()};
     }
 }
 
@@ -344,8 +350,8 @@ std::string Engine::bid(const std::string& body)
 {
     try {
         return impl_->bid(body);
-    } catch (const json::ParseError& e) {
-        return Error{e};
+    } catch (const std::exception& e) {
+        return Error{e.what()};
     }
 }
 
@@ -353,8 +359,8 @@ std::string Engine::challenge(const std::string& body)
 {
     try {
         return impl_->challenge(body);
-    } catch (const json::ParseError& e) {
-        return Error{e};
+    } catch (const std::exception& e) {
+        return Error{e.what()};
     }
 }
 
@@ -362,8 +368,8 @@ std::string Engine::status(const std::string& body) const
 {
     try {
         return impl_->status(body);
-    } catch (const json::ParseError& e) {
-        return Error{e};
+    } catch (const std::exception& e) {
+        return Error{e.what()};
     }
 }
 
@@ -372,9 +378,9 @@ std::string Engine::getGames() const
     return impl_->getGames();
 }
 
-void Engine::save2()
+void Engine::save()
 {
-    impl_->save2();
+    impl_->save();
 }
 
 } // namespace dice

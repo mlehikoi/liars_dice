@@ -192,11 +192,15 @@ inline void KeyValue(Writer& w, const std::string& k, bool v)
 }
 
 // For parsing
-struct ParseError
+class ParseError : public std::runtime_error
 {
-    std::string str_;
-    ParseError(const std::string& str = "") : str_{str} {}
-    operator const std::string&() const { return str_; }
+public:
+    //ParseError(const std::string& s) : std::runtime_error{s} {}
+    ParseError() : std::runtime_error{"PARSE_ERROR"} {}
+    //virtual ~ParseError() {}
+    // std::string str_;
+    // ParseError(const std::string& str = "") : str_{str} {}
+    // operator const std::string&() const { return str_; }
 };
 inline auto getString(const rapidjson::Value& v, const char* k)
 {
@@ -204,7 +208,7 @@ inline auto getString(const rapidjson::Value& v, const char* k)
     {
         return v[k].GetString();
     }
-    throw ParseError{"PARSE_ERROR"};
+    throw ParseError{};
 }
 
 inline auto getInt(const rapidjson::Value& v, const char* k)
@@ -213,7 +217,7 @@ inline auto getInt(const rapidjson::Value& v, const char* k)
     {
         return v[k].GetInt();
     }
-    throw ParseError{"PARSE_ERROR"};
+    throw ParseError{};
 }
 
 inline auto getInt(const rapidjson::Value& v)
@@ -222,7 +226,7 @@ inline auto getInt(const rapidjson::Value& v)
     {
         return v.GetInt();
     }
-    throw ParseError{"PARSE_ERROR"};
+    throw ParseError{};
 }
 
 inline const auto& getValue(const rapidjson::Value& v, const char* k)
@@ -231,7 +235,7 @@ inline const auto& getValue(const rapidjson::Value& v, const char* k)
     {
         return v[k];
     }
-    throw ParseError{"PARSE_ERROR"};
+    throw ParseError{};
 }
 
 inline auto getArray(const rapidjson::Value& v, const char* k)
@@ -240,7 +244,7 @@ inline auto getArray(const rapidjson::Value& v, const char* k)
     {
         return v[k].GetArray();
     }
-    throw ParseError{"PARSE_ERROR"};
+    throw ParseError{};
 }
 
 } // namespace json

@@ -19,8 +19,7 @@ public:
     std::string challenge(const std::string& body);
     std::string status(const std::string& body) const;
     std::string getGames() const;
-    
-    void save2();
+    void save();
     
 private:
     class Impl;

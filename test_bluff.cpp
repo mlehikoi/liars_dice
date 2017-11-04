@@ -1,4 +1,5 @@
 #include "bid.hpp"
+#include "dice.hpp"
 #include "helpers.hpp"
 #include "engine.hpp"
 #include "json.hpp"
@@ -18,6 +19,11 @@
 using namespace std;
 
 namespace {
+class MockDice : public dice::IDice
+{
+public:
+    int roll() const override { return 1; }
+};
 using namespace dice;
 
 class AtEnd
@@ -280,7 +286,7 @@ TEST(EngineTest, Save) {
     std::remove(tmp.c_str());
     EXPECT_FALSE(fileExists(tmp));
 
-    e.save2();
+    e.save();
     EXPECT_TRUE(fileExists(tmp));
     //cout << slurp(tmp) << endl;
     const auto doc = dice::parse(dice::slurp(tmp));
@@ -452,14 +458,10 @@ TEST(EngineTest, TestChallenge) {
     ASSERT_TRUE(dice::parse(ret)["success"].GetBool());
 }
 
-class MockDice : public IDice
-{
-public:
-    int roll() const { return 1; }
-};
 TEST(EngineGame, TestConstruct) {
     MockDice d;
-    dice::Game g{"final", d};
+    Dice::setInstance(d);
+    dice::Game g{"final"};
     g.addPlayer("joe");
     g.addPlayer("ann");
     g.addPlayer("mary");

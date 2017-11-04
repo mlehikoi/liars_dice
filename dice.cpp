@@ -6,8 +6,10 @@ namespace dice {
 
 IDice::~IDice() {}
 
-Dice& Dice::instance()
+void Dice::setInstance(const IDice& dice) { dice_ = &dice; }
+const IDice& Dice::instance()
 {
+    if (dice_) return *dice_;
     static Dice dice;
     return dice;
 }
@@ -19,5 +21,6 @@ int Dice::roll() const
     std::uniform_int_distribution<int> uniform_dist(1, 6);
     return uniform_dist(e1);
 }
+const IDice* Dice::dice_{nullptr};
 
 } // namespace dice

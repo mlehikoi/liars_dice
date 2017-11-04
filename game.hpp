@@ -4,7 +4,7 @@
 
 #include "bid.hpp"
 #include "json.hpp"
-#include "helpers.hpp"
+#include "helpers.hpp" // RetVal
 
 #include <memory>
 #include <random>
@@ -12,6 +12,8 @@
 #include <vector>
 
 namespace dice {
+
+class IDice;
 
 template<typename T>
 inline T set(T& value, T newValue)
@@ -70,8 +72,8 @@ class Game
     
     void setTurn(const Player& player);
 public:
-    Game(const std::string& game, const IDice& diceRoll = Dice::instance());
-    Game(const std::string& game, const std::string& player, const IDice& diceRoll = Dice::instance());
+    explicit Game(const std::string& game);
+    Game(const std::string& game, const std::string& player);
     Game(Game&&) = delete;
 
     /** @return name of the game */

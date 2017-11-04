@@ -1,5 +1,7 @@
 #include "game.hpp"
 
+#include "dice.hpp"
+
 #include <algorithm>
 
 namespace dice {
@@ -62,22 +64,22 @@ void Game::setTurn(const Player& player)
     }
 }
 
-Game::Game(const std::string& game, const IDice& diceRoll)
+Game::Game(const std::string& game)
     : game_{game},
     players_{},
     turn_{0},
     currentBid_{},
-    diceRoll_{diceRoll},
+    diceRoll_{Dice::instance()},
     state_{GAME_NOT_STARTED}
 {
 }
 
-Game::Game(const std::string& game, const std::string& player, const IDice& diceRoll)
+Game::Game(const std::string& game, const std::string& player)
   : game_{game},
     players_{},
     turn_{0},
     currentBid_{},
-    diceRoll_{diceRoll},
+    diceRoll_{Dice::instance()},
     state_{GAME_NOT_STARTED}
 {
     players_.emplace_back(player, diceRoll_);

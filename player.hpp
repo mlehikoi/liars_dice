@@ -1,11 +1,12 @@
 #pragma once
 #include "bid.hpp"
-#include "dice.hpp"
 
 #include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
 
 namespace dice {
+
+class IDice;
 
 class Player
 {
@@ -13,12 +14,6 @@ class Player
     std::vector<int> hand_;
     Bid bid_;
     const IDice& diceRoll_;
-    // Player()
-    //   : name_{},
-    //     diceRoll_{Dice::instance()}
-    // {
-
-    // }
 public:
     Player(const std::string& name, const IDice& diceRoll)
       : name_{name},

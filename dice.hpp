@@ -11,10 +11,12 @@ public:
 
 class Dice : public IDice
 {
+    static const IDice* dice_;
 public:
-    static Dice& instance();
+    static void setInstance(const IDice& dice);
+    static const IDice& instance();
 
-    virtual int roll() const;// override;
+    virtual int roll() const override;
 };
 
 } // namespace dice
