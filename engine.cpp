@@ -259,9 +259,8 @@ private:
     {
         for (const auto& jgame : json::getArray(doc, "games"))
         {
-            auto game = Game::fromJson(jgame);
-            if (game)
-            {
+            try {
+                auto game = Game::fromJson(jgame);
                 for (const auto& player : game->players())
                 {
                     const auto id = getId(player.name());
@@ -279,6 +278,8 @@ private:
                 }
                 if (!game->players().empty())
                     games_.emplace(game->name(), std::move(game));
+            } catch (const json::ParseError&) {
+                // Format error in one game shouldn't prevent parsing the others
             }
         }
     }

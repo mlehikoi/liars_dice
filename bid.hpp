@@ -39,10 +39,15 @@ public:
     int score() const;
     bool valid() const { return score() > 0; }
 
+    /// Equality operator
     bool operator==(const Bid& bid) const { return n_ == bid.n_ && face_ == bid.face_; }
+    /// Less than
     bool operator<(const Bid& other) const;
+    /// Less than equal
     bool operator<=(const Bid& other) const;
+    /// Greater than
     bool operator>(const Bid& other) const;
+    /// Greater than equal
     bool operator>=(const Bid& other) const;
 
     /**

@@ -71,23 +71,54 @@ class Game
     std::tuple<int, bool, bool> getResult(int offset, const Player& player) const;
     
     void setTurn(const Player& player);
+    void nextPlayer();
 public:
+    /// Construct a new game
+    /// @param game [in] name of the game
     explicit Game(const std::string& game);
+    /// Construct a new game
+    /// @param game [in] name of the game
+    /// @param player [in] first player in the game
     Game(const std::string& game, const std::string& player);
+    /// No copying
     Game(Game&&) = delete;
 
-    /** @return name of the game */
+    /// @return name of the game
     const auto& name() { return game_; }
+
+    /// Add player to the game
+    /// @param player [in] player's name
+    /// @return json indicating the success of the operation
     RetVal addPlayer(const std::string& player);
+
+    /// Remove player from the game
+    /// @param player [in] player to remove
     void removePlayer(const Player& player);
 
+    /// @return players in the game
     const auto& players() const { return players_; }
     
+    /// Start the game
+    /// @return json indicating the success of the operation
     RetVal startGame();
+
+    /// Start the round of the game
+    /// @return json indicating the success of the operation
     RetVal startRound();
-    void nextPlayer(); //@TODO Private?
+
+    /// Make a bid
+    /// @param player [in] who's bidding
+    /// @param n [in] how many
+    /// @param face [in] WTF = what's the face
+    /// @return json indicating the success of the operation
     RetVal bid(const std::string& player, int n, int face);
-    RetVal challenge(const std::string player);
+
+    /// Challenge previous player's bid
+    /// @param player [in] the challenger
+    /// @return json indicating the success of the operation
+    RetVal challenge(const std::string& player);
+
+    /// @return status of the game for the given player
     std::string getStatus(const std::string& player);
 
     /**
@@ -99,7 +130,17 @@ public:
      *     show all dice.
      */
     void serialize(json::Writer& w, const std::string& name) const;
+
+    /**
+     * Serialize information about all games: name, players.
+     *
+     * @param w [out] state is serialized here
+     */
     void serializeGameInfo(json::Writer& w) const;
+
+    /// Load game from json
+    /// @param v [in] json where to serialize from
+    /// @throws ParseError if invalid format
     static std::unique_ptr<Game> fromJson(const rapidjson::Value& v);
 };
 

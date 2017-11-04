@@ -11,6 +11,7 @@ public:
     /// Construct Engine
     /// @param filename [in] json file for loading and saving
     Engine(const std::string& filename) noexcept;
+    /// Destructor
     ~Engine() noexcept;
 
     /// Create a new user account

@@ -162,7 +162,7 @@ RetVal Game::bid(const std::string& player, int n, int face)
     return Success{};
 }
 
-RetVal Game::challenge(const std::string player)
+RetVal Game::challenge(const std::string& player)
 {
     if (currentBid_ == Bid{}) return Error{"NOTHING_TO_CHALLENGE"};
     if (player != currentPlayer().name()) return Error{"NOT_YOUR_TURN"};
@@ -248,24 +248,16 @@ void Game::serializeGameInfo(json::Writer& w) const
 
 std::unique_ptr<Game> Game::fromJson(const rapidjson::Value& v)
 {
-    try
+    using namespace json;
+    auto game = std::make_unique<Game>(getString(v, "game"));
+    game->turn_ = getInt(v, "turn");
+    game->state_ = fromString(getString(v, "state"));
+    game->currentBid_ = Bid::fromJson(getValue(v, "bid"));
+    for (const auto& jplayer : getArray(v, "players"))
     {
-        using namespace json;
-        auto game = std::make_unique<Game>(getString(v, "game"));
-        game->turn_ = getInt(v, "turn");
-        game->state_ = fromString(getString(v, "state"));
-        game->currentBid_ = Bid::fromJson(getValue(v, "bid"));
-        for (const auto& jplayer : getArray(v, "players"))
-        {
-            game->players_.push_back(Player::fromJson(jplayer));
-        }
-        return game;
+        game->players_.push_back(Player::fromJson(jplayer));
     }
-    catch (json::ParseError)
-    {
-        std::cerr << "Failed to parse game from json" << std::endl;
-    }
-    return std::unique_ptr<Game>{};
+    return game;
 }
 
 } // namespace dice
