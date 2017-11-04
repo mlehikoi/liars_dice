@@ -16,17 +16,25 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         -Wno-c++98-compat-pedantic
         -Wno-exit-time-destructors
         -Wno-shadow-uncaptured-local
+        # For plantuml
         -Wno-documentation-unknown-command
+        # virtual methods in header files
+        -Wno-weak-vtables
     )
 endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set_source_files_properties(test_bluff.cpp PROPERTIES COMPILE_FLAGS -Wno-everything)
+    set_source_files_properties(test/test_dice.cpp PROPERTIES COMPILE_FLAGS -Wno-everything)
 endif()
 
 enable_testing()
 
 find_package(Boost COMPONENTS system REQUIRED)
+
+include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
 include_directories(SYSTEM
     ../crow/include
@@ -61,6 +69,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 endif()
 add_executable(runUnitTests
     test_bluff.cpp
+    test/test_dice.cpp
 )
 
 target_link_libraries(runUnitTests

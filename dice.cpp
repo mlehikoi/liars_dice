@@ -6,7 +6,7 @@ namespace dice {
 
 IDice::~IDice() {}
 
-void Dice::setInstance(const IDice& dice) { dice_ = &dice; }
+void Dice::setInstance(const IDice* dice) { dice_ = dice; }
 const IDice& Dice::instance()
 {
     if (dice_) return *dice_;

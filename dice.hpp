@@ -13,7 +13,7 @@ class Dice : public IDice
 {
     static const IDice* dice_;
 public:
-    static void setInstance(const IDice& dice);
+    static void setInstance(const IDice* dice);
     static const IDice& instance();
 
     virtual int roll() const override;

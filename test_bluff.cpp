@@ -4,6 +4,7 @@
 #include "engine.hpp"
 #include "json.hpp"
 #include "game.hpp"
+#include "test/mockdice.hpp"
 
 #include <unordered_set>
 
@@ -18,13 +19,9 @@
 
 using namespace std;
 
-namespace {
-class MockDice : public dice::IDice
-{
-public:
-    int roll() const override { return 1; }
-};
 using namespace dice;
+
+namespace {
 
 class AtEnd
 {
@@ -460,7 +457,8 @@ TEST(EngineTest, TestChallenge) {
 
 TEST(EngineGame, TestConstruct) {
     MockDice d;
-    Dice::setInstance(d);
+    Dice::setInstance(&d);
+    AtEnd ae{[]{ Dice::setInstance(nullptr); }};
     dice::Game g{"final"};
     g.addPlayer("joe");
     g.addPlayer("ann");
