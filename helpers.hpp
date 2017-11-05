@@ -30,9 +30,9 @@ inline bool hasItem(const Container& c, const KeyType& k)
 /// @tparam Container type of container, should have key-values.
 /// Note! the search time is linear.
 ///
-/// @tparam KeyType type of the key in container
+/// @tparam ValueType type of the key in container
 /// @param c [in] the container where to find the value
-/// @param k [in] the value to search for
+/// @param v [in] the value to search for
 /// @return if the valye was found
 template<typename Container, typename ValueType>
 inline bool hasValue(const Container& c, const ValueType& v)
