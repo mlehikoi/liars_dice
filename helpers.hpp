@@ -14,12 +14,26 @@
 
 namespace dice {
 
+/// Check if the given container has the given key.
+/// @tparam Container type of container, should have find method
+/// @tparam KeyType type of the key in container
+/// @param c [in] the container where to find the key
+/// @param k [in] the key to search for
+/// @return if the key was found
 template<typename Container, typename KeyType>
 inline bool hasItem(const Container& c, const KeyType& k)
 {
     return c.find(k) != c.end();
 }
 
+/// Check if the given container has the given value.
+/// @tparam Container type of container, should have key-values.
+/// Note! the search time is linear.
+///
+/// @tparam KeyType type of the key in container
+/// @param c [in] the container where to find the value
+/// @param k [in] the value to search for
+/// @return if the valye was found
 template<typename Container, typename ValueType>
 inline bool hasValue(const Container& c, const ValueType& v)
 {
@@ -31,27 +45,6 @@ inline bool hasValue(const Container& c, const ValueType& v)
         }
     }
     return false;
-}
-
-template<typename Doc>
-bool hasString(const Doc& doc, const char* member)
-{
-    return doc.IsObject() &&
-            doc.HasMember(member) &&
-            doc[member].IsString();
-}
-
-template<typename Doc>
-std::string getString2(const Doc& doc, const char* member)
-{
-    return hasString(doc, member) ? doc[member].GetString() : "";
-}
-
-template<typename Doc>
-int getInt2(const Doc& doc, const char* member)
-{
-    return doc.IsObject() && doc.HasMember(member) && doc[member].IsInt() ?
-        doc[member].GetInt() : -1;
 }
 
 class RetVal
