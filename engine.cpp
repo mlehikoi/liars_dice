@@ -332,7 +332,7 @@ std::string Engine::startGame(const std::string& body) noexcept
 {
     try {
         return impl_->startGame(body);
-    } catch (const std::exception& e) {
+    } catch (const std::runtime_error& e) {
         return Error{e.what()};
     }
 }

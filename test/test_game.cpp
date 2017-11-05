@@ -20,5 +20,15 @@ TEST(GameTest, Save) {
     ASSERT_STREQ(txt0.c_str(), s.GetString());
 }
 
+TEST(GameTest, JoinWhenGameInProgress) {
+    Game game{"joe"};
+    game.addPlayer("ann");
+    ASSERT_TRUE(game.startGame());
+    ASSERT_TRUE(game.startRound());
+    auto rv = game.addPlayer("mary");
+    ASSERT_FALSE(rv);
+    ASSERT_STREQ("GAME_IN_PROGRESS", json::getString(parse(rv), "error"));
+}
+
 } // Unnamed namespace
 } // namespace dice

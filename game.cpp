@@ -87,9 +87,18 @@ Game::Game(const std::string& game, const std::string& player)
 
 RetVal Game::addPlayer(const std::string& player)
 {
-    if (players_.size() >= 8) return Error{"TOO_MANY_PLAYERS"};
-    players_.emplace_back(player);
-    return Success{};
+    switch (state_)
+    {
+    case GAME_NOT_STARTED:
+    case GAME_FINISHED:
+        if (players_.size() >= 8) return Error{"TOO_MANY_PLAYERS"};
+        players_.emplace_back(player);
+        return Success{};
+    case GAME_STARTED:
+    case ROUND_STARTED:
+    case CHALLENGE:
+        return Error{"GAME_IN_PROGRESS"};
+    }
 }
 
 void Game::removePlayer(const Player& player)

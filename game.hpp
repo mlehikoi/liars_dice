@@ -121,21 +121,16 @@ public:
     /// @return status of the game for the given player
     std::string getStatus(const std::string& player);
 
-    /**
-     * Serialize engine state to given writer. If round is still in progress,
-     * only given player's dice are "shown".
-     *
-     * @param w [out] state is serialized here
-     * @param name [in] who's dice to show if round is in progress. If empty,
-     *     show all dice.
-     */
+    /// Serialize engine state to given writer. If round is still in progress,
+    /// only given player's dice are "shown".
+    ///
+    /// @param w [out] state is serialized here
+    /// @param name [in] who's dice to show if round is in progress. If empty,
+    ///                  show all dice.
     void serialize(json::Writer& w, const std::string& name) const;
 
-    /**
-     * Serialize information about all games: name, players.
-     *
-     * @param w [out] state is serialized here
-     */
+    /// Serialize information about all games: name, players.
+    /// @param w [out] state is serialized here
     void serializeGameInfo(json::Writer& w) const;
 
     /// Load game from json
