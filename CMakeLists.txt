@@ -43,6 +43,7 @@ add_library(libdice
     bid.cpp
     dice.cpp
     engine.cpp
+    filehelpers.cpp
     game.cpp
     player.cpp
 )

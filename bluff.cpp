@@ -1,6 +1,6 @@
-#include "crow.h"
+#include "crow/app.h"
 
-#include "helpers.hpp"
+#include "filehelpers.hpp"
 #include "engine.hpp"
 
 #include <string>
@@ -29,7 +29,6 @@ inline auto readFile(const std::string& name)
 int main()
 {
     static dice::Engine engine{"db.json"};
-    
     crow::SimpleApp app;
 
     CROW_ROUTE(app, "/")([]{ return readFile("index.html"); });
@@ -96,22 +95,20 @@ int main()
 
     CROW_ROUTE(app, "/api/challenge")
     .methods("POST"_method)
-    ([](const crow::request& req)
-    {
+    ([](const crow::request& req) {
         auto r = engine.challenge(req.body);
         std::cout << "Return " << r << endl;
         return r;
     });
 
-    CROW_ROUTE(app, "/api/games")([]{
+    CROW_ROUTE(app, "/api/games")([] {
         return engine.getGames();
     });
 
-    CROW_ROUTE(app, "/<string>")(readFile);
-    CROW_ROUTE(app, "/<string>/<string>")([](const auto& dir, const auto& name)
-    {
-        return readFile(dir + "/" + name); }
-    );
+    CROW_ROUTE(app, "/<string>")([](std::string name){ return readFile(name); });
+    CROW_ROUTE(app, "/<string>/<string>")([](std::string dir, std::string name) {
+        return readFile(dir + "/" + name);
+    });
     
     app.port(8000).run();
 }
