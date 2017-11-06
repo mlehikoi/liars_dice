@@ -9,9 +9,9 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="210mm"
-   height="297mm"
-   viewBox="0 0 210 297"
+   width="135.46666mm"
+   height="135.46666mm"
+   viewBox="0 0 135.46666 135.46666"
    version="1.1"
    id="svg8"
    inkscape:version="0.92.2 5c3e80d, 2017-08-06"
@@ -26,8 +26,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.93196203"
-     inkscape:cx="271.07301"
-     inkscape:cy="276.9202"
+     inkscape:cx="273.28804"
+     inkscape:cy="276.92021"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -44,14 +44,15 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
-     id="layer1">
+     id="layer1"
+     transform="translate(0,-161.53334)">
     <rect
        style="fill:#c10000;fill-opacity:1;fill-rule:evenodd;stroke:#9f2022;stroke-width:5.06802797;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="rect815"
@@ -77,17 +78,7 @@
            x="84"
            y="702.51971"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:426.66668701px;font-family:'Comic Sans MS';-inkscape-font-specification:'Comic Sans MS'" /></flowRegion><flowPara
-         id="flowPara2110">??</flowPara></flowRoot>    <circle
-       style="fill:#c1c600;fill-opacity:1;fill-rule:evenodd;stroke:#9f2022;stroke-width:5.72051811;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="circle2135"
-       cx="139.70001"
-       cy="-130.84166"
-       r="14.073074"
-       inkscape:export-filename="/Users/mlehikoi/bluff/static/three-512x512.png"
-       inkscape:export-xdpi="95.989998"
-       inkscape:export-ydpi="95.989998"
-       transform="scale(1,-1)" />
-    <path
+         id="flowPara2110">??</flowPara></flowRoot>    <path
        sodipodi:type="star"
        style="fill:#c1c600;fill-opacity:1;fill-rule:evenodd;stroke:#9f2022;stroke-width:11.21033001;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="path5830"

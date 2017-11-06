@@ -55,7 +55,8 @@ std::string getContentType(const std::string& path)
         { "png", "image/png" },
         { "js", "application/javascript" },
         { "html", "text/html; charset=utf-8"},
-        { "ico", "image/x-icon"}
+        { "ico", "image/x-icon"},
+        { "svg", "image/svg+xml"}
     };
     const auto it = types.find(getExtension(path));
     return it != types.end() ? it->second : "";

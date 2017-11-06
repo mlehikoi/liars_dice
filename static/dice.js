@@ -115,7 +115,7 @@ function drawMyBid() {
 function drawDice(pid, cell) {
     let images = '';
     for (let dice of myGame.players[pid].hand) {
-        images += '<img src="' + Images[dice][0] + '-512x512.png" alt="' + Images[dice][1] + '" width="24" height="24">\n';
+        images += '<img src="/images/' + Images[dice][0] + '-24x24.png" alt="' + Images[dice][1] + '" width="24" height="24">\n';
     }
     const adj = myGame.players[pid].adjustment;
     if (adj) {
@@ -134,7 +134,7 @@ function drawBid(pid, cell) {
     console.log(theBid);
     if (theBid && theBid.n > 0 && theBid.face > 0) {
         txt += theBid.n + ' ';
-        txt += '<img src="' + Images[theBid.face][0] + '-512x512.png" alt="' + Images[theBid.face][1] +
+        txt += '<img src="/images/' + Images[theBid.face][0] + '-24x24.png" alt="' + Images[theBid.face][1] +
             '" width="24" height="24">\n';
     }
     if (txt != bidImages[pid]) {

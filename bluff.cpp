@@ -17,7 +17,8 @@ namespace dice {
 inline auto readFile(const std::string& name)
 {
     const auto path = "../static/"s + name;
-    const auto data = dice::slurp("../static/"s + path);
+    std::cout << "Slurping " << path << std::endl;
+    const auto data = dice::slurp(path);
     if (data.empty()) return crow::response(404);
     crow::response r{data};
     r.add_header("Content-Type", getContentType(name));
@@ -107,6 +108,10 @@ int main()
     });
 
     CROW_ROUTE(app, "/<string>")(readFile);
+    CROW_ROUTE(app, "/<string>/<string>")([](const auto& dir, const auto& name)
+    {
+        return readFile(dir + "/" + name); }
+    );
     
     app.port(8000).run();
 }
