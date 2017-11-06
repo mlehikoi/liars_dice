@@ -2,6 +2,7 @@
 
 #include "filehelpers.hpp"
 #include "engine.hpp"
+#include "expires.hpp"
 
 #include <string>
 
@@ -22,6 +23,7 @@ inline auto readFile(const std::string& name)
     if (data.empty()) return crow::response(404);
     crow::response r{data};
     r.add_header("Content-Type", getContentType(name));
+    r.add_header("Expires", expires());
     return r;
 }
 } // dice
