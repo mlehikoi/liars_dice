@@ -35,28 +35,48 @@ include_directories(SYSTEM
     ../crow/include
     ../rapidjson/include
     ../googletest/googletest/include
+    ../brotli/c/include
     ${Boost_INCLUDE_DIRS}
 )
 
 add_library(libdice
-    helpers.cpp
     bid.cpp
+    brotli.cpp
     dice.cpp
     engine.cpp
     expires.cpp
     filehelpers.cpp
     game.cpp
+    helpers.cpp
     player.cpp
 )
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    link_directories(../brotli/build-clang)
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    link_directories(../brotli/build-gcc)
+endif()
+
 add_executable(bluff
     bluff.cpp
 )
 
 target_link_libraries(bluff
     libdice
+    brotlicommon-static
+    brotlienc-static
+    brotlidec-static
     ${Boost_LIBRARIES}
     ${Boost_SYSTEM_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT}
+)
+
+set(TEST_FILES
+    test_bluff.cpp
+    test/test_dice.cpp
+    test/test_game.cpp
+    test/test_player.cpp
+    test/test_brotli.cpp
 )
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -64,13 +84,6 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     link_directories(../googletest/build-gcc/googlemock/gtest)
 endif()
-
-set(TEST_FILES
-    test_bluff.cpp
-    test/test_dice.cpp
-    test/test_game.cpp
-    test/test_player.cpp
-)
 
 add_executable(runUnitTests ${TEST_FILES})
 
@@ -84,6 +97,9 @@ target_link_libraries(runUnitTests
     libdice
     gtest
     gtest_main
+    brotlicommon-static
+    brotlienc-static
+    brotlidec-static
     ${Boost_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
 )

@@ -8,15 +8,6 @@
 
 namespace {
 
-class AtEnd
-{
-    std::function<void()> f_;
-public:
-    AtEnd(const std::function<void()>& f) : f_{f} {}
-    AtEnd(AtEnd&&) = delete;
-    ~AtEnd() { f_(); }
-};
-
 inline std::string tmpName(const char* prefix)
 {
     char tmp[4096];

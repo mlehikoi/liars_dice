@@ -1,3 +1,4 @@
+#include "atend.hpp"
 #include "bid.hpp"
 #include "dice.hpp"
 #include "helpers.hpp"
