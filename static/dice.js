@@ -329,12 +329,7 @@ function refreshGames() {
 
 function getStatus() {
     console.log('getStatus');
-    $.post('/api/status', JSON.stringify({id: myId}), function (data) {
-//        if (prevStatusTxt == data) {
-//            return pollStatus();
-//        }
-        prevStatusTxt = data;
-        const json = JSON.parse(data);    
+    $.post('/api/status', JSON.stringify({id: myId}), function (json) {
         if (json.success) {
             console.log(json);
             if (json.hasOwnProperty('game')) {
@@ -345,7 +340,7 @@ function getStatus() {
                     handleState(myState);
                 } else if (myGame.state == 'GAME_NOT_STARTED') {
                     myState = State.WAITING;
-                    $('#welcomeMessage').html(data.name + ', waiting for others' +
+                    $('#welcomeMessage').html(json.name + ', waiting for others' +
                                               ' to join the game. Click start when you\'re' +
                                               ' ready to start the game.');
                     $('#welcomeMessage').removeClass('hidden');
@@ -355,8 +350,8 @@ function getStatus() {
                     handleState();
                 }
             } else {
-                myName = data.name;
-                $('#welcomeMessage').html('Welcome, ' + data.name + '.' +
+                myName = json.name;
+                $('#welcomeMessage').html('Welcome, ' + json.name + '.' +
                                           ' Start up a new game or select an existing' +
                                           ' game to join.');
                 $('#welcomeMessage').removeClass('hidden');
@@ -368,7 +363,7 @@ function getStatus() {
             $('#Login').removeClass('hidden');
             $('#SetupCreate').addClass('hidden');
         }
-    });
+    }, 'json');
 }
 
 function login(name) { // eslint-disable-line no-unused-vars

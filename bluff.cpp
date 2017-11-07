@@ -1,8 +1,10 @@
-#include "crow/app.h"
+#include <crow/app.h>
 
+#include "brotli.hpp"
 #include "filehelpers.hpp"
 #include "engine.hpp"
 #include "expires.hpp"
+#include "httphelpers.hpp"
 
 #include <string>
 
@@ -10,6 +12,7 @@ using namespace std;
 using namespace dice;
 
 namespace dice {
+
 /**
  * Read the given file
  * @param name [in] filename
@@ -26,6 +29,22 @@ inline auto readFile(const std::string& name)
     r.add_header("Expires", expires());
     return r;
 }
+
+inline auto packJson(const std::string& json, const crow::request& req)
+{
+    crow::response resp;
+    if (dice::hasHttpValue(req.get_header_value("Accept-Encoding"), "bro"))
+    {
+        resp.write(dice::compress(json));
+        resp.add_header("Content-Encoding", "br");
+    }
+    else
+    {
+        resp.write(json);
+    }
+    resp.add_header("Content-Type", "application/json");
+    return resp;
+}
 } // dice
 
 int main()
@@ -34,6 +53,16 @@ int main()
     crow::SimpleApp app;
 
     CROW_ROUTE(app, "/")([]{ return readFile("index.html"); });
+
+    CROW_ROUTE(app, "/game.html")
+        .methods("GET"_method)
+        ([](const crow::request& req)
+        {
+            std::cout << req.url_params << std::endl;
+            std::cout << req.get_header_value("Accept-Encoding") << std::endl;
+            return readFile("index.html");
+        }
+    );
     
     //@TODO This isn't login but register
     CROW_ROUTE(app, "/api/login")
@@ -48,7 +77,7 @@ int main()
         .methods("POST"_method)
         ([](const crow::request& req)
         {
-            return engine.status(req.body);
+            return packJson(engine.status(req.body), req);
         }
     );
     
@@ -112,5 +141,6 @@ int main()
         return readFile(dir + "/" + name);
     });
     
+    //crow::logger::setLogLevel(crow::LogLevel::CRITICAL);
     app.port(8000).run();
 }
