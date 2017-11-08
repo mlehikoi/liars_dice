@@ -5,7 +5,7 @@ find_package(Threads)
 
 add_definitions(
     -g
-    # -O2
+    -O3
     -std=c++14
     -Werror
 )
@@ -79,6 +79,7 @@ set(TEST_FILES
     test/test_player.cpp
     test/test_brotli.cpp
     test/test_httphelpers.cpp
+    test/test_tokenizer.cpp
 )
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")

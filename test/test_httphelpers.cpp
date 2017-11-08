@@ -86,6 +86,11 @@ TEST(HttpHelpersTest, Weight) {
     ASSERT_FALSE(dice::hasHttpValue(header, "br"));
 }
 
+TEST(HttpHelpersTest, NotFirstMatch) {
+    constexpr auto header = "deflate1, deflate, *;q=0.5";
+    ASSERT_TRUE(dice::hasHttpValue(header, "deflate"));
+}
+
 TEST(HttpHelpersTest, Benchmark) {
     // int matches = 0;
     // constexpr auto header = "deflate, gzip;q=1.0, *;q=0.5";
