@@ -6,6 +6,8 @@
 #include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>
 
+#include <tuple>
+
 namespace dice {
 
 void Player::roll()

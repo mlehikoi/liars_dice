@@ -1,6 +1,7 @@
 #include "filehelpers.hpp"
 
 #include <fstream>
+#include <memory>
 #include <unordered_map>
 
 namespace dice {
