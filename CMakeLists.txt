@@ -68,6 +68,7 @@ target_link_libraries(bluff
     brotlicommon-static
     brotlienc-static
     brotlidec-static
+    brotlicommon-static
     ${Boost_LIBRARIES}
     ${Boost_SYSTEM_LIBRARY}
     ${CMAKE_THREAD_LIBS_INIT}
@@ -105,6 +106,7 @@ target_link_libraries(runUnitTests
     brotlicommon-static
     brotlienc-static
     brotlidec-static
+    brotlicommon-static
     ${Boost_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
 )
