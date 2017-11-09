@@ -379,7 +379,7 @@ function login(name) { // eslint-disable-line no-unused-vars
             console.log(data);
             if (data.success) {
                 myName = data.userName;
-                window.location.replace('?id=' + data.id);
+                window.location.replace('game.html?id=' + data.id);
             } else {
                 $('#userNameStatus').html(name + ' is already taken.');
                 $('#userNameStatus').removeClass('hidden');
