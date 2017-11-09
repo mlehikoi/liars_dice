@@ -5,6 +5,7 @@
 #include "engine.hpp"
 #include "expires.hpp"
 #include "httphelpers.hpp"
+#include "ssi.hpp"
 
 #include <string>
 
@@ -23,6 +24,16 @@ inline auto readFile(const std::string& name)
     const auto path = "../static/"s + name;
     std::cout << "Slurping " << path << std::endl;
     const auto data = dice::slurp(path);
+    if (data.empty()) return crow::response(404);
+    crow::response r{data};
+    r.add_header("Content-Type", getContentType(name));
+    r.add_header("Expires", expires());
+    return r;
+}
+
+inline auto readHtmlFile(const std::string& name)
+{
+    const auto data = dice::readHtml(name, "../static");
     if (data.empty()) return crow::response(404);
     crow::response r{data};
     r.add_header("Content-Type", getContentType(name));
@@ -136,7 +147,7 @@ int main()
         return engine.getGames();
     });
 
-    CROW_ROUTE(app, "/<string>")([](std::string name){ return readFile(name); });
+    CROW_ROUTE(app, "/<string>")([](std::string name){ return readHtmlFile(name); });
     CROW_ROUTE(app, "/<string>/<string>")([](std::string dir, std::string name) {
         return readFile(dir + "/" + name);
     });

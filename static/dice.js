@@ -8,7 +8,7 @@ var myName = ''; // eslint-disable-line no-unused-vars
 var myId = '';
 var games;
 var myGame;
-var prevStatusTxt = '';
+//var prevStatusTxt = '';
 var prevBid = {
     n: 0,
     face: 1
@@ -445,35 +445,30 @@ $('#start-round').click(function() {
 });
 
 $(function() {
-    $.get('/gameon.html', function (html) {
-        $('#GameOn').html(html);
-
-        $('#n-minus').click(function() {
-            adjustN(-1);
-        });
-        $('#n-plus').click(function() {
-            adjustN(1);
-        });
-        $('#face-minus').click(function() {
-            adjustFace(-1);
-        });
-        $('#face-plus').click(function() {
-            adjustFace(1);
-        });
-        $('#bid').click(function() {
-            bid();
-        });
-        $('#challenge').click(function() {
-            challenge();
-        });
-        $('#done-viewing-results').click(function() {
-            done();
-        });
-        myId = getParameterByName('id');
-        console.log('Loaded content for ' + myId);
-        getStatus();
-
+    $('#n-minus').click(function() {
+        adjustN(-1);
     });
+    $('#n-plus').click(function() {
+        adjustN(1);
+    });
+    $('#face-minus').click(function() {
+        adjustFace(-1);
+    });
+    $('#face-plus').click(function() {
+        adjustFace(1);
+    });
+    $('#bid').click(function() {
+        bid();
+    });
+    $('#challenge').click(function() {
+        challenge();
+    });
+    $('#done-viewing-results').click(function() {
+        done();
+    });
+    myId = getParameterByName('id');
+    console.log('Loaded content for ' + myId);
+    getStatus();
 });
 
 
