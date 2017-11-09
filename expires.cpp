@@ -10,8 +10,9 @@ namespace dice {
 std::string expires()
 {
     const auto expires = std::chrono::system_clock::now() + std::chrono::hours{365 * 24};
-    std::time_t tt = std::chrono::system_clock::to_time_t(expires);
-    std::tm * ptm = std::gmtime(&tt);
+    const auto tt = std::chrono::system_clock::to_time_t(expires);
+    std::tm tm;
+    const auto* ptm = gmtime_r(&tt, &tm);
 
     std::stringstream ss;
     // Need to make sure that this works alse when default locale is non-English
