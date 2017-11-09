@@ -14,7 +14,7 @@ using Writer = rapidjson::PrettyWriter<rapidjson::StringBuffer>;
 // Simple writer
 class Value
 {
-    enum class Type { Null, Bool, Object0, Object1, ObjectN, Int, Double, String, Array } type_;
+    enum class Type { Null, Bool, Object0, Object1, ObjectN, Int, Double, String, Array0, ArrayN } type_;
     union Data
     {
         bool b_;
@@ -56,6 +56,7 @@ public:
     void print(Writer& w) const;
 protected:
     struct Dummy {};
+    Value(Dummy&&);
     Value(Dummy&&, const std::initializer_list<Value>& values);
 };
 
@@ -69,7 +70,8 @@ inline Value::Value(int i) : type_{Type::Int}, data_{i} {}
 inline Value::Value(double d) : type_{Type::Double}, data_{d} {}
 inline Value::Value(const char* str) : type_{Type::String}, data_{str} {}
 inline Value::Value(const std::string& str) : type_{Type::String}, data_{str.c_str()} {}
-inline Value::Value(Dummy&&, const std::initializer_list<Value>& values) : type_{Type::Array}, data_{&values} {}
+inline Value::Value(Dummy&&) : type_{Type::Array0}, data_{} {}
+inline Value::Value(Dummy&&, const std::initializer_list<Value>& values) : type_{Type::ArrayN}, data_{&values} {}
 
 inline void Value::print(Writer& w) const
 {
@@ -95,7 +97,11 @@ inline void Value::print(Writer& w) const
         }
         w.EndObject();
         break;
-    case Type::Array:
+    case Type::Array0:
+        w.StartArray();
+        w.EndArray();
+        break;
+    case Type::ArrayN:
         w.StartArray();
         for (const auto& v : *data_.a_) v.print(w);
         w.EndArray();
@@ -106,7 +112,7 @@ inline void Value::print(Writer& w) const
 class Array : public Value
 {
 public:
-    Array() : Value{Dummy{}, {}} {}
+    Array() : Value{Dummy{}} {}
     Array(const std::initializer_list<Value>& values) : Value{Dummy{}, values} {}
 };
 
