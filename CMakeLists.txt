@@ -50,6 +50,7 @@ add_library(libdice
     game.cpp
     helpers.cpp
     player.cpp
+    ssi.cpp
 )
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -80,6 +81,7 @@ set(TEST_FILES
     test/test_brotli.cpp
     test/test_httphelpers.cpp
     test/test_tokenizer.cpp
+    test/test_ssi.cpp
 )
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
