@@ -63,18 +63,8 @@ int main()
     static dice::Engine engine{"db.json"};
     crow::SimpleApp app;
 
-    CROW_ROUTE(app, "/")([]{ return readFile("index.html"); });
+    CROW_ROUTE(app, "/")([]{ return readHtmlFile("index.html"); });
 
-    CROW_ROUTE(app, "/game.html")
-        .methods("GET"_method)
-        ([](const crow::request& req)
-        {
-            std::cout << req.url_params << std::endl;
-            std::cout << req.get_header_value("Accept-Encoding") << std::endl;
-            return readFile("index.html");
-        }
-    );
-    
     //@TODO This isn't login but register
     CROW_ROUTE(app, "/api/login")
         .methods("POST"_method)
@@ -83,7 +73,7 @@ int main()
             return engine.login(req.body);
         }
     );
-    
+
     CROW_ROUTE(app, "/api/status")
         .methods("POST"_method)
         ([](const crow::request& req)
@@ -91,7 +81,7 @@ int main()
             return packJson(engine.status(req.body), req);
         }
     );
-    
+
     CROW_ROUTE(app, "/api/newGame")
         .methods("POST"_method)
         ([](const crow::request& req)
@@ -147,11 +137,14 @@ int main()
         return engine.getGames();
     });
 
-    CROW_ROUTE(app, "/<string>")([](std::string name){ return readHtmlFile(name); });
+    CROW_ROUTE(app, "/<string>")([](std::string name) {
+	return readHtmlFile(name);
+    });
+
     CROW_ROUTE(app, "/<string>/<string>")([](std::string dir, std::string name) {
         return readFile(dir + "/" + name);
     });
-    
+
     //crow::logger::setLogLevel(crow::LogLevel::CRITICAL);
     app.port(8000).run();
 }
