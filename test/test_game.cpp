@@ -27,7 +27,7 @@ TEST(GameTest, JoinWhenGameInProgress) {
     ASSERT_TRUE(game.startRound());
     auto rv = game.addPlayer("mary");
     ASSERT_FALSE(rv);
-    ASSERT_STREQ("GAME_IN_PROGRESS", json::getString(parse(rv), "error"));
+    ASSERT_STREQ("GAME_IN_PROGRESS", json::getString(parse(rv), "error").c_str());
 }
 
 } // Unnamed namespace

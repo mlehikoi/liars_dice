@@ -20,7 +20,7 @@ class Value
         bool b_;
         std::pair<const char*, const Value*> kv_;
         const std::initializer_list<std::pair<const char*, Value>>* kvs_;
-        const std::initializer_list<Value>* a_; 
+        const std::initializer_list<Value>* a_;
         int i_;
         double d_;
         const char* s_;
@@ -37,7 +37,7 @@ class Value
 public:
     Value(std::nullptr_t);
     Value(bool b);
-    
+
     // object
     Value();
     Value(const char* name, const Value& value);
@@ -52,7 +52,7 @@ public:
     Value(double d);
     Value(const char* str);
     Value(const std::string& str);
-    
+
     void print(Writer& w) const;
 protected:
     struct Dummy {};
@@ -214,7 +214,17 @@ public:
     // ParseError(const std::string& str = "") : str_{str} {}
     // operator const std::string&() const { return str_; }
 };
-inline auto getString(const rapidjson::Value& v, const char* k)
+
+inline const auto* getString(const rapidjson::Value& v, const char* k)
+{
+    if (v.IsObject() && v.HasMember(k) && v[k].IsString())
+    {
+        return v[k].GetString();
+    }
+    throw ParseError{};
+}
+
+inline std::string getString(rapidjson::Value&& v, const char* k)
 {
     if (v.IsObject() && v.HasMember(k) && v[k].IsString())
     {
@@ -249,6 +259,8 @@ inline const auto& getValue(const rapidjson::Value& v, const char* k)
     }
     throw ParseError{};
 }
+
+inline auto getValue(rapidjson::Value&& v, const char* k) = delete;
 
 inline auto getArray(const rapidjson::Value& v, const char* k)
 {
