@@ -38,13 +38,13 @@ class Engine::Impl
     auto getGamePlayer(const rapidjson::Value& doc) const
     {
         const std::string id = json::getString(doc, "id");
-        
+
         const auto pit = players_.find(id);
         if (pit == players_.end()) throw LogicError{"NO_PLAYER"};
-        
+
         const auto jit = joinedGames_.find(id);
         if (jit == joinedGames_.end()) throw LogicError{"NOT_JOINED"};
-        
+
         const auto git = games_.find(jit->second);
         assert(git != games_.end());
 
@@ -82,7 +82,7 @@ class Engine::Impl
         }
         return nullptr;
     }
-    
+
 public:
     Impl(const std::string& filename)
       : filename_{filename},
@@ -104,7 +104,7 @@ public:
             {"id", id}
         });
     }
-    
+
     std::string createGame(const std::string& body)
     {
         const auto doc = parse(body);
@@ -119,7 +119,7 @@ public:
         games_.emplace(game, std::make_unique<Game>(game, name));
         return Success{};
     }
-    
+
     std::string joinGame(const std::string& body)
     {
         const auto doc = parse(body);
@@ -127,9 +127,9 @@ public:
         const std::string game = json::getString(doc, "game");
 
         const auto name = getPlayer(id);
-        
+
         if (hasItem(joinedGames_, id)) return Error{"ALREADY_JOINED"};
-        
+
         const auto git = games_.find(game);
         if (git == games_.end()) return Error{"NO_GAME"};
 
@@ -171,7 +171,7 @@ public:
     {
         rapidjson::StringBuffer s;
         rapidjson::PrettyWriter<rapidjson::StringBuffer> w{s};
-        
+
         json::Object(w, [this, &body](auto& w)
         {
             auto doc = dice::parse(body);
@@ -191,12 +191,12 @@ public:
         });
         return s.GetString();
     }
-    
+
     std::string getGames() const
     {
         rapidjson::StringBuffer s;
         rapidjson::PrettyWriter<rapidjson::StringBuffer> w{s};
-        
+
         json::ArrayW(w, [this](auto& w)
         {
             for (const auto& kv : games_)
@@ -211,7 +211,7 @@ public:
     {
         rapidjson::StringBuffer s;
         rapidjson::PrettyWriter<rapidjson::StringBuffer> w{s};
-        
+
         json::Object(w, [=](auto& w)
         {
             json::ArrayW(w, "players", [=](auto& w)
@@ -223,7 +223,7 @@ public:
                     {
                         json::KeyValue(w, "id", id);
                         json::KeyValue(w, "name", kv.second);
-                        
+
                         const auto it = joinedGames_.find(id);
                         if (it != joinedGames_.end())
                         {
@@ -239,7 +239,7 @@ public:
                 }
             });
         });
-        
+
         dump(filename_, s.GetString());
     }
 
