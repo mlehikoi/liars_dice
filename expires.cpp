@@ -16,7 +16,7 @@ std::string expires()
 
     std::stringstream ss;
     // Need to make sure that this works alse when default locale is non-English
-    ss.imbue(std::locale{"en_US.utf8"});
+    ss.imbue(std::locale{"C"});
     // GMT needs to be hard-coded as specified in RFC1123
     ss << std::put_time(ptm, "%a, %d %b %Y %H:%M:%S GMT");
     return ss.str();
