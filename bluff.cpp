@@ -44,7 +44,7 @@ inline auto readHtmlFile(const std::string& name)
 inline auto packJson(const std::string& json, const crow::request& req)
 {
     crow::response resp;
-    if (dice::hasHttpValue(req.get_header_value("Accept-Encoding"), "bro"))
+    if (dice::hasHttpValue(req.get_header_value("Accept-Encoding"), "br"))
     {
         resp.write(dice::compress(json));
         resp.add_header("Content-Encoding", "br");
