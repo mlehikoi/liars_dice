@@ -11,17 +11,17 @@
     <body>
         <div class="container">
             <h1>Liar's dice</h1>
-            <div id="Login_">
+            <div>
                 <p>
                     Provide a user name so other's know who they're playing with.
                     If the user name is already taken, you can select another name.
                 </p>
 
-                <form id="LoginForm">
+                <form>
                     <div class="form-group">
-                        <label for="userName" class="control-label col-xs-6">User name</label>
-                        <input type="text" class="form-control" id="userName" placeholder="User name" value="anon">
-                        <div class="col-xs-12" id="userNameStatus" class="hidden"></div>
+                        <label for="username" class="control-label col-xs-6">User name</label>
+                        <input type="text" class="form-control" id="username" placeholder="User name" value="anon">
+                        <div class="col-xs-12" id="username-status" class="hidden"></div>
                     </div>
                     <button type="button" class="btn btn-primary" id="login">Login</button>
                 </form>
@@ -30,10 +30,11 @@
         <script>
             $(function() {
                 $('#login').click(function() {
+                    const name = $('#username').val();
                     $.ajax({
                         type: 'POST',
                         url: '/api/login',
-                        data: JSON.stringify({'name': name}),
+                        data: JSON.stringify({name: name}),
                         contentType: 'application/json; charset=utf-8',
                         dataType: 'json',
                         success: function (data) {
@@ -41,8 +42,8 @@
                             if (data.success) {
                                 window.location.replace('game.html?id=' + data.id);
                             } else {
-                                $('#userNameStatus').html(name + ' is already taken.');
-                                $('#userNameStatus').removeClass('hidden');
+                                $('#username-status').html(name + ' is already taken.');
+                                $('#username-status').removeClass('hidden');
                             }
                         },
                         error: function (jqXHR, textStatus, errorThrown) {
