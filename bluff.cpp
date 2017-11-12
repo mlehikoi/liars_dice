@@ -63,7 +63,11 @@ int main()
     static dice::Engine engine{"db.json"};
     crow::SimpleApp app;
 
-    CROW_ROUTE(app, "/")([]{ return readHtmlFile("index.html"); });
+    CROW_ROUTE(app, "/")([]{
+        crow::response resp{};
+        resp.redirect("/game.html");
+        return resp;
+    });
 
     //@TODO This isn't login but register
     CROW_ROUTE(app, "/api/login")
@@ -137,8 +141,25 @@ int main()
         return engine.getGames();
     });
 
+// Not using server side redirects for url with query params. The redirection
+// changes based on the query params. If the state on server changes, the client
+// may still be using cached value.
+#if SERVER_SIDE_REDIRECT 
+    CROW_ROUTE(app, "/game.html")([](const crow::request& req) {
+        const auto id = req.url_params.get("id");
+        if (!engine.hasPlayer(id))
+        {
+            cout << "no player, redirecting" << endl;
+            crow::response resp{};
+            resp.redirect("/login.html");
+            return resp;
+        }
+        return readHtmlFile("game.html");
+    });
+#endif
+
     CROW_ROUTE(app, "/<string>")([](std::string name) {
-	return readHtmlFile(name);
+	    return readHtmlFile(name);
     });
 
     CROW_ROUTE(app, "/<string>/<string>")([](std::string dir, std::string name) {
