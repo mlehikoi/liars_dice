@@ -27,10 +27,29 @@
                 </form>
             </div>
         </div>
-        <script src="js/dice.js"></script>
         <script>
-            $('#login').click(function() {
-                login($('#userName').val());
+            $(function() {
+                $('#login').click(function() {
+                    $.ajax({
+                        type: 'POST',
+                        url: '/api/login',
+                        data: JSON.stringify({'name': name}),
+                        contentType: 'application/json; charset=utf-8',
+                        dataType: 'json',
+                        success: function (data) {
+                            console.log(data);
+                            if (data.success) {
+                                window.location.replace('game.html?id=' + data.id);
+                            } else {
+                                $('#userNameStatus').html(name + ' is already taken.');
+                                $('#userNameStatus').removeClass('hidden');
+                            }
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            console.log('error ' + textStatus);
+                        }
+                    });
+                });
             });
         </script>
     </body>

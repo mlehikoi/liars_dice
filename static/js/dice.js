@@ -360,37 +360,43 @@ function getStatus() {
                 refreshGames();
             }
         } else {
-            $('#Login').removeClass('hidden');
-            $('#SetupCreate').addClass('hidden');
-        }
-    }, 'json');
-}
-
-function login(name) { // eslint-disable-line no-unused-vars
-    'use strict';
-    console.log('Fetching ' + name);
-    $.ajax({
-        type: 'POST',
-        url: '/api/login',
-        data: JSON.stringify({'name': name}),
-        contentType: 'application/json; charset=utf-8',
-        dataType: 'json',
-        success: function (data) {
-            console.log(data);
-            if (data.success) {
-                myName = data.userName;
-                window.location.replace('game.html?id=' + data.id);
-            } else {
-                $('#userNameStatus').html(name + ' is already taken.');
-                $('#userNameStatus').removeClass('hidden');
+            // Player doesn't exist so let's go to login page
+            if (!window.location.pathname.includes('login.html'))
+            {
+                console.log(window.location.pathname);
+                window.location.replace('login.html');
             }
-            console.log(data);
-        },
-        error: function () {
-            console.log('error');
         }
+    }, 'json').fail(function(response) {
+        alert('Error: ' + response.responseText);
     });
 }
+
+//function login(name) { // eslint-disable-line no-unused-vars
+//    'use strict';
+//    console.log('Fetching ' + name);
+//    $.ajax({
+//        type: 'POST',
+//        url: '/api/login',
+//        data: JSON.stringify({'name': name}),
+//        contentType: 'application/json; charset=utf-8',
+//        dataType: 'json',
+//        success: function (data) {
+//            console.log(data);
+//            if (data.success) {
+//                myName = data.userName;
+//                window.location.replace('game.html?id=' + data.id);
+//            } else {
+//                $('#userNameStatus').html(name + ' is already taken.');
+//                $('#userNameStatus').removeClass('hidden');
+//            }
+//            console.log(data);
+//        },
+//        error: function () {
+//            console.log('error');
+//        }
+//    });
+//}
 
 function createGame(name) { // eslint-disable-line no-unused-vars
     'use strict';

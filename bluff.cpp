@@ -65,7 +65,7 @@ int main()
 
     CROW_ROUTE(app, "/")([]{
         crow::response resp{};
-        resp.redirect("/game.html");
+        resp.redirect("/login.html");
         return resp;
     });
 
@@ -144,7 +144,7 @@ int main()
 // Not using server side redirects for url with query params. The redirection
 // changes based on the query params. If the state on server changes, the client
 // may still be using cached value.
-#if SERVER_SIDE_REDIRECT 
+#ifdef SERVER_SIDE_REDIRECT 
     CROW_ROUTE(app, "/game.html")([](const crow::request& req) {
         const auto id = req.url_params.get("id");
         if (!engine.hasPlayer(id))
