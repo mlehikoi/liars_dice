@@ -133,8 +133,9 @@ public:
         const auto git = games_.find(game);
         if (git == games_.end()) return Error{"NO_GAME"};
 
-        joinedGames_.insert({id, game});
-        return git->second->addPlayer(name);
+        const auto rv = git->second->addPlayer(name);
+        if (rv) joinedGames_.insert({id, game});
+        return rv;
     }
 
     std::string startGame(const std::string& body)

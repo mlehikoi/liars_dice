@@ -259,10 +259,36 @@ function handleState() {
     }
 }
 function join(game) {
-    console.log(game);
+    $('#join-status').addClass('hidden');
+    $('#create-status').addClass('hidden');
     $.post('/api/join', JSON.stringify({id: myId, game: game}), function(json) {
         console.log(json);
-        getStatus();
+        if (json.success) {
+            getStatus();    
+        }
+        else {
+            $('#join-status').html(json.error);
+            $('#join-status').removeClass('hidden');
+        }
+        
+    }, 'json');
+}
+
+function createGame(name) {
+    $('#join-status').addClass('hidden');
+    $('#create-status').addClass('hidden');
+    $('#join-status').addClass('hidden');
+    $('#create-status').addClass('hidden');
+    $.post('/api/newGame', JSON.stringify({id: myId, game: name}), function(json) {
+        console.log(json);
+        if (json.success) {
+            getStatus();    
+        }
+        else {
+            $('#create-status').html(json.error);
+            $('#create-status').removeClass('hidden');
+        }
+        
     }, 'json');
 }
 
@@ -374,32 +400,6 @@ function getStatus() {
     });
 }
 
-function createGame(name) { // eslint-disable-line no-unused-vars
-    'use strict';
-    $.ajax({
-        type: 'POST',
-        url: '/api/newGame',
-        data: JSON.stringify({game: name, id: myId}),
-        contentType: 'application/json; charset=utf-8',
-        dataType: 'json',
-        success: function (data) {
-            console.log(data);
-            if (data.success) {
-                getStatus();
-            } else {
-                $('#userNameStatus').html(name + ' already exists.');
-                $('#userNameStatus').removeClass('hidden');
-            }
-            console.log(data);
-        },
-        error: function () {
-            //alert(errMsg);
-            console.log('error');
-            //console.log(errMsg);
-        }
-    });
-}
-
 function adjustN(offset) {
     myBid.n += offset;
     drawMyBid();
@@ -413,20 +413,22 @@ function adjustFace(offset) {
 }
 
 // HTML hooks
-$('#games').on('change', function () {
-    selectedGame();
-});
-$('#join').click(function() {
-    join($('#games').val());
-});
-$('#start-game').click(function() {
-    startGame();
-});
-$('#start-round').click(function() {
-    startRound();
-});
-
 $(function() {
+    $('#games').on('change', function () {
+        selectedGame();
+    });
+    $('#join').click(function() {
+        join($('#games').val());
+    });
+    $('#create').click(function () {
+        createGame($('#gameName').val());
+    });
+    $('#start-game').click(function() {
+        startGame();
+    });
+    $('#start-round').click(function() {
+        startRound();
+    });
     $('#n-minus').click(function() {
         adjustN(-1);
     });
