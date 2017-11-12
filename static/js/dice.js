@@ -352,8 +352,10 @@ function getStatus() {
             } else {
                 myName = json.name;
                 $('#welcomeMessage').html('Welcome, ' + json.name + '.' +
-                                          ' Start up a new game or select an existing' +
-                                          ' game to join.');
+                                          ' You can select an existing game below and join' +
+                                          ' it. You can click the refresh' +
+                                          ' button on the right side of games to see newly' +
+                                          ' created games.');
                 $('#welcomeMessage').removeClass('hidden');
                 $('#Login').addClass('hidden');
                 $('#SetupCreate').removeClass('hidden');
@@ -371,32 +373,6 @@ function getStatus() {
         alert('Error: ' + response.responseText);
     });
 }
-
-//function login(name) { // eslint-disable-line no-unused-vars
-//    'use strict';
-//    console.log('Fetching ' + name);
-//    $.ajax({
-//        type: 'POST',
-//        url: '/api/login',
-//        data: JSON.stringify({'name': name}),
-//        contentType: 'application/json; charset=utf-8',
-//        dataType: 'json',
-//        success: function (data) {
-//            console.log(data);
-//            if (data.success) {
-//                myName = data.userName;
-//                window.location.replace('game.html?id=' + data.id);
-//            } else {
-//                $('#userNameStatus').html(name + ' is already taken.');
-//                $('#userNameStatus').removeClass('hidden');
-//            }
-//            console.log(data);
-//        },
-//        error: function () {
-//            console.log('error');
-//        }
-//    });
-//}
 
 function createGame(name) { // eslint-disable-line no-unused-vars
     'use strict';

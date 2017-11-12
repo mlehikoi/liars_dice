@@ -1,0 +1,25 @@
+<form class="form-horizontal">
+    <div class="form-group">
+        <div class="col-xs-12">
+            <div class="input-group">
+                <select id="games" class="form-control"></select>
+                <div class="input-group-addon input-group-button">
+                    <button type="button" id="refresh-games" class="btn btn-primary">
+                        <span class="glyphicon glyphicon-refresh"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="players"></div>
+    <button type="button" id="join" class="btn btn-success pull-right">Join</button>
+</form>
+<div style="height:50px;"></div>
+<p>Alternatively, you can create your own game and wait for others to join it.</p>
+<form>
+    <div class="form-group">
+        <label for="gameName" class="control-label col-xs-6">Name of the game</label>
+        <input type="text" class="form-control" id="gameName" placeholder="Name of game" value="final">
+    </div>
+    <button type="button" class="btn btn-primary" id="create">Create</button>
+</form>
