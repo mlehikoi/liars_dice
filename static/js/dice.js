@@ -147,7 +147,7 @@ function drawBid(pid, cell) {
 
 function pollStatus() {
     clearTimeout(timer);
-    timer = setTimeout(function(){ getStatus(); }, 1000);
+    timer = setTimeout(function(){ getStatus(); }, 10000);
 }
 
 function handleState() {
@@ -163,6 +163,12 @@ function handleState() {
         let players = [];
         for (let player of myGame.players) {
             players.push(player.name);
+        }
+        if (players.length > 1) {
+            $('#start-game').removeClass('hidden');
+            $('#start-game-status').addClass('hidden');
+        } else {
+            $('#start-game').addClass('hidden');
         }
         $('#players-waiting').html('Players: ' + players.join(', '));
         pollStatus();
@@ -296,7 +302,14 @@ function createGame(name) {
 function startGame() {
     console.log('startGame');
     $.post('/api/startGame', JSON.stringify({id: myId}), function(json) {
-        if (json.success) getStatus();
+        console.log(json);
+        if (json.success) {
+            getStatus();
+        }
+        else {
+            $('#start-game-status').html(json.error);
+            $('#start-game-status').removeClass('hidden');
+        }
     }, 'json');
 }
 

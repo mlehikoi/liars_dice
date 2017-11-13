@@ -30,5 +30,12 @@ TEST(GameTest, JoinWhenGameInProgress) {
     ASSERT_STREQ("GAME_IN_PROGRESS", json::getString(parse(rv), "error").c_str());
 }
 
+TEST(GameTest, StartGameWithOnePlayer) {
+    Game game{"joe"};
+    const auto rv = game.startGame();
+    ASSERT_FALSE(rv);
+    ASSERT_STREQ("NOT_ENOUGH_PLAYERS", json::getString(parse(rv), "error").c_str());
+}
+
 } // Unnamed namespace
 } // namespace dice

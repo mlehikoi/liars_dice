@@ -114,6 +114,7 @@ RetVal Game::startGame()
 {
     if (state_ != GAME_NOT_STARTED && state_ != GAME_FINISHED)
         return Error{"GAME_ALREADY_STARTED"};
+    if (players_.size() < 2) return Error{"NOT_ENOUGH_PLAYERS"};
     state_ = GAME_STARTED;
     return Success{};
 }
