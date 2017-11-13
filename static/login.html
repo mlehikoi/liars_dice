@@ -28,28 +28,38 @@
             </div>
         </div>
         <script>
+            function login() {
+                const name = $('#username').val();
+                $.ajax({
+                    type: 'POST',
+                    url: '/api/login',
+                    data: JSON.stringify({name: name}),
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json',
+                    success: function (data) {
+                        console.log(data);
+                        if (data.success) {
+                            window.location.replace('game.html?id=' + data.id);
+                        } else {
+                            $('#username-status').html(name + ' is already taken.');
+                            $('#username-status').removeClass('hidden');
+                        }
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log('error ' + textStatus);
+                    }
+                });
+            }
             $(function() {
                 $('#login').click(function() {
-                    const name = $('#username').val();
-                    $.ajax({
-                        type: 'POST',
-                        url: '/api/login',
-                        data: JSON.stringify({name: name}),
-                        contentType: 'application/json; charset=utf-8',
-                        dataType: 'json',
-                        success: function (data) {
-                            console.log(data);
-                            if (data.success) {
-                                window.location.replace('game.html?id=' + data.id);
-                            } else {
-                                $('#username-status').html(name + ' is already taken.');
-                                $('#username-status').removeClass('hidden');
-                            }
-                        },
-                        error: function (jqXHR, textStatus, errorThrown) {
-                            console.log('error ' + textStatus);
-                        }
-                    });
+                    login();
+                });
+                $('#username').keypress(function(e) {
+                    console.log(e);
+                    if (e.which == 13) {
+                        event.preventDefault();
+                        login();
+                    }
                 });
             });
         </script>
