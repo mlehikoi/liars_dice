@@ -73,19 +73,20 @@ function show(toShow) {
     if (!Array.isArray(toShow)) toShow = [toShow];
     console.log(toShow);
     const divs = [
-        '#welcomeMessage',
-        '#Login',
-        '#SetupCreate',
-        '#WaitGameStart',
-        '#GameOn',
-        '#GameStarted',
-        '#start-round'
+        'welcomeMessage',
+        'Login',
+        'SetupCreate',
+        'WaitGameStart',
+        'GameOn',
+        'GameStarted',
+        'start-round',
+        'InvalidId'
     ];
     for (const div of divs)
         if (toShow.indexOf(div) == -1)
-            $(div).addClass('hidden');
+            $('#' + div).addClass('hidden');
     for (const div of toShow)
-        $(div).removeClass('hidden');
+        $('#' + div).removeClass('hidden');
 }
 
 function score(bid) {
@@ -177,7 +178,7 @@ function handleState() {
             txt += myTurn ? 'you' : who;
             txt += ' to start the round.';
             $('#game-started-message').html(txt);
-            if (myTurn) show(['#GameStarted', '#start-round']); else show('#GameStarted');
+            if (myTurn) show(['GameStarted', 'start-round']); else show('GameStarted');
         }
         else {
             const bid = myGame.bid;
@@ -254,7 +255,7 @@ function handleState() {
                 $('#BidOrChallenge').addClass('hidden');
                 $('#DoneViewingResults').removeClass('hidden');
             }
-            show('#GameOn');
+            show('GameOn');
         }
     }
 }
@@ -388,11 +389,9 @@ function getStatus() {
                 refreshGames();
             }
         } else {
-            // Player doesn't exist so let's go to login page
-            if (!window.location.pathname.includes('login.html'))
-            {
-                console.log(window.location.pathname);
-                window.location.replace('login.html');
+            console.log(json);
+            if (json.error == 'NO_PLAYER') {
+                show('InvalidId');
             }
         }
     }, 'json').fail(function(response) {
