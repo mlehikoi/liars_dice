@@ -14,26 +14,41 @@ using namespace dice;
 
 namespace dice {
 
+inline auto readHtmlFile(const std::string& name, const crow::request& req)
+{
+    auto data = dice::readHtml(name, "../static");
+    if (data.empty()) return crow::response(404);
+
+    crow::response resp;
+    resp.add_header("Content-Type", getContentType(name));
+    resp.add_header("Expires", expires());
+    if (hasHttpValue(req.get_header_value("Accept-Encoding"), "br"))
+    {
+        resp.write(compress(data));
+        resp.add_header("Content-Encoding", "br");
+    }
+    else
+    {
+        resp.write(data);
+    }
+    return resp;
+}
+
 /**
  * Read the given file
  * @param name [in] filename
  * @return crow response
  */
-inline auto readFile(const std::string& name)
+inline auto readFile(const std::string& name, const crow::request& req)
 {
+    const auto ct = getContentType(name);
+    if (ct.find("text/html") != std::string::npos)
+    {
+        return readHtmlFile(name, req);
+    }
     const auto path = "../static/"s + name;
     std::cout << "Slurping " << path << std::endl;
     const auto data = dice::slurp(path);
-    if (data.empty()) return crow::response(404);
-    crow::response r{data};
-    r.add_header("Content-Type", getContentType(name));
-    r.add_header("Expires", expires());
-    return r;
-}
-
-inline auto readHtmlFile(const std::string& name)
-{
-    const auto data = dice::readHtml(name, "../static");
     if (data.empty()) return crow::response(404);
     crow::response r{data};
     r.add_header("Content-Type", getContentType(name));
@@ -158,12 +173,12 @@ int main()
     });
 #endif
 
-    CROW_ROUTE(app, "/<string>")([](std::string name) {
-	    return readHtmlFile(name);
+    CROW_ROUTE(app, "/<string>")([](const crow::request& req, std::string name) {
+	    return readFile(name, req);
     });
 
-    CROW_ROUTE(app, "/<string>/<string>")([](std::string dir, std::string name) {
-        return readFile(dir + "/" + name);
+    CROW_ROUTE(app, "/<string>/<string>")([](const crow::request& req, std::string dir, std::string name) {
+        return readFile(dir + "/" + name, req);
     });
 
     //crow::logger::setLogLevel(crow::LogLevel::CRITICAL);
