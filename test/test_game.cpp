@@ -21,8 +21,8 @@ TEST(GameTest, Save) {
 }
 
 TEST(GameTest, JoinWhenGameInProgress) {
-    Game game{"joe"};
-    game.addPlayer("ann");
+    Game game{"the-game", "joe"};
+    ASSERT_TRUE(game.addPlayer("ann"));
     ASSERT_TRUE(game.startGame());
     ASSERT_TRUE(game.startRound());
     auto rv = game.addPlayer("mary");
