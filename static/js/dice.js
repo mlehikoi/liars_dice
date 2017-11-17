@@ -6,9 +6,12 @@
 
 var myName = ''; // eslint-disable-line no-unused-vars
 var myId = '';
+var myStatus = {
+    diceDrawn: false
+};
 var games;
 var myGame;
-//var prevStatusTxt = '';
+
 var prevBid = {
     n: 0,
     face: 1
@@ -98,7 +101,7 @@ function score(bid) {
 function drawMyBid() {
     // Make sure bid is high enough
     while (score(myBid) <= score(prevBid)) ++myBid.n;
-    
+
     $('#n').html(myBid.n);
     let lowerBid = {n: myBid.n - 1, face: myBid.face };
     if (score(lowerBid) <= score(prevBid)) {
@@ -124,9 +127,9 @@ function drawDice(pid, cell) {
     }
     if (images != diceImages[pid]) {
         diceImages[pid] = images;
-        cell.html(images);
+        cell.innerHTML = images;
     }
-    
+
 }
 
 function drawBid(pid, cell) {
@@ -140,9 +143,9 @@ function drawBid(pid, cell) {
     }
     if (txt != bidImages[pid]) {
         bidImages[pid] = txt;
-        cell.html(txt);
+        cell.innerHTML = txt;
     }
-    
+
 }
 
 function pollStatus() {
@@ -150,119 +153,199 @@ function pollStatus() {
     timer = setTimeout(function(){ getStatus(); }, 10000);
 }
 
+function handleStateWaiting() {
+    $('#welcomeMessage').html(myName + ', waiting for others' +
+                              ' to join the game. Click start when you\'re' +
+                              ' ready to start the game.');
+    $('#welcomeMessage').removeClass('hidden');
+    $('#Login').addClass('hidden');
+    $('#SetupCreate').addClass('hidden');
+    $('#WaitGameStart').removeClass('hidden');
+    let players = [];
+    for (let player of myGame.players) {
+        players.push(player.name);
+    }
+    if (players.length > 1) {
+        $('#start-game').removeClass('hidden');
+        $('#start-game-status').addClass('hidden');
+    } else {
+        $('#start-game').addClass('hidden');
+    }
+    $('#players-waiting').html('Players: ' + players.join(', '));
+}
+
+function handleGameOn() {
+    console.log(myGame);
+    const bid = myGame.bid;
+    if (bid) {
+        prevBid.n = bid.n;
+        prevBid.face = bid.face >= 1 && bid.face <= 6 ? bid.face : 1;
+    } else {
+        prevBid.n = 0;
+        prevBid.face = 1;
+    }
+    myBid = { n: prevBid.n, face: prevBid.face };
+    drawMyBid();
+    let table = document.getElementById('player-table');
+    let numPlayers = myGame.players.length;
+    for (let i = 0; i < table.rows.length; ++i) {
+        if (i == 0) continue;
+        let pid = i - 1;
+        if (pid < numPlayers) {
+            if (pid == myGame.turn) $(table.rows[i]).addClass('active'); else $(table.rows[i]).removeClass('active');
+            let name = splitString(myGame.players[pid].name, 10);
+            if (name == myName) name = '<strong>' + name + '</strong>';
+            if (myGame.players[pid].winner) {
+                name = '<span class="glyphicon glyphicon-thumbs-up"></span> ' + name;
+            }
+            else if (myGame.players[pid].loser) {
+                name = '<span class="glyphicon glyphicon-thumbs-down"></span> ' + name;
+            } 
+            else if (pid == myGame.turn) name = '<span class="glyphicon glyphicon-play"></span>' + name;
+            $(table.rows[i].cells[0]).html(name);
+            if (!myStatus.diceDrawn) {
+                drawDice(pid, $(table.rows[i].cells[1]));    
+            }
+            drawBid(pid, $(table.rows[i].cells[2]));
+            $(table.rows[i]).removeClass('hidden');
+        } else {
+            $(table.rows[i]).addClass('hidden');
+        }
+    }
+}
+
+function strong(text) {
+    return '<strong>' + text + '</strong>';
+}
+const PLAY_ICON = '<span class="glyphicon glyphicon-play"></span>';
+const WINNER_ICON = '<span class="glyphicon glyphicon-thumbs-up"></span> ';
+const LOSER_ICON = '<span class="glyphicon glyphicon-thumbs-down"></span> ';
+
+/**
+ * Draw a given row of the table showing dice and bids.
+ * @param trow [in] row to draw
+ * @param pid [in] index of player to draw
+ */
+function drawTableRow(trow, pid) {
+    let name = splitString(myGame.players[pid].name, 10);
+    if (name == myName) {
+        name = strong(name);
+    }
+
+    if (myGame.players[pid].winner) {
+        $(trow).removeClass('active');
+        name = WINNER_ICON + name;
+    } else if (myGame.players[pid].loser) {
+        $(trow).removeClass('active');
+        name = LOSER_ICON + name;
+    } else if (pid == myGame.turn) {
+        $(trow).addClass('active');
+        name = PLAY_ICON + name;
+    } else {
+        $(trow).removeClass('active');
+    }
+    trow.cells[0].innerHTML = name;
+    drawDice(pid, trow.cells[1]);
+    drawBid(pid, trow.cells[2]);
+    $(trow).removeClass('hidden');
+}
+
+/** Draw the table that shows players, their dice and bids */
+function drawTableGameInProgress() {
+    const table = document.getElementById('player-table');
+    const numPlayers = myGame.players.length;
+    for (let i = 1; i < table.rows.length; ++i) {
+        let pid = i - 1;
+        if (pid < numPlayers) {
+            drawTableRow(table.rows[i], pid);
+        } else {
+            $(table.rows[i]).addClass('hidden');
+        }
+    }
+}
+
+function getWinnersAndLosers() {
+    let winners = [];
+    let losers = [];
+    let diceLost = 0;
+    for (const player of myGame.players) {
+        if (player.winner) {
+            winners.push(player.name);
+        } else if (player.loser) {
+            losers.push(player.name);
+            diceLost = player.adjustment;
+        }
+    }
+    return {winners: winners, losers: losers, diceLost: diceLost};
+}
+
+function handleRoundStarted() {
+    const playerInTurn = myGame.players[myGame.turn].name;
+    if (myGame.players[myGame.turn].name == myName) {
+        const bid = myGame.bid;
+        if (bid) {
+            prevBid.n = bid.n;
+            prevBid.face = bid.face >= 1 && bid.face <= 6 ? bid.face : 1;
+        } else {
+            prevBid.n = 0;
+            prevBid.face = 1;
+        }
+        myBid = { n: prevBid.n, face: prevBid.face };
+
+        $('#game-msg').html(myName + ', it\'s your turn. You can either make a higher bid or challeng the bid.');
+        if (prevBid.n) {
+            $('#challenge').removeClass('disabled');
+        }
+        else {
+            $('#challenge').addClass('disabled');
+        }
+        $('#BidOrChallenge').removeClass('hidden');
+        drawMyBid();
+        // No need to poll status when it's my turn
+    }
+    else {
+        $('#game-msg').html('Waiting for ' + playerInTurn + ' to bid or challenge.');
+        $('#BidOrChallenge').addClass('hidden');
+        pollStatus();
+    }
+    $('#DoneViewingResults').addClass('hidden');    
+}
+
+function handleRoundFinished() {
+    const wl = getWinnersAndLosers();
+    $('#game-msg').html('Round ended. ' + wl.winners.join(', ') + ' won. ' +
+                        wl.losers.join(', ') + ' lost ' + wl.diceLost + ' dice.<br>' +
+                        'Click done to start new round.');
+    $('#BidOrChallenge').addClass('hidden');
+    $('#DoneViewingResults').removeClass('hidden');
+    // Not polling status here. Player will start the round when he or she is ready.
+}
+
+function handleGameFinished() {
+    const wl = getWinnersAndLosers();
+    $('#game-msg').html('Game ended. Winner is <strong>' + wl.winners.join(', ') + '</strong>.<br>' +
+                        'Click done to start new round.');
+    $('#BidOrChallenge').addClass('hidden');
+    $('#DoneViewingResults').removeClass('hidden');
+    // Not polling status here. Player will start the round when he or she is ready.
+}
+
 function handleState() {
     console.log('handleState ' + myState);
     if (myState == State.WAITING) {
-        $('#welcomeMessage').html(myName + ', waiting for others' +
-                                  ' to join the game. Click start when you\'re' +
-                                  ' ready to start the game.');
-        $('#welcomeMessage').removeClass('hidden');
-        $('#Login').addClass('hidden');
-        $('#SetupCreate').addClass('hidden');
-        $('#WaitGameStart').removeClass('hidden');
-        let players = [];
-        for (let player of myGame.players) {
-            players.push(player.name);
-        }
-        if (players.length > 1) {
-            $('#start-game').removeClass('hidden');
-            $('#start-game-status').addClass('hidden');
-        } else {
-            $('#start-game').addClass('hidden');
-        }
-        $('#players-waiting').html('Players: ' + players.join(', '));
+        handleStateWaiting();
         pollStatus();
     } else if (myState == State.GAME_ON) {
-        console.log(myGame);
-        if (myGame.state == 'GAME_STARTED') {
-            // This is dead code.
-            
-            let txt = '';
-            txt += 'Game "' + myGame.game + '" started. Waiting for ';
-            const who = myGame.players[myGame.turn].name;
-            const myTurn = who == myName;
-            txt += myTurn ? 'you' : who;
-            txt += ' to start the round.';
-            $('#game-started-message').html(txt);
-            if (myTurn) show(['GameStarted', 'start-round']); else show('GameStarted');
+        //handleGameOn();
+        drawTableGameInProgress();
+        if (myGame.state == 'ROUND_STARTED') {
+            handleRoundStarted();
+        } else if (myGame.state == 'CHALLENGE') {
+            handleRoundFinished();
+        } else if (myGame.state == 'GAME_FINISHED') {
+            handleGameFinished();
         }
-        else {
-            const bid = myGame.bid;
-            if (bid) {
-                prevBid.n = bid.n;
-                prevBid.face = bid.face >= 1 && bid.face <= 6 ? bid.face : 1;
-            } else {
-                prevBid.n = 0;
-                prevBid.face = 1;
-            }
-            myBid = { n: prevBid.n, face: prevBid.face };
-            drawMyBid();
-            // ROUND_STARTED
-            // CHALLENGE
-            console.log(myGame.state);
-            // If first time
-            let table = document.getElementById('player-table');
-            let numPlayers = myGame.players.length;
-            let winners = [];
-            let losers = [];
-            let diceLost = 0;
-            for (let i = 0; i < table.rows.length; ++i) {
-                if (i == 0) continue;
-                let pid = i - 1;
-                if (pid < numPlayers) {
-                    const fullname = myGame.players[pid].name;
-                    if (pid == myGame.turn) $(table.rows[i]).addClass('active'); else $(table.rows[i]).removeClass('active');
-                    let name = splitString(myGame.players[pid].name, 10);
-                    if (name == myName) name = '<strong>' + name + '</strong>';
-                    if (myGame.players[pid].winner) {
-                        winners.push(fullname);
-                        name = '<span class="glyphicon glyphicon-thumbs-up"></span> ' + name;
-                    }
-                    else if (myGame.players[pid].loser) {
-                        losers.push(fullname);
-                        diceLost = myGame.players[pid].adjustment;
-                        name = '<span class="glyphicon glyphicon-thumbs-down"></span> ' + name;
-                    } 
-                    else if (pid == myGame.turn) name = '<span class="glyphicon glyphicon-play"></span>' + name;
-                    $(table.rows[i].cells[0]).html(name);
-                    drawDice(pid, $(table.rows[i].cells[1]));
-                    drawBid(pid, $(table.rows[i].cells[2]));
-                    $(table.rows[i]).removeClass('hidden');
-                } else {
-                    $(table.rows[i]).addClass('hidden');
-                }
-            }
-            if (myGame.state == 'ROUND_STARTED') {
-                const playerInTurn = myGame.players[myGame.turn].name;
-                if (myGame.players[myGame.turn].name == myName) {
-                    $('#game-msg').html(myName + ', it\'s your turn. You can either make a higher bid or challeng the bid.');
-                    if (prevBid.n) $('#challenge').removeClass('disabled');
-                    else           $('#challenge').addClass('disabled');
-                    $('#BidOrChallenge').removeClass('hidden');
-                }
-                else {
-                    $('#game-msg').html('Waiting for ' + playerInTurn + ' to bid or challenge.');
-                    $('#BidOrChallenge').addClass('hidden');
-                    pollStatus();
-                }
-                $('#DoneViewingResults').addClass('hidden');
-            }
-            else if (myGame.state == 'CHALLENGE') {
-                $('#game-msg').html('Round ended. ' + winners.join(', ') + ' won. ' +
-                                   losers.join(', ') + ' lost ' + -diceLost + ' dice.<br>' +
-                                   'Click done to start new round.');
-                $('#BidOrChallenge').addClass('hidden');
-                $('#DoneViewingResults').removeClass('hidden');
-                // Not polling status here. Player will start the round when he or she is ready.
-            }
-            else if (myGame.state == 'GAME_FINISHED') {
-                $('#game-msg').html('Game ended. Winner is <strong>' + winners.join(', ') + '</strong>.<br>' +
-                                   'Click done to start new round.');
-                $('#BidOrChallenge').addClass('hidden');
-                $('#DoneViewingResults').removeClass('hidden');
-            }
-            show('GameOn');
-        }
+        show('GameOn');
     }
 }
 function join(game) {
@@ -277,7 +360,7 @@ function join(game) {
             $('#join-status').html(json.error);
             $('#join-status').removeClass('hidden');
         }
-        
+
     }, 'json');
 }
 
@@ -295,7 +378,7 @@ function createGame(name) {
             $('#create-status').html(json.error);
             $('#create-status').removeClass('hidden');
         }
-        
+
     }, 'json');
 }
 
@@ -303,7 +386,7 @@ function startGame() {
     console.log('startGame');
     $.post('/api/startGame', JSON.stringify({id: myId}), function(json) {
         console.log(json);
-        if (json.success) {
+        if (json.success || json.error == 'GAME_ALREADY_STARTED') {
             getStatus();
         }
         else {
@@ -420,7 +503,7 @@ function adjustN(offset) {
 function adjustFace(offset) {
     const face = myBid.face + offset;
     myBid.face = face < 1 ? 6 : face > 6 ? 1 : face; 
-    
+
     drawMyBid();
 }
 
