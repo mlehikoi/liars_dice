@@ -54,6 +54,7 @@ class Game
         CHALLENGE,
         GAME_FINISHED
     } state_;
+    int hash_;
 
     // Used for challenge
     const Player* bidder_;
@@ -84,7 +85,10 @@ public:
     Game(Game&&) = delete;
 
     /// @return name of the game
-    const auto& name() { return game_; }
+    const auto& name() const { return game_; }
+
+    /// @return hash for the game (unique id for state)
+    auto hash() const { return hash_; }
 
     /// Add player to the game
     /// @param player [in] player's name

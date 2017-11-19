@@ -170,20 +170,29 @@ public:
 
     std::string status(const std::string& body) const
     {
+        const auto doc = dice::parse(body);
+        const std::string id = json::getString(doc, "id");
+        auto* game = getJoinedGame(id);
+        if (game)
+        {
+            const auto hash = json::getInt(doc, "hash", -1);
+            if (game->hash() == hash) return json::Json({
+                {"success", true},
+                {"noChange", true}
+            });
+        }
+
         rapidjson::StringBuffer s;
         rapidjson::PrettyWriter<rapidjson::StringBuffer> w{s};
 
-        json::Object(w, [this, &body](auto& w)
+        json::Object(w, [this, &doc, &id, game](auto& w)
         {
-            auto doc = dice::parse(body);
-            const std::string id = json::getString(doc, "id");
             const std::string name = getPlayer(id);
 
             json::KeyValue(w, "success", true);
             json::KeyValue(w, "id", id);
             json::KeyValue(w, "name", name);
 
-            auto game = getJoinedGame(id);
             if (game)
             {
                 w.Key("game");

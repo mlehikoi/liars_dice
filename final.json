@@ -2,6 +2,7 @@
     "game": "final",
     "state": "ROUND_STARTED",
     "turn": 2,
+    "hash": 0,
     "bid": {
         "n": 2,
         "face": 6

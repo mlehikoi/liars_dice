@@ -25,6 +25,7 @@
             "game": "final",
             "state": "GAME_NOT_STARTED",
             "turn": 0,
+            "hash": 0,
             "bid": {
                 "n": 0,
                 "face": 0
@@ -64,6 +65,7 @@
             "game": "semifinal",
             "state": "GAME_NOT_STARTED",
             "turn": 0,
+            "hash": 0,
             "bid": {
                 "n": 0,
                 "face": 0

@@ -70,7 +70,8 @@ Game::Game(const std::string& game)
     turn_{0},
     currentBid_{},
     diceRoll_{Dice::instance()},
-    state_{GAME_NOT_STARTED}
+    state_{GAME_NOT_STARTED},
+    hash_{}
 {
 }
 
@@ -80,7 +81,8 @@ Game::Game(const std::string& game, const std::string& player)
     turn_{0},
     currentBid_{},
     diceRoll_{Dice::instance()},
-    state_{GAME_NOT_STARTED}
+    state_{GAME_NOT_STARTED},
+    hash_{}
 {
     players_.emplace_back(player);
 }
@@ -93,6 +95,7 @@ RetVal Game::addPlayer(const std::string& player)
     case GAME_FINISHED:
         if (players_.size() >= 8) return Error{"TOO_MANY_PLAYERS"};
         players_.emplace_back(player);
+        ++hash_;
         return Success{};
     case GAME_STARTED:
     case ROUND_STARTED:
@@ -107,6 +110,7 @@ void Game::removePlayer(const Player& player)
     if (it != players_.end())
     {
         players_.erase(it);
+        ++hash_;
     }
 }
 
@@ -116,6 +120,7 @@ RetVal Game::startGame()
         return Error{"GAME_ALREADY_STARTED"};
     if (players_.size() < 2) return Error{"NOT_ENOUGH_PLAYERS"};
     state_ = GAME_STARTED;
+    ++hash_;
     return Success{};
 }
 
@@ -136,7 +141,11 @@ RetVal Game::startRound()
     case GAME_STARTED:
         state_ = ROUND_STARTED;
         currentBid_ = Bid{};
-        for (auto& p : players_) p.roll();
+        for (auto& p : players_)
+        {
+            p.roll();
+        }
+        ++hash_;
         return Success{};
     case GAME_NOT_STARTED:
     case ROUND_STARTED:
@@ -148,6 +157,7 @@ RetVal Game::startRound()
 void Game::nextPlayer()
 {
     ++turn_;
+    ++hash_;
     auto nPlayers = players_.size();
     for (size_t i = 0; i < players_.size(); ++turn_)
     {
@@ -165,6 +175,7 @@ RetVal Game::bid(const std::string& player, int n, int face)
     if (!bid.valid()) return Error{"INVALID_BID"};
     if (!(currentBid_ < bid)) return Error{"TOO_LOW_BID"};
 
+    ++hash_;
     currentBid_ = bid;
     bidder_ = &currentPlayer();
     currentPlayer().bid(bid);
@@ -177,6 +188,7 @@ RetVal Game::challenge(const std::string& player)
     if (currentBid_ == Bid{}) return Error{"NOTHING_TO_CHALLENGE"};
     if (player != currentPlayer().name()) return Error{"NOT_YOUR_TURN"};
     
+    ++hash_;
     const auto offset = getOffset();
     
     // Is it done...
@@ -221,6 +233,7 @@ void Game::serialize(json::Writer& writer, const std::string& name) const
         KeyValue(w, "game", game_);
         KeyValue(w, "state", toString(state_));
         KeyValue(w, "turn", turn_);
+        KeyValue(w, "hash", hash_);
         KeyValueF(w, "bid", [=](auto& w)
         {
             currentBid_.serialize(w);
@@ -261,6 +274,7 @@ std::unique_ptr<Game> Game::fromJson(const rapidjson::Value& v)
     using namespace json;
     auto game = std::make_unique<Game>(getString(v, "game"));
     game->turn_ = getInt(v, "turn");
+    game->hash_ = getInt(v, "hash", 0);
     game->state_ = fromString(getString(v, "state"));
     game->currentBid_ = Bid::fromJson(getValue(v, "bid"));
     for (const auto& jplayer : getArray(v, "players"))
