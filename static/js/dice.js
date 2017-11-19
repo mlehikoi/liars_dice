@@ -1,46 +1,48 @@
-/*global $, console*/
-/*eslint no-console: ['error', { allow: ['log'] }] */
-///*eslint no-unused-vars: ['error', { 'vars': 'local' }]*/
-/*global window, Option */
-/*eslint-disable-vars-on-top */
+'use strict';
 
-var myName = ''; // eslint-disable-line no-unused-vars
-var myId = '';
-var myStatus = {
-    diceDrawn: false
+var myState = {
+    id: '',
+    name: '',
+    hash: undefined,
+    availableGames: undefined,
+    timer: undefined,
+    bid: {
+        n: 1,
+        face: 1
+    }
 };
-var games;
 var myGame;
 
-var prevBid = {
-    n: 0,
-    face: 1
-};
-var myBid = {
-    n: 1,
-    face: 1
-};
 
-const State = {
-    NOT_JOINED: 1,
-    JOINED: 2,
-    WAITING: 3,
-    GAME_ON: 4
-};
-const Images = [
-    ['question', '?'],
-    ['one', '1'],
-    ['two', '2'],
-    ['three', '3'],
-    ['four', '4'],
-    ['five', '5'],
-    ['star', '6'],
-];
-var diceImages = [];
-var bidImages = [];
+const Images2 = [];
+//for (var img of Images) {
+//    let image = document.createElement('img');
+//    image.setAttribute('src', '/images/' + img[0] + '-24x24.png');
+//    image.setAttribute('alt', img[1]);
+//    image.setAttribute('height', '16');
+//    image.setAttribute('width', '16');
+//    Images2.push(image.cloneNode(true));
+//}
 
-var myState;
-var timer;
+(function() {
+    const images = [
+        ['question', '?'],
+        ['one', '1'],
+        ['two', '2'],
+        ['three', '3'],
+        ['four', '4'],
+        ['five', '5'],
+        ['star', '6']
+    ];
+    for (var img of images) {
+        let image = document.createElement('img');
+        image.setAttribute('src', '/images/' + img[0] + '-24x24.png');
+        image.setAttribute('alt', img[1]);
+        image.setAttribute('height', '16');
+        image.setAttribute('width', '16');
+        Images2.push(image.cloneNode(true));
+    }
+})();
 
 function getParameterByName(name, url) {
     if (!url) url = window.location.href;
@@ -99,62 +101,78 @@ function score(bid) {
 // Draw the number of dice of bid
 // Make sure the bid is high enough
 function drawMyBid() {
+    const bid = myGame.bid;
+    const prevBid = {
+        n: bid ? bid.n : 0,
+        face: bid ? bid.face : 1
+    };
+    myState.bid = { n: prevBid.n, face: prevBid.face };
     // Make sure bid is high enough
-    while (score(myBid) <= score(prevBid)) ++myBid.n;
+    while (score(myState.bid) <= score(prevBid)) ++myState.bid.n;
 
-    $('#n').html(myBid.n);
-    let lowerBid = {n: myBid.n - 1, face: myBid.face };
-    if (score(lowerBid) <= score(prevBid)) {
+    $('#n').html(myState.bid.n);
+    if (score({ n: myState.bid.n - 1, face: myState.bid.face }) <= score(prevBid)) {
         $('#n-minus').addClass('disabled');    
-    }
-    else {
+    } else {
         $('#n-minus').removeClass('disabled');
     }
     for (let i = 1; i <= 6; ++i)
-        if (i != myBid.face)
+        if (i != myState.bid.face)
             $('#face-' + i).addClass('hidden');
-    $('#face-' + myBid.face).removeClass('hidden');
+    $('#face-' + myState.bid.face).removeClass('hidden');
 }
 
+/**
+ * Remove all children from node
+ * @param {HTMLElement} node 
+ */
+function removeChildren(node) {
+    while (node.firstChild) {
+        node.firstChild.remove();
+    }
+}
+
+const SPACE = document.createTextNode(' ');
+
+/**
+ * Draw dice for the given player
+ * @param {int} pid index of player 
+ * @param {HTMLElement} cell column to add the dice images
+ */
 function drawDice(pid, cell) {
-    let images = '';
+    $(cell).addClass('hidden');
+    removeChildren(cell);
     for (let dice of myGame.players[pid].hand) {
-        images += '<img src="/images/' + Images[dice][0] + '-24x24.png" alt="' + Images[dice][1] + '" width="24" height="24">\n';
+        cell.appendChild(Images2[dice].cloneNode(false));
+        cell.appendChild(SPACE.cloneNode(false));
     }
     const adj = myGame.players[pid].adjustment;
     if (adj) {
-        images += '<br><span class="label label-default">' + adj + '</span>';
+        cell.innerHTML += '<br><span class="label label-default">' + adj + '</span>';
     }
-    if (images != diceImages[pid]) {
-        diceImages[pid] = images;
-        cell.innerHTML = images;
-    }
-
+    $(cell).removeClass('hidden');
 }
 
-function drawBid(pid, cell) {
-    let txt = '';
-    const theBid = myGame.players[pid].bid;
-    console.log(theBid);
-    if (theBid && theBid.n > 0 && theBid.face > 0) {
-        txt += theBid.n + ' ';
-        txt += '<img src="/images/' + Images[theBid.face][0] + '-24x24.png" alt="' + Images[theBid.face][1] +
-            '" width="24" height="24">\n';
+function drawBid(bid, trow) {
+    const bidTxt = JSON.stringify(bid);
+    if (bidTxt != myState.bidTxt) {
+        myState.bidTxt = bidTxt;
+        if (bid.n > 0 && bid.face > 0) {
+            const cell = document.createElement('td');
+            cell.appendChild(document.createTextNode(bid.n + ' '));
+            cell.appendChild(Images2[bid.face].cloneNode(false));
+            trow.replaceChild(cell, trow.cells[2]);
+        }
     }
-    if (txt != bidImages[pid]) {
-        bidImages[pid] = txt;
-        cell.innerHTML = txt;
-    }
-
 }
 
 function pollStatus() {
-    clearTimeout(timer);
-    timer = setTimeout(function(){ getStatus(); }, 10000);
+    clearTimeout(myState.timer);
+    myState.timer = setTimeout(function(){ getStatus(); }, 5000);
 }
 
 function handleStateWaiting() {
-    $('#welcomeMessage').html(myName + ', waiting for others' +
+    $('#welcomeMessage').html(myState.name + ', waiting for others' +
                               ' to join the game. Click start when you\'re' +
                               ' ready to start the game.');
     $('#welcomeMessage').removeClass('hidden');
@@ -172,54 +190,19 @@ function handleStateWaiting() {
         $('#start-game').addClass('hidden');
     }
     $('#players-waiting').html('Players: ' + players.join(', '));
+
+    // This is an active page, so needs to be updated
+    pollStatus();
 }
 
-function handleGameOn() {
-    console.log(myGame);
-    const bid = myGame.bid;
-    if (bid) {
-        prevBid.n = bid.n;
-        prevBid.face = bid.face >= 1 && bid.face <= 6 ? bid.face : 1;
-    } else {
-        prevBid.n = 0;
-        prevBid.face = 1;
-    }
-    myBid = { n: prevBid.n, face: prevBid.face };
-    drawMyBid();
-    let table = document.getElementById('player-table');
-    let numPlayers = myGame.players.length;
-    for (let i = 0; i < table.rows.length; ++i) {
-        if (i == 0) continue;
-        let pid = i - 1;
-        if (pid < numPlayers) {
-            if (pid == myGame.turn) $(table.rows[i]).addClass('active'); else $(table.rows[i]).removeClass('active');
-            let name = splitString(myGame.players[pid].name, 10);
-            if (name == myName) name = '<strong>' + name + '</strong>';
-            if (myGame.players[pid].winner) {
-                name = '<span class="glyphicon glyphicon-thumbs-up"></span> ' + name;
-            }
-            else if (myGame.players[pid].loser) {
-                name = '<span class="glyphicon glyphicon-thumbs-down"></span> ' + name;
-            } 
-            else if (pid == myGame.turn) name = '<span class="glyphicon glyphicon-play"></span>' + name;
-            $(table.rows[i].cells[0]).html(name);
-            if (!myStatus.diceDrawn) {
-                drawDice(pid, $(table.rows[i].cells[1]));    
-            }
-            drawBid(pid, $(table.rows[i].cells[2]));
-            $(table.rows[i]).removeClass('hidden');
-        } else {
-            $(table.rows[i]).addClass('hidden');
-        }
-    }
-}
+const PLAY_ICON = document.createElement('span');
+PLAY_ICON.setAttribute('class', 'glyphicon glyphicon-play');
 
-function strong(text) {
-    return '<strong>' + text + '</strong>';
-}
-const PLAY_ICON = '<span class="glyphicon glyphicon-play"></span>';
-const WINNER_ICON = '<span class="glyphicon glyphicon-thumbs-up"></span> ';
-const LOSER_ICON = '<span class="glyphicon glyphicon-thumbs-down"></span> ';
+const WINNER_ICON = document.createElement('span');
+WINNER_ICON.setAttribute('class', 'glyphicon glyphicon-thumbs-up');
+
+const LOSER_ICON = document.createElement('span');
+LOSER_ICON.setAttribute('class', 'glyphicon glyphicon-thumbs-down');
 
 /**
  * Draw a given row of the table showing dice and bids.
@@ -228,42 +211,90 @@ const LOSER_ICON = '<span class="glyphicon glyphicon-thumbs-down"></span> ';
  */
 function drawTableRow(trow, pid) {
     let name = splitString(myGame.players[pid].name, 10);
-    if (name == myName) {
-        name = strong(name);
-    }
-
+    const cell = document.createElement('td');
     if (myGame.players[pid].winner) {
         $(trow).removeClass('active');
-        name = WINNER_ICON + name;
+        cell.appendChild(WINNER_ICON.cloneNode(false));
+        cell.appendChild(SPACE.cloneNode(false));
     } else if (myGame.players[pid].loser) {
         $(trow).removeClass('active');
-        name = LOSER_ICON + name;
+        cell.appendChild(LOSER_ICON.cloneNode(false));
+        cell.appendChild(SPACE.cloneNode(false));
     } else if (pid == myGame.turn) {
         $(trow).addClass('active');
-        name = PLAY_ICON + name;
+        cell.appendChild(PLAY_ICON.cloneNode(false));
+        cell.appendChild(SPACE.cloneNode(false));
     } else {
         $(trow).removeClass('active');
     }
-    trow.cells[0].innerHTML = name;
+    if (name == myState.name) {
+        const nameEl = document.createElement('strong');
+        nameEl.appendChild(document.createTextNode(name));
+        cell.appendChild(nameEl);
+    } else {
+        cell.appendChild(document.createTextNode(name));
+    }
+    
+    trow.replaceChild(cell, trow.cells[0]);
     drawDice(pid, trow.cells[1]);
-    drawBid(pid, trow.cells[2]);
-    $(trow).removeClass('hidden');
+    drawBid(myGame.players[pid].bid, trow);
 }
 
-/** Draw the table that shows players, their dice and bids */
-function drawTableGameInProgress() {
-    const table = document.getElementById('player-table');
-    const numPlayers = myGame.players.length;
-    for (let i = 1; i < table.rows.length; ++i) {
-        let pid = i - 1;
-        if (pid < numPlayers) {
-            drawTableRow(table.rows[i], pid);
-        } else {
-            $(table.rows[i]).addClass('hidden');
+/**
+ * Check if number the dice should be redrawn and save current dice as baseline
+ */
+function checkDiceChanged() {
+    let allDice = [];
+    for (const player of myGame.players) {
+        for (const dice of player.hand) {
+            allDice.push(dice);
         }
+    }
+    allDice = allDice.toString();
+    if (allDice == myState.allDice) {
+        console.log('no change in dice');
+        return false;
+    }
+    console.log('dice changed');
+    console.log(allDice.toString());
+    myState.allDice = allDice;
+    return true;
+}
+
+const TD = document.createElement('td');
+const TR = document.createElement('tr');
+TR.appendChild(TD.cloneNode(false));
+TR.appendChild(TD.cloneNode(false));
+TR.appendChild(TD.cloneNode(false));
+/**
+ * Make sure table has correct number of rows.
+ * @param {HTMLElement} table
+ * @param {int} numPlayers
+ */
+function addRowsToTable(table, numPlayers) {
+    while ((table.rows.length - 1) < numPlayers) {
+        table.appendChild(TR.cloneNode(true));
+    }
+    while ((table.rows.length - 1) > numPlayers) {
+        table.removeChild(table.lastChild);
     }
 }
 
+/** Draw the table that shows players, their dice and bids */
+function drawTable() {
+    const table = document.getElementById('player-table');
+    if (checkDiceChanged()) {
+        $(table).addClass('hidden');
+    }
+    const numPlayers = myGame.players.length;
+    addRowsToTable(table, numPlayers);
+    for (let i = 0; i < numPlayers; ++i) {
+        drawTableRow(table.rows[i + 1], i);
+    }
+    $(table).removeClass('hidden');
+}
+
+/** @returns winners, losers and how many dice lost by losers */
 function getWinnersAndLosers() {
     let winners = [];
     let losers = [];
@@ -273,7 +304,7 @@ function getWinnersAndLosers() {
             winners.push(player.name);
         } else if (player.loser) {
             losers.push(player.name);
-            diceLost = player.adjustment;
+            diceLost = -player.adjustment;
         }
     }
     return {winners: winners, losers: losers, diceLost: diceLost};
@@ -281,19 +312,9 @@ function getWinnersAndLosers() {
 
 function handleRoundStarted() {
     const playerInTurn = myGame.players[myGame.turn].name;
-    if (myGame.players[myGame.turn].name == myName) {
-        const bid = myGame.bid;
-        if (bid) {
-            prevBid.n = bid.n;
-            prevBid.face = bid.face >= 1 && bid.face <= 6 ? bid.face : 1;
-        } else {
-            prevBid.n = 0;
-            prevBid.face = 1;
-        }
-        myBid = { n: prevBid.n, face: prevBid.face };
-
-        $('#game-msg').html(myName + ', it\'s your turn. You can either make a higher bid or challeng the bid.');
-        if (prevBid.n) {
+    if (myGame.players[myGame.turn].name == myState.name) {
+        $('#game-msg').html(myState.name + ', it\'s your turn. You can either make a higher bid or challeng the bid.');
+        if (myGame.bid.n) {
             $('#challenge').removeClass('disabled');
         }
         else {
@@ -330,28 +351,24 @@ function handleGameFinished() {
     // Not polling status here. Player will start the round when he or she is ready.
 }
 
-function handleState() {
-    console.log('handleState ' + myState);
-    if (myState == State.WAITING) {
-        handleStateWaiting();
-        pollStatus();
-    } else if (myState == State.GAME_ON) {
-        //handleGameOn();
-        drawTableGameInProgress();
-        if (myGame.state == 'ROUND_STARTED') {
-            handleRoundStarted();
-        } else if (myGame.state == 'CHALLENGE') {
-            handleRoundFinished();
-        } else if (myGame.state == 'GAME_FINISHED') {
-            handleGameFinished();
-        }
-        show('GameOn');
+function handleGameState() {
+    var t0 = performance.now();
+    drawTable();
+    var t1 = performance.now();
+    console.log('drawTable() took ' + (t1 - t0) + ' milliseconds.');
+    if (myGame.state == 'ROUND_STARTED') {
+        handleRoundStarted();
+    } else if (myGame.state == 'CHALLENGE') {
+        handleRoundFinished();
+    } else if (myGame.state == 'GAME_FINISHED') {
+        handleGameFinished();
     }
+    show('GameOn');
 }
 function join(game) {
     $('#join-status').addClass('hidden');
     $('#create-status').addClass('hidden');
-    $.post('/api/join', JSON.stringify({id: myId, game: game}), function(json) {
+    $.post('/api/join', JSON.stringify({id: myState.id, game: game}), function(json) {
         console.log(json);
         if (json.success) {
             getStatus();    
@@ -369,7 +386,7 @@ function createGame(name) {
     $('#create-status').addClass('hidden');
     $('#join-status').addClass('hidden');
     $('#create-status').addClass('hidden');
-    $.post('/api/newGame', JSON.stringify({id: myId, game: name}), function(json) {
+    $.post('/api/newGame', JSON.stringify({id: myState.id, game: name}), function(json) {
         console.log(json);
         if (json.success) {
             getStatus();    
@@ -384,7 +401,7 @@ function createGame(name) {
 
 function startGame() {
     console.log('startGame');
-    $.post('/api/startGame', JSON.stringify({id: myId}), function(json) {
+    $.post('/api/startGame', JSON.stringify({id: myState.id}), function(json) {
         console.log(json);
         if (json.success || json.error == 'GAME_ALREADY_STARTED') {
             getStatus();
@@ -398,7 +415,7 @@ function startGame() {
 
 function startRound() {
     console.log('startRound');
-    $.post('/api/startRound', JSON.stringify({id: myId}), function(json) {
+    $.post('/api/startRound', JSON.stringify({id: myState.id}), function(json) {
         console.log(json);
         getStatus();
     }, 'json');
@@ -406,7 +423,7 @@ function startRound() {
 
 function bid() {
     console.log('bid');
-    $.post('/api/bid', JSON.stringify({id: myId, n: myBid.n, face: myBid.face}), function(json) {
+    $.post('/api/bid', JSON.stringify({id: myState.id, n: myState.bid.n, face: myState.bid.face}), function(json) {
         console.log(json);
         if (json.success) getStatus();
     }, 'json');
@@ -414,7 +431,7 @@ function bid() {
 
 function challenge() {
     console.log('challenge');
-    $.post('/api/challenge', JSON.stringify({id: myId}), function(json) {
+    $.post('/api/challenge', JSON.stringify({id: myState.id}), function(json) {
         console.log(json);
         if (json.success) getStatus();
     }, 'json');
@@ -429,7 +446,7 @@ function done() {
 
 function selectedGame() {
     const selectedGame = $('#games').val();
-    for (let game of games) {
+    for (let game of myState.availableGames) {
         if (game.game == selectedGame) {
             console.log(game);
             let txt = 'Players: ';
@@ -440,49 +457,45 @@ function selectedGame() {
 }
 function refreshGames() {
     $.getJSON('/api/games', function (json) {
-        games = json;
+        myState.availableGames = json;
         let gameSelect = $('#games');
         gameSelect.empty();
-        for (let game of games) {
+        for (let game of json) {
             gameSelect.append(new Option(game.game, game.game));
         }
         selectedGame();
-    });
+    }, 'json');
+}
+
+function handleJoinCreate() {
+    $('#welcomeMessage').html('Welcome, ' + myState.name + '.' +
+        ' You can select an existing game below and join' +
+        ' it. You can click the refresh' +
+        ' button on the right side of games to see newly' +
+        ' created games.');
+    refreshGames();
+    show(['welcomeMessage', 'SetupCreate']);
 }
 
 function getStatus() {
     console.log('getStatus');
-    $.post('/api/status', JSON.stringify({id: myId}), function (json) {
+    $.post('/api/status', JSON.stringify({id: myState.id, hash: myState.hash}), function (json) {
         if (json.success) {
-            console.log(json);
-            if (json.hasOwnProperty('game')) {
-                myName = json.name;
+            if (json.noChange) {
+                return pollStatus();
+            }
+            if (json.game !== undefined) {
+                myState.hash = json.game.hash;
+                myState.name = json.name;
                 myGame = json.game;
                 if (myGame.state != 'GAME_NOT_STARTED') {
-                    myState = State.GAME_ON;
-                    handleState(myState);
+                    handleGameState();
                 } else if (myGame.state == 'GAME_NOT_STARTED') {
-                    myState = State.WAITING;
-                    $('#welcomeMessage').html(json.name + ', waiting for others' +
-                                              ' to join the game. Click start when you\'re' +
-                                              ' ready to start the game.');
-                    $('#welcomeMessage').removeClass('hidden');
-                    $('#Login').addClass('hidden');
-                    $('#SetupCreate').addClass('hidden');
-                    $('#WaitGameStart').removeClass('hidden');
-                    handleState();
+                    handleStateWaiting();
                 }
             } else {
-                myName = json.name;
-                $('#welcomeMessage').html('Welcome, ' + json.name + '.' +
-                                          ' You can select an existing game below and join' +
-                                          ' it. You can click the refresh' +
-                                          ' button on the right side of games to see newly' +
-                                          ' created games.');
-                $('#welcomeMessage').removeClass('hidden');
-                $('#Login').addClass('hidden');
-                $('#SetupCreate').removeClass('hidden');
-                refreshGames();
+                myState.name = json.name;
+                handleJoinCreate();
             }
         } else {
             console.log(json);
@@ -496,13 +509,13 @@ function getStatus() {
 }
 
 function adjustN(offset) {
-    myBid.n += offset;
+    myState.bid.n += offset;
     drawMyBid();
 }
 
 function adjustFace(offset) {
-    const face = myBid.face + offset;
-    myBid.face = face < 1 ? 6 : face > 6 ? 1 : face; 
+    const face = myState.bid.face + offset;
+    myState.bid.face = face < 1 ? 6 : face > 6 ? 1 : face; 
 
     drawMyBid();
 }
@@ -545,8 +558,8 @@ $(function() {
     $('#done-viewing-results').click(function() {
         done();
     });
-    myId = getParameterByName('id');
-    console.log('Loaded content for ' + myId);
+    myState.id = getParameterByName('id');
+    console.log('Loaded content for ' + myState.id);
     getStatus();
 });
 
