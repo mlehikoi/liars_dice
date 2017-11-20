@@ -168,6 +168,15 @@ public:
         return gp.first->challenge(gp.second);
     }
 
+    std::string logout(const std::string& body)
+    {
+        auto gp = getGamePlayer(parse(body));
+        gp.first->logout(gp.second);
+        // @TODO optimization opportunity
+        joinedGames_.erase(json::getString(parse(body), "id"));
+        return Success{};
+    }
+
     std::string status(const std::string& body) const
     {
         const auto doc = dice::parse(body);
@@ -372,6 +381,12 @@ std::string Engine::challenge(const std::string& body) noexcept
     } catch (const std::exception& e) {
         return Error{e.what()};
     }
+}
+
+std::string Engine::logout(const std::string& body) noexcept try {
+    return impl_->logout(body);
+} catch (const std::exception& e) {
+    return Error{e.what()};
 }
 
 std::string Engine::status(const std::string& body) const noexcept

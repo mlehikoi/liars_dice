@@ -49,6 +49,8 @@ public:
     /// @return json indicating success of failure
     std::string challenge(const std::string& body) noexcept;
 
+    std::string logout(const std::string& body) noexcept;
+
     /// Get status for a player
     /// @param body [in] json containing required input
     /// @return json indicating success of failure

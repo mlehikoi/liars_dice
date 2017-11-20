@@ -156,6 +156,12 @@ int main()
         return engine.getGames();
     });
 
+    CROW_ROUTE(app, "/api/logout")
+        .methods("POST"_method)
+        ([](const crow::request& req) {
+            return engine.logout(req.body);
+        });
+
 // Not using server side redirects for url with query params. The redirection
 // changes based on the query params. If the state on server changes, the client
 // may still be using cached value.

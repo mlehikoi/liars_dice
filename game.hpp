@@ -122,6 +122,8 @@ public:
     /// @return json indicating the success of the operation
     RetVal challenge(const std::string& player);
 
+    RetVal logout(const std::string& player);
+
     /// @return status of the game for the given player
     std::string getStatus(const std::string& player);
 

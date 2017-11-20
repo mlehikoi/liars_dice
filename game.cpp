@@ -217,6 +217,28 @@ RetVal Game::challenge(const std::string& player)
     return Success{};
 }
 
+RetVal Game::logout(const std::string& player)
+{
+    auto it = std::find_if(players_.begin(), players_.end(),
+        [&player](const Player& p) { return p.name() == player; });
+    std::cout << "num players " << players_.size() << std::endl;
+    if (it != players_.end())
+    {
+        if (state_ == ROUND_STARTED)
+        {
+            currentBid_ = Bid{};
+            for (auto& p : players_)
+            {
+                p.roll();
+            }
+        }
+        players_.erase(it);
+        ++hash_;
+    }
+    std::cout << "num players " << players_.size() << std::endl;
+    return Success{};
+}
+
 std::string Game::getStatus(const std::string& player)
 {
     rapidjson::StringBuffer s;
