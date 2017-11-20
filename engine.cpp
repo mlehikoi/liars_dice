@@ -194,7 +194,7 @@ public:
         rapidjson::StringBuffer s;
         rapidjson::PrettyWriter<rapidjson::StringBuffer> w{s};
 
-        json::Object(w, [this, &doc, &id, game](auto& w)
+        json::Object(w, [this, &id, game](auto& w)
         {
             const std::string name = getPlayer(id);
 
