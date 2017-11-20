@@ -45,20 +45,30 @@
             <div id="WaitGameStart" class="hidden">
                 <div class="col-xs-12" id="players-waiting"></div>
                 <div style="height:50px;"></div>
-                <div class="col-xs-12">
-                    <button type="button" id="start-game" class="btn btn-success pull-right hidden">Start</button>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <button type="button" id="start-game" class="btn btn-success pull-right hidden">Start</button>
+                    </div>
                 </div>
-                <div id="start-game-status" class="hidden"></div>
+                <div id="start-game-status"></div>
             </div>
-            <div id="GameStarted" class="hidden">
-                <p id="game-started-message"></p>
-                <div id="start-round" class="col-xs-12">
-                    <button type="button" id="start-round" class="btn btn-success pull-right">Start</button>
-                </div>
-            </div>
-            
+    
             <div id="GameOn" class="hidden">
                 <!--#include virtual="gameon.html" -->
+            </div>
+            <!-- logout -->
+            <div id="LogOut">
+                <div class="row">
+                    <hr class="col-xs-12"/>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <button type="button" id="log-out" class="btn btn-danger pull-right">
+                            <span class="glyphicon glyphicon-log-out"></span>
+                            Log out
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 

@@ -15,15 +15,6 @@ var myGame;
 
 
 const Images2 = [];
-//for (var img of Images) {
-//    let image = document.createElement('img');
-//    image.setAttribute('src', '/images/' + img[0] + '-24x24.png');
-//    image.setAttribute('alt', img[1]);
-//    image.setAttribute('height', '16');
-//    image.setAttribute('width', '16');
-//    Images2.push(image.cloneNode(true));
-//}
-
 (function() {
     const images = [
         ['question', '?'],
@@ -83,7 +74,6 @@ function show(toShow) {
         'SetupCreate',
         'WaitGameStart',
         'GameOn',
-        'GameStarted',
         'start-round',
         'InvalidId'
     ];
@@ -101,10 +91,11 @@ function score(bid) {
 // Draw the number of dice of bid
 // Make sure the bid is high enough
 function drawMyBid() {
+    console.log(myGame.bid);
     const bid = myGame.bid;
     const prevBid = {
         n: bid ? bid.n : 0,
-        face: bid ? bid.face : 1
+        face: bid && bid.face ? bid.face : 1
     };
     myState.bid = { n: prevBid.n, face: prevBid.face };
     // Make sure bid is high enough
@@ -444,6 +435,14 @@ function done() {
         startRound();
 }
 
+function logOut() {
+    console.log('logging out');
+    $.post('/api/logout', JSON.stringify({id: myState.id}), function(json) {
+        console.log(json);
+        getStatus();
+    }, 'json');
+}
+
 function selectedGame() {
     const selectedGame = $('#games').val();
     for (let game of myState.availableGames) {
@@ -484,7 +483,9 @@ function getStatus() {
             if (json.noChange) {
                 return pollStatus();
             }
+            console.log(json);
             if (json.game !== undefined) {
+                $('#LogOut').removeClass('hidden');
                 myState.hash = json.game.hash;
                 myState.name = json.name;
                 myGame = json.game;
@@ -494,6 +495,7 @@ function getStatus() {
                     handleStateWaiting();
                 }
             } else {
+                $('#LogOut').addClass('hidden');
                 myState.name = json.name;
                 handleJoinCreate();
             }
@@ -557,6 +559,9 @@ $(function() {
     });
     $('#done-viewing-results').click(function() {
         done();
+    });
+    $('#log-out').click(function() {
+        logOut();
     });
     myState.id = getParameterByName('id');
     console.log('Loaded content for ' + myState.id);
