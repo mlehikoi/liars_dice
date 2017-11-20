@@ -4,8 +4,6 @@ project (bluff)
 find_package(Threads)
 
 add_definitions(
-    -g
-    -O3
     -std=c++14
     -Werror
 )
@@ -39,6 +37,9 @@ include_directories(SYSTEM
     ../brotli/c/include
     ${Boost_INCLUDE_DIRS}
 )
+
+# clang++ -std=c++14 -x c++-header  -I/usr/local/Cellar/boost/1.65.0/include/ ./crow_all.h -o crow_all.h.pch
+# SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -include-pch crow/crow_all.h.pch")
 
 add_library(libdice
     bid.cpp
