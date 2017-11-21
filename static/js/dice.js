@@ -1,6 +1,6 @@
 'use strict';
 
-var myState = {
+var my = {
     id: '',
     name: '',
     hash: undefined,
@@ -91,26 +91,24 @@ function score(bid) {
 // Draw the number of dice of bid
 // Make sure the bid is high enough
 function drawMyBid() {
-    console.log(myGame.bid);
     const bid = myGame.bid;
     const prevBid = {
         n: bid ? bid.n : 0,
         face: bid && bid.face ? bid.face : 1
     };
-    myState.bid = { n: prevBid.n, face: prevBid.face };
     // Make sure bid is high enough
-    while (score(myState.bid) <= score(prevBid)) ++myState.bid.n;
+    while (score(my.bid) <= score(prevBid)) ++my.bid.n;
 
-    $('#n').html(myState.bid.n);
-    if (score({ n: myState.bid.n - 1, face: myState.bid.face }) <= score(prevBid)) {
+    $('#n').html(my.bid.n);
+    if (score({ n: my.bid.n - 1, face: my.bid.face }) <= score(prevBid)) {
         $('#n-minus').addClass('disabled');    
     } else {
         $('#n-minus').removeClass('disabled');
     }
     for (let i = 1; i <= 6; ++i)
-        if (i != myState.bid.face)
+        if (i != my.bid.face)
             $('#face-' + i).addClass('hidden');
-    $('#face-' + myState.bid.face).removeClass('hidden');
+    $('#face-' + my.bid.face).removeClass('hidden');
 }
 
 /**
@@ -146,8 +144,8 @@ function drawDice(pid, cell) {
 
 function drawBid(bid, trow) {
     const bidTxt = JSON.stringify(bid);
-    if (bidTxt != myState.bidTxt) {
-        myState.bidTxt = bidTxt;
+    if (bidTxt != my.bidTxt) {
+        my.bidTxt = bidTxt;
         if (bid.n > 0 && bid.face > 0) {
             const cell = document.createElement('td');
             cell.appendChild(document.createTextNode(bid.n + ' '));
@@ -158,12 +156,12 @@ function drawBid(bid, trow) {
 }
 
 function pollStatus() {
-    clearTimeout(myState.timer);
-    myState.timer = setTimeout(function(){ getStatus(); }, 5000);
+    clearTimeout(my.timer);
+    my.timer = setTimeout(function(){ getStatus(); }, 5000);
 }
 
 function handleStateWaiting() {
-    $('#welcomeMessage').html(myState.name + ', waiting for others' +
+    $('#welcomeMessage').html(my.name + ', waiting for others' +
                               ' to join the game. Click start when you\'re' +
                               ' ready to start the game.');
     $('#welcomeMessage').removeClass('hidden');
@@ -218,7 +216,7 @@ function drawTableRow(trow, pid) {
     } else {
         $(trow).removeClass('active');
     }
-    if (name == myState.name) {
+    if (name == my.name) {
         const nameEl = document.createElement('strong');
         nameEl.appendChild(document.createTextNode(name));
         cell.appendChild(nameEl);
@@ -242,13 +240,13 @@ function checkDiceChanged() {
         }
     }
     allDice = allDice.toString();
-    if (allDice == myState.allDice) {
+    if (allDice == my.allDice) {
         console.log('no change in dice');
         return false;
     }
     console.log('dice changed');
     console.log(allDice.toString());
-    myState.allDice = allDice;
+    my.allDice = allDice;
     return true;
 }
 
@@ -303,8 +301,8 @@ function getWinnersAndLosers() {
 
 function handleRoundStarted() {
     const playerInTurn = myGame.players[myGame.turn].name;
-    if (myGame.players[myGame.turn].name == myState.name) {
-        $('#game-msg').html(myState.name + ', it\'s your turn. You can either make a higher bid or challeng the bid.');
+    if (myGame.players[myGame.turn].name == my.name) {
+        $('#game-msg').html(my.name + ', it\'s your turn. You can either make a higher bid or challeng the bid.');
         if (myGame.bid.n) {
             $('#challenge').removeClass('disabled');
         }
@@ -312,6 +310,8 @@ function handleRoundStarted() {
             $('#challenge').addClass('disabled');
         }
         $('#BidOrChallenge').removeClass('hidden');
+        my.bid.n = myGame.bid.n;
+        my.bid.face = myGame.bid.face ? myGame.bid.face : 1;
         drawMyBid();
         // No need to poll status when it's my turn
     }
@@ -359,7 +359,7 @@ function handleGameState() {
 function join(game) {
     $('#join-status').addClass('hidden');
     $('#create-status').addClass('hidden');
-    $.post('/api/join', JSON.stringify({id: myState.id, game: game}), function(json) {
+    $.post('/api/join', JSON.stringify({id: my.id, game: game}), function(json) {
         console.log(json);
         if (json.success) {
             getStatus();    
@@ -377,7 +377,7 @@ function createGame(name) {
     $('#create-status').addClass('hidden');
     $('#join-status').addClass('hidden');
     $('#create-status').addClass('hidden');
-    $.post('/api/newGame', JSON.stringify({id: myState.id, game: name}), function(json) {
+    $.post('/api/newGame', JSON.stringify({id: my.id, game: name}), function(json) {
         console.log(json);
         if (json.success) {
             getStatus();    
@@ -392,7 +392,7 @@ function createGame(name) {
 
 function startGame() {
     console.log('startGame');
-    $.post('/api/startGame', JSON.stringify({id: myState.id}), function(json) {
+    $.post('/api/startGame', JSON.stringify({id: my.id}), function(json) {
         console.log(json);
         if (json.success || json.error == 'GAME_ALREADY_STARTED') {
             getStatus();
@@ -406,7 +406,7 @@ function startGame() {
 
 function startRound() {
     console.log('startRound');
-    $.post('/api/startRound', JSON.stringify({id: myState.id}), function(json) {
+    $.post('/api/startRound', JSON.stringify({id: my.id}), function(json) {
         console.log(json);
         getStatus();
     }, 'json');
@@ -414,7 +414,7 @@ function startRound() {
 
 function bid() {
     console.log('bid');
-    $.post('/api/bid', JSON.stringify({id: myState.id, n: myState.bid.n, face: myState.bid.face}), function(json) {
+    $.post('/api/bid', JSON.stringify({id: my.id, n: my.bid.n, face: my.bid.face}), function(json) {
         console.log(json);
         if (json.success) getStatus();
     }, 'json');
@@ -422,7 +422,7 @@ function bid() {
 
 function challenge() {
     console.log('challenge');
-    $.post('/api/challenge', JSON.stringify({id: myState.id}), function(json) {
+    $.post('/api/challenge', JSON.stringify({id: my.id}), function(json) {
         console.log(json);
         if (json.success) getStatus();
     }, 'json');
@@ -437,7 +437,7 @@ function done() {
 
 function logOut() {
     console.log('logging out');
-    $.post('/api/logout', JSON.stringify({id: myState.id}), function(json) {
+    $.post('/api/logout', JSON.stringify({id: my.id}), function(json) {
         console.log(json);
         getStatus();
     }, 'json');
@@ -445,7 +445,7 @@ function logOut() {
 
 function selectedGame() {
     const selectedGame = $('#games').val();
-    for (let game of myState.availableGames) {
+    for (let game of my.availableGames) {
         if (game.game == selectedGame) {
             console.log(game);
             let txt = 'Players: ';
@@ -456,7 +456,7 @@ function selectedGame() {
 }
 function refreshGames() {
     $.getJSON('/api/games', function (json) {
-        myState.availableGames = json;
+        my.availableGames = json;
         let gameSelect = $('#games');
         gameSelect.empty();
         for (let game of json) {
@@ -467,7 +467,7 @@ function refreshGames() {
 }
 
 function handleJoinCreate() {
-    $('#welcomeMessage').html('Welcome, ' + myState.name + '.' +
+    $('#welcomeMessage').html('Welcome, ' + my.name + '.' +
         ' You can select an existing game below and join' +
         ' it. You can click the refresh' +
         ' button on the right side of games to see newly' +
@@ -478,7 +478,7 @@ function handleJoinCreate() {
 
 function getStatus() {
     console.log('getStatus');
-    $.post('/api/status', JSON.stringify({id: myState.id, hash: myState.hash}), function (json) {
+    $.post('/api/status', JSON.stringify({id: my.id, hash: my.hash}), function (json) {
         if (json.success) {
             if (json.noChange) {
                 return pollStatus();
@@ -486,8 +486,8 @@ function getStatus() {
             console.log(json);
             if (json.game !== undefined) {
                 $('#LogOut').removeClass('hidden');
-                myState.hash = json.game.hash;
-                myState.name = json.name;
+                my.hash = json.game.hash;
+                my.name = json.name;
                 myGame = json.game;
                 if (myGame.state != 'GAME_NOT_STARTED') {
                     handleGameState();
@@ -496,7 +496,7 @@ function getStatus() {
                 }
             } else {
                 $('#LogOut').addClass('hidden');
-                myState.name = json.name;
+                my.name = json.name;
                 handleJoinCreate();
             }
         } else {
@@ -511,13 +511,13 @@ function getStatus() {
 }
 
 function adjustN(offset) {
-    myState.bid.n += offset;
+    my.bid.n += offset;
     drawMyBid();
 }
 
 function adjustFace(offset) {
-    const face = myState.bid.face + offset;
-    myState.bid.face = face < 1 ? 6 : face > 6 ? 1 : face; 
+    const face = my.bid.face + offset;
+    my.bid.face = face < 1 ? 6 : face > 6 ? 1 : face; 
 
     drawMyBid();
 }
@@ -563,8 +563,8 @@ $(function() {
     $('#log-out').click(function() {
         logOut();
     });
-    myState.id = getParameterByName('id');
-    console.log('Loaded content for ' + myState.id);
+    my.id = getParameterByName('id');
+    console.log('Loaded content for ' + my.id);
     getStatus();
 });
 
