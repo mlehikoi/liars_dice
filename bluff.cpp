@@ -79,8 +79,14 @@ int main()
     crow::SimpleApp app;
 
     CROW_ROUTE(app, "/")([]{
-        crow::response resp{};
+        crow::response resp;
         resp.redirect("/login.html");
+        return resp;
+    });
+
+    CROW_ROUTE(app, "/favicon.ico")([]{
+        crow::response resp;
+        resp.redirect("/images/favicon.ico");
         return resp;
     });
 
