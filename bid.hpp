@@ -37,6 +37,7 @@ public:
     auto face() const { return face_; }
 
     int score() const;
+    static Bid fromScore(int score);
     bool valid() const { return score() > 0; }
 
     /// Equality operator

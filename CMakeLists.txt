@@ -77,6 +77,7 @@ target_link_libraries(bluff
 
 set(TEST_FILES
     test_bluff.cpp
+    test/test_bid.cpp
     test/test_dice.cpp
     test/test_game.cpp
     test/test_player.cpp

@@ -19,7 +19,32 @@ Bid::Bid(int n, int face)
 
 int Bid::score() const
 {
-    return face_ == STAR ? n_ * 20 : n_ * 10 + face_;
+    if (n_ <= 0)
+    {
+        return 0;
+    }
+    else if (face_ == STAR)
+    {
+        return 6 + (n_ - 1) * 11;
+    }
+    // Leave "space" for stars
+    const int stars = n_ / 2;
+    return (n_ - 1) * 5 + face_ + stars;
+}
+
+Bid Bid::fromScore(int score)
+{
+    if (score == 0)
+    {
+        return {0, 0};
+    }
+    const auto stars = std::div(score + 5, 11);
+    if (stars.rem == 0) // star
+    {
+        return {stars.quot, STAR};
+    }
+    const auto dice = std::div(score - stars.quot - 1, 5);
+    return {dice.quot + 1, dice.rem + 1};
 }
 
 bool Bid::operator<(const Bid& other) const
