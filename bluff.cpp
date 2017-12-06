@@ -185,6 +185,10 @@ int main()
     });
 #endif
 
+    CROW_ROUTE(app, "/game2.html")([](const crow::request& req) {
+	   return readFile("game.html", req);
+    });
+
     CROW_ROUTE(app, "/<string>")([](const crow::request& req, std::string name) {
 	    return readFile(name, req);
     });

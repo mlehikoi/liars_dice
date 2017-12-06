@@ -9,7 +9,8 @@ namespace dice {
 
 std::string expires()
 {
-    const auto expires = std::chrono::system_clock::now() + std::chrono::hours{365 * 24};
+    //const auto expires = std::chrono::system_clock::now() + std::chrono::hours{365 * 24};
+    const auto expires = std::chrono::system_clock::now() + std::chrono::hours{1};
     const auto tt = std::chrono::system_clock::to_time_t(expires);
     std::tm tm;
     const auto* ptm = gmtime_r(&tt, &tm);
