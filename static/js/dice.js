@@ -142,17 +142,19 @@
         $(cell).removeClass('hidden');
     }
 
+    /**
+     * Draws bid for a player
+     * @param {Object} bid of the player
+     * @param {TableRow} trow table row where to draw
+     */
     function drawBid(bid, trow) {
-        const bidTxt = JSON.stringify(bid);
-        if (bidTxt != my.bidTxt) {
-            my.bidTxt = bidTxt;
-            if (bid.n > 0 && bid.face > 0) {
-                const cell = document.createElement('td');
-                cell.appendChild(document.createTextNode(bid.n + ' '));
-                cell.appendChild(images[bid.face].cloneNode(false));
-                trow.replaceChild(cell, trow.cells[2]);
-            }
+        console.log('drawBid')
+        const cell = document.createElement('td');
+        if (bid.n > 0 && bid.face > 0) {
+            cell.appendChild(document.createTextNode(bid.n + ' '));
+            cell.appendChild(images[bid.face].cloneNode(false));
         }
+        trow.replaceChild(cell, trow.cells[2]);
     }
 
     function pollStatus() {
